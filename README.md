@@ -1,131 +1,101 @@
-# Copyright DST Group. Licensed under the MIT license.
+# MARL CybORG (v3.0.0)
 
-# Cyber Operations Research Gym (CybORG)
+Multi-Agent Reinforcement Learning (MARL) cybersecurity simulator mathematically derived from the original [CybORG / CAGE challenge environment](https://github.com/CyberSecurityCRC/CybORG). 
 
-A cyber security research environment for training and development of security human and autonomous agents. Contains a common interface for both emulated, using cloud based virtual machines, and simulated network environments.
+**Author / Maintainer:** Igor Jankowski (igorjankowwski@gmail.com)  
+**Project:** MARL Cyborg
 
-## Installation
+## Architectural Overhaul Notice
 
-Install CybORG locally using pip from the main directory that contains this readme
+This repository represents a complete structural redesign of the original CybORG framework. I took ownership of this branch because the legacy CybORG environment was fundamentally restricted to single-agent, turn-based paradigms (utilizing nested OpenAI Gym wrappers) which artificially broke parallel gradients and hindered true Multi-Agent research.
 
+### What is Different?
+1. **Parallel Execution via PettingZoo:** The core simulator is now strictly built upon the `pettingzoo.ParallelEnv` standard instead of monolithic Gym wrappers. Red and Blue teams act in a simultaneous time vacuum, and the engine natively resolves their conflicting action intents.
+2. **Abstract Action Engine:** Actions no longer mutate simulator state directly via complex monolithic switch statements. `BaseAction` computes an `ActionEffect` (JSON representation of physical network impact), which the core environment evaluates and securely commits.
+3. **No Legacy Bloat:** I have deleted all obsolete OpenAI Gym references, redundant CAGE challenge sub-modules, and unneeded demo code. 
+
+### Simulator Architecture Flow
+
+```mermaid
+graph TD
+    A[PettingZoo ParallelEnv] -->|RL Agent Actions| B(marl_cyborg Action Decoder)
+    B --> C{BaseAction Subclasses}
+    C -->|Red Intent| D[Red Modular Actions]
+    C -->|Blue Intent| E[Blue Modular Actions]
+    D -->|Calculate Effects| F[ActionEffect Delta Map]
+    E -->|Calculate Effects| F
+    F -->|Apply & Resolve Conflicts| G[(Global Network State)]
+    G -->|Extract Telemetry| H[BaseObservation]
+    H -->|Numpy Arrays| A
+    G -.->|Step Action Data| I(PCAPSynthesizer)
+    I -.->|scapy.utils.wrpcap| J[Offline .pcap Dataset]
 ```
-pip install -e .
-```
 
+## Quick Start & Testing
 
-## Creating the environment
-
-Create a CybORG environment with the DroneSwarm Scenario that is used for CAGE Challenge 3:
+The environment is designed to be highly plug-and-play. 
 
 ```python
-from CybORG import CybORG
-from CybORG.Simulator.Scenarios.DroneSwarmScenarioGenerator import DroneSwarmScenarioGenerator
+from marl_cyborg.environment.parallel_env import ParallelMarlCyborg
 
-sg = DroneSwarmScenarioGenerator()
-cyborg = CybORG(sg, 'sim')
+# Instantiate the native PettingZoo environment
+env = ParallelMarlCyborg(scenario_config={})
+
+# Reset to get parallel Gymnasium boxes
+observations, infos = env.reset()
+
+print("Red Box:", observations["Red"])
+print("Blue Box:", observations["Blue"])
 ```
 
-The default_red_agent parameter of the DroneSwarmScenarioGenerator allows you to alter the red agent behaviour. Here is an example of a red agent that randomly selects a drone to exploit and seize control of:
+## Building Custom Cyber Attacks (Extensibility)
 
-```python
-from CybORG import CybORG
-from CybORG.Simulator.Scenarios.DroneSwarmScenarioGenerator import DroneSwarmScenarioGenerator
-from CybORG.Agents.SimpleAgents.DroneRedAgent import DroneRedAgent
+The primary reason for this fork is extensibility. Want to add an *ARP Poisoning* attack? 
 
-red_agent = DroneRedAgent
-sg = DroneSwarmScenarioGenerator(default_red_agent=red_agent)
-cyborg = CybORG(sg, 'sim')
-```
+Simply inherit the `BaseAction` inside `marl_cyborg/actions/network/arp_poison.py`, write how it modifies the theoretical `ActionEffect`, and the engine natively calculates the physics resolution. See `marl_cyborg.actions.network.ip_fragmentation.IPFragmentationAction` for a physical example of this structural implementation.
 
+## License & Accreditation
+This project is built upon the foundational work provided by the original CybORG contributors (CyberSecurityCRC / DSTG). The core internal simulator physics remain preserved, while the outward translation layers, action hierarchy, and Multi-Agent APIs have been entirely redesigned by Igor Jankowski.
 
-## Wrappers
+## Repository Structure
 
+- `marl_cyborg/`: Core simulation environment
+  - `actions/`: Contains definitions for all `BaseAction` implementations.
+    - `red_actions.py`: Red team offensive actions.
+    - `blue_actions.py`: Blue team defensive actions.
+  - `core/`: State, Observation, and Action abstract base classes.
+  - `environment/`:
+    - `parallel_env.py`: The primary PettingZoo MARL environment.
+    - `pcap_synthesizer.py`: Generates synthetic offline `.pcap` network traffic mappings.
+- `train_curriculum.py`: Example RL training script.
+- `test_physics.py`: Physics unit tests.
 
-To alter the interface with CybORG, [wrappers](CybORG/Agents/Wrappers) are avaliable.
+## Available Actions
 
- 
+All actions are natively available to the RL models through the environment's discrete action space (`Discrete(256)`). The engine dynamically scales and maps these 11 actions per team against all available network IPs.
 
-* [OpenAIGymWrapper](CybORG/Agents/Wrappers/OpenAIGymWrapper.py) - alters the interface to conform to the OpenAI Gym specification. Requires the observation to be changed into a fixed size array.
-* [FixedFlatWrapper](CybORG/Agents/Wrappers/FixedFlatWrapper.py) - converts the observation from a dictionary format into a fixed size 1-dimensional vector of floats
-* [PettingZooParallelWrapper](CybORG/Agents/Wrappers/PettingZooParallelWrapper.py) - alters the interface to conform to the PettingZoo Parallel specification
-    * [ActionsCommsPettingZooParallelWrapper](CybORG/Agents/Wrappers/CommsPettingZooParallelWrapper.py) - Extends the PettingZoo Parallel interface to automatically communicate what action an agent performed to other agents
-    * [ObsCommsPettingZooParallelWrapper](CybORG/Agents/Wrappers/CommsPettingZooParallelWrapper.py) - Extends the PettingZoo Parallel interface to automatically communicate elements of an agent's observation to other agents
-    * [AgentCommsPettingZooParallelWrapper](CybORG/Agents/Wrappers/CommsPettingZooParallelWrapper.py) - Extends the PettingZoo Parallel interface to allow agents to select what message they want to broadcast to other agents as part of the agent's action space
+### Red Team (Offensive)
+1. **NetworkScan**: Scans a target subnet for active IP addresses.
+2. **DiscoverRemoteSystems**: Performs a Ping Sweep to pinpoint active hosts.
+3. **DiscoverNetworkServices**: Port scans a host to enumerate running services.
+4. **ExploitRemoteService**: Exploits a vulnerability on a target IP to gain User privileges.
+5. **PrivilegeEscalate**: Escalates from User to Root access.
+6. **Impact**: Destroys/encrypts data on a compromised host (Ransomware/Wiper).
+7. **ExploitBlueKeep**: Exploits RDP (CVE-2019-0708) on Port 3389.
+8. **ExploitEternalBlue**: Exploits SMB (MS17-010) on Port 445.
+9. **ExploitHTTP_RFI**: Remote File Inclusion exploit targeting Port 80.
+10. **JuicyPotato**: Local privilege escalation via DCOM (Windows).
+11. **V4L2KernelExploit**: Local privilege escalation via Video4Linux kernel vulns (Linux).
 
-## How to Use
-
-### OpenAI Gym Wrapper
-
-The OpenAI Gym Wrapper allows interaction with a single external agent. The name of that external agent must be specified at the creation of the OpenAI Gym Wrapper.
-
-```python
-from CybORG import CybORG
-from CybORG.Simulator.Scenarios.DroneSwarmScenarioGenerator import DroneSwarmScenarioGenerator
-from CybORG.Agents.Wrappers.OpenAIGymWrapper import OpenAIGymWrapper
-from CybORG.Agents.Wrappers.FixedFlatWrapper import FixedFlatWrapper
-
-sg = DroneSwarmScenarioGenerator()
-cyborg = CybORG(sg, 'sim')
-agent_name = 'blue_agent_0'
-open_ai_wrapped_cyborg = OpenAIGymWrapper(agent_name=agent_name, env=FixedFlatWrapper(cyborg))
-observation, reward, done, info = open_ai_wrapped_cyborg.step(0)
-```
-
-### PettingZoo Parallel Wrapper
-
-The PettingZoo Parallel Wrapper allows multiple agents to interact with the environment simultaneously.
-
-```python
-from CybORG import CybORG
-from CybORG.Simulator.Scenarios.DroneSwarmScenarioGenerator import DroneSwarmScenarioGenerator
-from CybORG.Agents.Wrappers.PettingZooParallelWrapper import PettingZooParallelWrapper
-
-sg = DroneSwarmScenarioGenerator()
-cyborg = CybORG(sg, 'sim')
-open_ai_wrapped_cyborg = PettingZooParallelWrapper(cyborg)
-observations, rewards, dones, infos = open_ai_wrapped_cyborg.step({'blue_agent_0': 0, 'blue_agent_1': 0})
-```
-
-### Ray/RLLib wrapper  
-```python
-from CybORG import CybORG
-from CybORG.Simulator.Scenarios.DroneSwarmScenarioGenerator import DroneSwarmScenarioGenerator
-from CybORG.Agents.Wrappers.PettingZooParallelWrapper import PettingZooParallelWrapper
-from ray.rllib.env import ParallelPettingZooEnv
-from ray.tune import register_env
-
-def env_creator_CC3(env_config: dict):
-    sg = DroneSwarmScenarioGenerator()
-    cyborg = CybORG(scenario_generator=sg, environment='sim')
-    env = ParallelPettingZooEnv(PettingZooParallelWrapper(env=cyborg))
-    return env
-
-register_env(name="CC3", env_creator=env_creator_CC3)
-```
- 
-
-
-## Evaluating agent performance
-
-To evaluate an agent's performance please use the [evaluation script](CybORG/Evaluation/evaluation.py) and the [submission file](CybORG/Evaluation/submission/submission.py).
-
-Please see the [submission instructions](CybORG/Evaluation/submission/submission_readme.md) for further information on submission and evaluation of agents.
-
-## Additional Readings
-For further guidance on the CybORG environment please refer to the [tutorial notebook series.](CybORG/Tutorial). For information on the CAGE challenges, please refer to the following pages:
-[CAGE Challenge 1](https://github.com/cage-challenge/cage-challenge-1) 
-[CAGE Challenge 2](https://github.com/cage-challenge/cage-challenge-2) 
-[CAGE Challenge 3](https://github.com/cage-challenge/cage-challenge-3) 
-[CAGE Challenge 4](https://github.com/cage-challenge/cage-challenge-4) 
-
-## Citing this project
-```
-@misc{cage_cyborg_2022, 
-  Title = {Cyber Operations Research Gym}, 
-  Note = {Created by Maxwell Standen, David Bowman, Son Hoang, Toby Richer, Martin Lucas, Richard Van Tassel, Phillip Vu, Mitchell Kiely, KC C., Natalie Konschnik, Joshua Collyer}, 
-  Publisher = {GitHub}, 
-  Howpublished = {\url{https://github.com/cage-challenge/CybORG}}, 
-  Year = {2022} 
-}
-```
-
+### Blue Team (Defensive)
+1. **IsolateHost**: Disconnects a host completely from the network.
+2. **RestoreHost**: Brings an isolated host back online from a clean snapshot.
+3. **Monitor**: Actively monitors traffic on a specific subnet or host for anomalies.
+4. **Analyze**: Deep scans a specific host for malware signatures or unauthorized user activity.
+5. **DeployDecoy**: Deploys a generic fake service (Apache/Tomcat/Femitter) to bait attackers.
+6. **Remove**: Removes unauthorized user privileges.
+7. **RestoreFromBackup**: Purges an infected host and restores it to a clean baseline from a backup.
+8. **DecoyApache**: Deploys a fake Apache web server (Port 80) honeypot.
+9. **DecoySSHD**: Deploys a fake SSH daemon (Port 22) honeypot.
+10. **DecoyTomcat**: Deploys a fake Tomcat server (Port 8080) honeypot.
+11. **Misinform**: Injects false host telemetry or alters logging to feed Red agents fake data.
