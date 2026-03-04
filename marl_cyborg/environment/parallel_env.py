@@ -4,8 +4,8 @@ import gymnasium as gym
 
 from marl_cyborg.core.action import BaseAction, ActionEffect
 from marl_cyborg.core.observation import BaseObservation
-from marl_cyborg.core.state import GlobalNetworkState, Subnet, Host
 from marl_cyborg.environment.base_env import BaseMarlCyborg
+from marl_cyborg.topologies.network_generator import NetworkGenerator
 
 
 class ParallelMarlCyborg(BaseMarlCyborg):
@@ -18,7 +18,17 @@ class ParallelMarlCyborg(BaseMarlCyborg):
     metadata = {'render_modes': ['ansi'], 'name': 'marl_cyborg_v3'}
 
     def __init__(self, scenario_config: dict):
-        self.global_state = self._initialize_network(scenario_config)
+        # Default to procedural generation if no specific architecture config is provided
+        topology_path = (
+            scenario_config.get('topology_path') if scenario_config else None
+        )
+        self.network_generator = NetworkGenerator(config_path=topology_path)
+
+        scenario_type = (
+            scenario_config.get('scenario_type', 'ransomware')
+            if scenario_config
+            else 'ransomware'
+        )
         self.possible_agents = [
             'red_commander',
             'red_operator',
@@ -26,6 +36,17 @@ class ParallelMarlCyborg(BaseMarlCyborg):
             'blue_operator',
         ]
         self.agents = self.possible_agents[:]
+
+        if scenario_type.lower() == 'ransomware':
+            from marl_cyborg.scenarios.ransomware import RansomwareScenario
+
+            self.scenario = RansomwareScenario(self.agents)
+        else:
+            from marl_cyborg.scenarios.apt_espionage import AptEspionageScenario
+
+            self.scenario = AptEspionageScenario(self.agents)
+
+        self.global_state = self.network_generator.generate()
 
         # Native Gymnasium Spaces for PettingZoo API
         self.observation_spaces = {
@@ -41,50 +62,13 @@ class ParallelMarlCyborg(BaseMarlCyborg):
         self.max_steps = 100
         self.current_step = 0
 
-    def _initialize_network(self, config):
-        """Builds a deterministic 10-Node architecture across 3 Subnets for training."""
-        state = GlobalNetworkState()
-
-        corp_net = Subnet(cidr='10.0.0.0/24', name='Corporate')
-        dmz_net = Subnet(cidr='192.168.1.0/24', name='DMZ')
-        secure_net = Subnet(cidr='10.0.1.0/24', name='Secure')
-
-        state.add_subnet(corp_net)
-        state.add_subnet(dmz_net)
-        state.add_subnet(secure_net)
-
-        # Add entry nodes in DMZ
-        state.register_host(
-            Host(ip='192.168.1.5', hostname='Web_A', subnet_cidr='192.168.1.0/24')
-        )
-        state.register_host(
-            Host(ip='192.168.1.6', hostname='Web_B', subnet_cidr='192.168.1.0/24')
-        )
-
-        # Add internal Corporate nodes
-        for i in range(10, 16):
-            state.register_host(
-                Host(
-                    ip=f'10.0.0.{i}', hostname=f'User_PC_{i}', subnet_cidr='10.0.0.0/24'
-                )
-            )
-
-        # Add secure database nodes
-        state.register_host(
-            Host(ip='10.0.1.100', hostname='DB_Primary', subnet_cidr='10.0.1.0/24')
-        )
-        state.register_host(
-            Host(ip='10.0.1.101', hostname='DB_Backup', subnet_cidr='10.0.1.0/24')
-        )
-
-        return state
-
     def reset(
         self, seed=None, options=None
     ) -> Tuple[Dict[str, np.ndarray], Dict[str, dict]]:
         """
         Resets the network state to initial configuration natively (Gymnasium style + PettingZoo).
         """
+        self.global_state = self.network_generator.generate(seed=seed)
         self.agents = self.possible_agents[:]
         observations = {}
         for agent_id in self.agents:
@@ -138,7 +122,7 @@ class ParallelMarlCyborg(BaseMarlCyborg):
 
         observations = {}
         rewards = {}
-        terminate = {agent: False for agent in self.agents}
+        terminate = self.scenario.check_termination(self.global_state)
         self.current_step += 1
         is_truncated = self.current_step >= self.max_steps
         truncate = {agent: is_truncated for agent in self.agents}
@@ -324,38 +308,6 @@ class ParallelMarlCyborg(BaseMarlCyborg):
 
     def _calculate_reward(self, agent_id: str, state) -> float:
         """
-        Reward Equations:
-        R_red = Sum(Phi * Compromised) - (w2 * Noise) - Cost
-        R_blue = (w3 * Uptime) + (w4 * Mitigation) - (w5 * exp(FalsePositives))
+        Delegates reward logic directly to the localized Scenario module.
         """
-        if 'red' in agent_id.lower():
-            reward = 0.0
-            # +10 per compromised node
-            compromised_count = sum(
-                1 for h in state.all_hosts.values() if h.privilege in ['User', 'Root']
-            )
-            reward += compromised_count * 10.0
-            # Flat stealth penalty to discourage infinite blind scanning
-            reward -= 0.1
-            return reward
-
-        elif 'blue' in agent_id.lower():
-            reward = 0.0
-            for h in state.all_hosts.values():
-                is_infected = h.privilege in ['User', 'Root']
-                is_isolated = h.status == 'isolated'
-
-                if not is_infected and not is_isolated:
-                    reward += (
-                        1.0  # Uptime of clean host (Confidentiality & Availability)
-                    )
-                elif not is_infected and is_isolated:
-                    reward -= 5.0  # False Positive Isolation Penalty (Catastrophic Business Interruption)
-                elif is_infected and is_isolated:
-                    reward += 10.0  # True Positive Mitigation Reward (Zero-Trust execution successful)
-                elif is_infected and not is_isolated:
-                    reward -= 10.0  # Security breach penalty (APT lateral progression)
-
-            return reward
-
-        return 0.0
+        return self.scenario.calculate_reward(agent_id, state)

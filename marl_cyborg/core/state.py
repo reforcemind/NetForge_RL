@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, Set
 
 
 class Host:
@@ -33,6 +33,14 @@ class GlobalNetworkState:
     def __init__(self):
         self.subnets: Dict[str, Subnet] = {}
         self.all_hosts: Dict[str, Host] = {}
+        # Tracks which IPs each agent currently knows about (Fog of War)
+        self.agent_knowledge: Dict[str, Set[str]] = {}
+
+    def update_knowledge(self, agent_id: str, ip: str):
+        """Adds an IP address to the agent's knowledge graph."""
+        if agent_id not in self.agent_knowledge:
+            self.agent_knowledge[agent_id] = set()
+        self.agent_knowledge[agent_id].add(ip)
 
     def add_subnet(self, subnet: Subnet):
         self.subnets[subnet.cidr] = subnet
@@ -47,6 +55,7 @@ class GlobalNetworkState:
         """
         Dynamically mutates the network graph based on dot-notation paths.
         Example: apply_delta("hosts/10.0.0.5/status", "isolated")
+        Example: apply_delta("knowledge/red_agent_0/10.0.0.5", "True")
         """
         parts = delta_key.split('/')
         if parts[0] == 'hosts' and len(parts) == 3:
@@ -58,6 +67,11 @@ class GlobalNetworkState:
                 # Directly mutate the object property via setattr
                 if hasattr(host, attribute):
                     setattr(host, attribute, delta_value)
+
+        elif parts[0] == 'knowledge' and len(parts) == 3:
+            agent_id = parts[1]
+            ip = parts[2]
+            self.update_knowledge(agent_id, ip)
 
     def can_route_to(self, target_ip: str) -> bool:
         """

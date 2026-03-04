@@ -95,7 +95,13 @@ class DiscoverRemoteSystems(BaseAction):
         if fake_data:
             obs_data['hosts'] = ['10.x.x.99', '10.x.x.100']
 
-        return ActionEffect(success=True, state_deltas={}, observation_data=obs_data)
+        knowledge_deltas = {
+            f'knowledge/{self.agent_id}/{ip}': 'True' for ip in obs_data['hosts']
+        }
+
+        return ActionEffect(
+            success=True, state_deltas=knowledge_deltas, observation_data=obs_data
+        )
 
 
 class DiscoverNetworkServices(BaseAction):
@@ -147,4 +153,9 @@ class DiscoverNetworkServices(BaseAction):
             else:
                 obs_data['services'] = ['Real_IIS_443']
 
-        return ActionEffect(success=True, state_deltas={}, observation_data=obs_data)
+        # Update knowledge that we scanned this host
+        knowledge_deltas = {f'knowledge/{self.agent_id}/{self.target_ip}': 'True'}
+
+        return ActionEffect(
+            success=True, state_deltas=knowledge_deltas, observation_data=obs_data
+        )

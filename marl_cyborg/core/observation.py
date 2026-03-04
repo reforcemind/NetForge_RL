@@ -28,13 +28,19 @@ class BaseObservation:
         """
         # Parse realistic data from the OOP GlobalNetworkState
         if global_state:
-            for ip, host in global_state.all_hosts.items():
-                self.visible_hosts[ip] = {
-                    'state': 'compromised'
-                    if host.privilege in ['User', 'Root']
-                    else 'clean',
-                    'status': host.status,
-                }
+            # Enforce True Partial Observability (Fog of War)
+            # Agents only receive tensor data for hosts within their active knowledge graph
+            known_ips = global_state.agent_knowledge.get(self.agent_id, set())
+            for ip in known_ips:
+                if ip in global_state.all_hosts:
+                    host = global_state.all_hosts[ip]
+                    self.visible_hosts[ip] = {
+                        'state': 'compromised'
+                        if host.privilege in ['User', 'Root']
+                        else 'clean',
+                        'status': host.status,
+                        'decoy': host.decoy,  # For Blue Team sensor logic
+                    }
 
         if 'commander' in self.agent_id.lower():
             self.network_telemetry['global_alert_level'] = np.random.uniform(0, 1)
