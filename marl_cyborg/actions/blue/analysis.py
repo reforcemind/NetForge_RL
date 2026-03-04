@@ -31,6 +31,7 @@ class Monitor(BaseAction):
     def execute(self, global_state) -> ActionEffect:
         """
         Calculates the expanded telemetry data yielded by the active monitor.
+        Immediately updates Blue's 'Fog of War' knowledge graph across that subnet.
 
         Args:
             global_state (GlobalNetworkState): Current architecture baseline.
@@ -38,9 +39,25 @@ class Monitor(BaseAction):
         Returns:
             ActionEffect: A non-mutating action expanding the agent's observation space.
         """
+        knowledge_deltas = {}
+        target_subnet_cidr = None
+
+        # Determine if target is a specific IP or CIDR block
+        if '/' in self.target_ip:
+            target_subnet_cidr = self.target_ip
+        else:
+            host = global_state.all_hosts.get(self.target_ip)
+            if host:
+                target_subnet_cidr = host.subnet_cidr
+
+        if target_subnet_cidr and target_subnet_cidr in global_state.subnets:
+            subnet_hosts = global_state.subnets[target_subnet_cidr].hosts
+            for ip in subnet_hosts.keys():
+                knowledge_deltas[f'knowledge/{self.agent_id}/{ip}'] = 'True'
+
         return ActionEffect(
             success=True,
-            state_deltas={},
+            state_deltas=knowledge_deltas,
             observation_data={'monitoring': self.target_ip},
         )
 
@@ -75,6 +92,7 @@ class Analyze(BaseAction):
     def execute(self, global_state) -> ActionEffect:
         """
         Computes forensic findings and updates Blue observation knowledge base.
+        Pulls exact IoCs (Indicators of Compromise) and the compromised_by footprint.
 
         Args:
             global_state: Network configuration matrix.
@@ -82,8 +100,22 @@ class Analyze(BaseAction):
         Returns:
             ActionEffect: Observation data payload containing the scan report.
         """
+        obs_data = {'analysis_report': self.target_ip}
+
+        if self.target_ip in global_state.all_hosts:
+            host = global_state.all_hosts[self.target_ip]
+            if host.privilege in ['User', 'Root']:
+                obs_data['ioc_found'] = True
+                obs_data['compromised_by'] = host.compromised_by
+                obs_data['exact_privilege'] = host.privilege
+            else:
+                obs_data['ioc_found'] = False
+
+        # Analysis guarantees Blue Team knowledge of this precise host
+        knowledge_deltas = {f'knowledge/{self.agent_id}/{self.target_ip}': 'True'}
+
         return ActionEffect(
             success=True,
-            state_deltas={},
-            observation_data={'analysis_report': self.target_ip},
+            state_deltas=knowledge_deltas,
+            observation_data=obs_data,
         )

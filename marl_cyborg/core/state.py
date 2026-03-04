@@ -9,9 +9,12 @@ class Host:
         self.status = 'online'  # "online" or "isolated"
         self.privilege = 'None'  # "None", "User", "Root"
         self.decoy = 'inactive'  # "inactive" or "active"
+        self.compromised_by = 'None'  # Tracks agent ID responsible for breach
 
     def __repr__(self):
-        return f'<Host {self.ip} | Priv: {self.privilege} | State: {self.status}>'
+        return (
+            f'<Host {self.ip} | Priv: {self.privilege} | Breach: {self.compromised_by}>'
+        )
 
 
 class Subnet:

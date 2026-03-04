@@ -40,7 +40,10 @@ class PrivilegeEscalate(BaseAction):
         """
         return ActionEffect(
             success=True,
-            state_deltas={f'hosts/{self.target_ip}/privilege': 'Root'},
+            state_deltas={
+                f'hosts/{self.target_ip}/privilege': 'Root',
+                f'hosts/{self.target_ip}/compromised_by': self.agent_id,
+            },
             observation_data={'privilege': 'escalated'},
         )
 
@@ -83,7 +86,10 @@ class JuicyPotato(BaseAction):
         """
         return ActionEffect(
             success=True,
-            state_deltas={f'hosts/{self.target_ip}/privilege': 'Root'},
+            state_deltas={
+                f'hosts/{self.target_ip}/privilege': 'Root',
+                f'hosts/{self.target_ip}/compromised_by': self.agent_id,
+            },
             observation_data={'privilege': 'JuicyPotato escalated'},
         )
 
@@ -126,6 +132,9 @@ class V4L2KernelExploit(BaseAction):
         """
         return ActionEffect(
             success=True,
-            state_deltas={f'hosts/{self.target_ip}/privilege': 'Root'},
+            state_deltas={
+                f'hosts/{self.target_ip}/privilege': 'Root',
+                f'hosts/{self.target_ip}/compromised_by': self.agent_id,
+            },
             observation_data={'privilege': 'V4L2 Kernel escalated'},
         )
