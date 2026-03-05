@@ -112,7 +112,11 @@ class GlobalNetworkState:
         if target_ip not in self.all_hosts:
             return False
 
-        target_subnet = self.all_hosts[target_ip].subnet_cidr
+        host = self.all_hosts[target_ip]
+        if host.status == 'isolated':
+            return False
+
+        target_subnet = host.subnet_cidr
 
         if port is not None:
             for firewall in self.firewalls.values():
