@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING, Dict
 
 if TYPE_CHECKING:
     from marl_cyborg.core.state import GlobalNetworkState
+    from marl_cyborg.core.action import ActionEffect
 
 
 class BaseScenario(ABC):
@@ -15,7 +16,10 @@ class BaseScenario(ABC):
 
     @abstractmethod
     def calculate_reward(
-        self, agent_id: str, global_state: 'GlobalNetworkState'
+        self,
+        agent_id: str,
+        global_state: 'GlobalNetworkState',
+        effect: 'ActionEffect' = None,
     ) -> float:
         """Dynamically calculates the reward for the specified agent."""
         pass

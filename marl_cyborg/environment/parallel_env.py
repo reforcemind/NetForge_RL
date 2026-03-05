@@ -224,8 +224,11 @@ class ParallelMarlCyborg(BaseMarlCyborg):
 
             observations[agent] = obs_array
 
-            # Reward shaping applied here natively
-            rewards[agent] = self._calculate_reward(agent, self.global_state)
+            # Reward shaping applied here natively factoring in immediate action outcomes
+            agent_effect = resolved_effects.get(agent)
+            rewards[agent] = self._calculate_reward(
+                agent, self.global_state, agent_effect
+            )
 
         self.agents = [
             agent
@@ -401,6 +404,8 @@ class ParallelMarlCyborg(BaseMarlCyborg):
                 for delta_key, delta_val in effect.state_deltas.items():
                     self.global_state.apply_delta(delta_key, delta_val)
 
-    def _calculate_reward(self, agent_id: str, state) -> float:
+    def _calculate_reward(
+        self, agent_id: str, state, effect: ActionEffect = None
+    ) -> float:
         """Delegates reward logic directly to the localized Scenario module."""
-        return self.scenario.calculate_reward(agent_id, state)
+        return self.scenario.calculate_reward(agent_id, state, effect)

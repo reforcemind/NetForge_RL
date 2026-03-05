@@ -10,6 +10,7 @@ class Host:
         self.privilege = 'None'  # "None", "User", "Root"
         self.decoy = 'inactive'  # "inactive" or "active"
         self.compromised_by = 'None'  # Tracks agent ID responsible for breach
+        self.edr_active = False  # Track endpoint monitoring telemetry status
 
     def __repr__(self):
         return (

@@ -3,6 +3,7 @@ from marl_cyborg.scenarios.base_scenario import BaseScenario
 
 if TYPE_CHECKING:
     from marl_cyborg.core.state import GlobalNetworkState
+    from marl_cyborg.core.action import ActionEffect
 
 
 class RansomwareScenario(BaseScenario):
@@ -18,9 +19,26 @@ class RansomwareScenario(BaseScenario):
         self.agents = agents
 
     def calculate_reward(
-        self, agent_id: str, global_state: 'GlobalNetworkState'
+        self,
+        agent_id: str,
+        global_state: 'GlobalNetworkState',
+        effect: 'ActionEffect' = None,
     ) -> float:
         reward = 0.0
+
+        if effect:
+            if getattr(effect, 'cost', 0) > 0:
+                reward -= effect.cost * 0.1  # Micro-penalty for expending energy
+
+            if 'red' in agent_id.lower() and effect.observation_data:
+                # Reward successful intelligence sharing inherently
+                if 'shared' in effect.observation_data:
+                    reward += 2.0
+                # Penalize falling for Decoys or EDR telemetry traps
+                if 'Failed against Decoy' in str(effect.observation_data.values()):
+                    reward -= 5.0
+                elif 'kernel panic' in str(effect.observation_data.values()):
+                    reward -= 10.0
 
         red_impact_count = sum(
             1
