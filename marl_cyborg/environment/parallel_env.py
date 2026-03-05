@@ -87,6 +87,24 @@ class ParallelMarlCyborg(BaseMarlCyborg):
     def action_space(self, agent):
         return self.action_spaces[agent]
 
+    def action_mask(self, agent: str) -> np.ndarray:
+        """Returns a binary mask denoting valid and distinct action integers for the agent,
+        pruning out computationally redundant modulo duplicates.
+        """
+        mask = np.zeros(self.action_spaces[agent].n, dtype=np.int8)
+
+        target_ips = sorted(list(self.global_state.all_hosts.keys()))
+        num_targets = len(target_ips) if target_ips else 1
+
+        if 'red' in agent.lower():
+            valid_groups = 4 if 'commander' in agent.lower() else 9
+        else:
+            valid_groups = 5 if 'commander' in agent.lower() else 7
+
+        max_valid_action = min(valid_groups * num_targets, self.action_spaces[agent].n)
+        mask[:max_valid_action] = 1
+        return mask
+
     def step(
         self, agent_actions: Dict[str, int]
     ) -> Tuple[
@@ -258,63 +276,66 @@ class ParallelMarlCyborg(BaseMarlCyborg):
         action_group = action_int // len(target_ips)
 
         if 'red' in agent_id.lower():
-            action_type = action_group % 13
-            if action_type == 0:
-                return NetworkScan(agent_id, '10.0.0.0/24')
-            elif action_type == 1:
-                return DiscoverRemoteSystems(agent_id, '10.0.0.0/24')
-            elif action_type == 2:
-                return DiscoverNetworkServices(agent_id, target_ip)
-            elif action_type == 3:
-                return ExploitRemoteService(agent_id, target_ip)
-            elif action_type == 4:
-                return PrivilegeEscalate(agent_id, target_ip)
-            elif action_type == 5:
-                return Impact(agent_id, target_ip)
-            elif action_type == 6:
-                return ExploitBlueKeep(agent_id, target_ip)
-            elif action_type == 7:
-                return ExploitEternalBlue(agent_id, target_ip)
-            elif action_type == 8:
-                return ExploitHTTP_RFI(agent_id, target_ip)
-            elif action_type == 9:
-                return JuicyPotato(agent_id, target_ip)
-            elif action_type == 10:
-                return V4L2KernelExploit(agent_id, target_ip)
-            elif action_type == 11:
-                return KillProcess(agent_id, target_ip)
+            if 'commander' in agent_id.lower():
+                action_type = action_group % 4
+                if action_type == 0:
+                    return NetworkScan(agent_id, '10.0.0.0/24')
+                elif action_type == 1:
+                    return DiscoverRemoteSystems(agent_id, '10.0.0.0/24')
+                elif action_type == 2:
+                    return DiscoverNetworkServices(agent_id, target_ip)
+                else:
+                    return ShareIntelligence(agent_id, 'red_operator')
             else:
-                target_agent = (
-                    'red_operator' if 'commander' in agent_id else 'red_commander'
-                )
-                return ShareIntelligence(agent_id, target_agent)
+                action_type = action_group % 9
+                if action_type == 0:
+                    return ExploitRemoteService(agent_id, target_ip)
+                elif action_type == 1:
+                    return PrivilegeEscalate(agent_id, target_ip)
+                elif action_type == 2:
+                    return Impact(agent_id, target_ip)
+                elif action_type == 3:
+                    return ExploitBlueKeep(agent_id, target_ip)
+                elif action_type == 4:
+                    return ExploitEternalBlue(agent_id, target_ip)
+                elif action_type == 5:
+                    return ExploitHTTP_RFI(agent_id, target_ip)
+                elif action_type == 6:
+                    return JuicyPotato(agent_id, target_ip)
+                elif action_type == 7:
+                    return V4L2KernelExploit(agent_id, target_ip)
+                else:
+                    return KillProcess(agent_id, target_ip)
         else:
-            action_type = action_group % 12
-            if action_type == 0:
-                return IsolateHost(agent_id, target_ip)
-            elif action_type == 1:
-                return RestoreHost(agent_id, target_ip)
-            elif action_type == 2:
-                return Monitor(agent_id, target_ip)
-            elif action_type == 3:
-                return Analyze(agent_id, target_ip)
-            elif action_type == 4:
-                return DeployDecoy(agent_id, target_ip)
-            elif action_type == 5:
-                return Remove(agent_id, target_ip)
-            elif action_type == 6:
-                return RestoreFromBackup(agent_id, target_ip)
-            elif action_type == 7:
-                return DecoyApache(agent_id, target_ip)
-            elif action_type == 8:
-                return DecoySSHD(agent_id, target_ip)
-            elif action_type == 9:
-                return DecoyTomcat(agent_id, target_ip)
-            elif action_type == 10:
-                return Misinform(agent_id, target_ip)
+            if 'commander' in agent_id.lower():
+                action_type = action_group % 5
+                if action_type == 0:
+                    return DeployDecoy(agent_id, target_ip)
+                elif action_type == 1:
+                    return DecoyApache(agent_id, target_ip)
+                elif action_type == 2:
+                    return DecoySSHD(agent_id, target_ip)
+                elif action_type == 3:
+                    return DecoyTomcat(agent_id, target_ip)
+                else:
+                    return Misinform(agent_id, target_ip)
             else:
-                subnet = '.'.join(target_ip.split('.')[:3]) + '.0/24'
-                return ConfigureACL(agent_id, target_subnet=subnet, port=445)
+                action_type = action_group % 7
+                if action_type == 0:
+                    return IsolateHost(agent_id, target_ip)
+                elif action_type == 1:
+                    return RestoreHost(agent_id, target_ip)
+                elif action_type == 2:
+                    return Monitor(agent_id, target_ip)
+                elif action_type == 3:
+                    return Analyze(agent_id, target_ip)
+                elif action_type == 4:
+                    return Remove(agent_id, target_ip)
+                elif action_type == 5:
+                    return RestoreFromBackup(agent_id, target_ip)
+                else:
+                    subnet = '.'.join(target_ip.split('.')[:3]) + '.0/24'
+                    return ConfigureACL(agent_id, target_subnet=subnet, port=445)
 
     def _resolve_conflicts(
         self, effects: Dict[str, ActionEffect]
