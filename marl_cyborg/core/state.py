@@ -11,6 +11,9 @@ class Host:
         self.decoy = 'inactive'  # "inactive" or "active"
         self.compromised_by = 'None'  # Tracks agent ID responsible for breach
         self.edr_active = False  # Track endpoint monitoring telemetry status
+        self.os: str = 'Unknown'  # OS profile assigned by NetworkGenerator
+        self.services: list = []  # Running services (SSH, SMB, etc.)
+        self.vulnerabilities: list = []  # CVEs present on this host
 
     def __repr__(self):
         return (
@@ -169,8 +172,8 @@ class GlobalNetworkState:
 
             new_subnet_hosts = {}
             for i, host in enumerate(hosts):
-                # Erase old routing
-                del self.all_hosts[host.ip]
+                # Erase old routing (guard against duplicate/stale IPs)
+                self.all_hosts.pop(host.ip, None)
 
                 # Assign new IP
                 host.ip = f'{base_ip}.{new_ips[i]}'
