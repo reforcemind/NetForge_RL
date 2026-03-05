@@ -3,6 +3,7 @@ from marl_cyborg.scenarios.base_scenario import BaseScenario
 
 if TYPE_CHECKING:
     from marl_cyborg.core.state import GlobalNetworkState
+    from marl_cyborg.core.action import ActionEffect
 
 
 class AptEspionageScenario(BaseScenario):
@@ -17,9 +18,30 @@ class AptEspionageScenario(BaseScenario):
         self.agents = agents
 
     def calculate_reward(
-        self, agent_id: str, global_state: 'GlobalNetworkState'
+        self,
+        agent_id: str,
+        global_state: 'GlobalNetworkState',
+        effect: 'ActionEffect' = None,
     ) -> float:
         reward = 0.0
+
+        if effect:
+            if getattr(effect, 'cost', 0) > 0:
+                reward -= (
+                    effect.cost * 0.2
+                )  # Larger penalty for wasting energy in APT scope
+
+            if 'red' in agent_id.lower() and effect.observation_data:
+                if 'shared' in effect.observation_data:
+                    reward += 5.0  # Massive emphasis on coordinated reconnaissance
+                # Massive penalty for triggering Honeypots during stealth operation
+                if 'Failed against Decoy' in str(effect.observation_data.values()):
+                    reward -= 15.0
+                elif 'kernel panic' in str(effect.observation_data.values()):
+                    reward -= 25.0
+                # Direct penalty for being blocked natively by Firewalls
+                elif 'validation failed' in str(effect.observation_data.values()):
+                    reward -= 1.0
 
         if 'red' in agent_id.lower():
             for h in global_state.all_hosts.values():
