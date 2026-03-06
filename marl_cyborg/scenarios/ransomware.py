@@ -10,9 +10,12 @@ class RansomwareScenario(BaseScenario):
     """
     Scenario: Red Team aggressively deploys ransomware.
 
-    - Red is highly rewarded for system_integrity compromise (Impact actions).
-    - Red ignores stealth (virtually no noise penalty).
-    - Blue loses massive points for impacted systems and must isolate quickly.
+    Reward Design Principles:
+    ─────────────────────────
+    • Action-level rewards are given ONCE on the step the action succeeds.
+    • NO per-step state compounding (avoids runaway accumulation).
+    • Episode-end bonus/penalty based on final network state.
+    • Red and Blue reward magnitudes are balanced (~±5 per action).
     """
 
     def __init__(self, agents):
@@ -26,46 +29,135 @@ class RansomwareScenario(BaseScenario):
     ) -> float:
         reward = 0.0
 
-        if effect:
-            if getattr(effect, 'cost', 0) > 0:
-                reward -= effect.cost * 0.1  # Micro-penalty for expending energy
-
-            if 'red' in agent_id.lower() and effect.observation_data:
-                # Reward successful intelligence sharing inherently
-                if 'shared' in effect.observation_data:
-                    reward += 2.0
-                # Penalize falling for Decoys or EDR telemetry traps
-                if 'Failed against Decoy' in str(effect.observation_data.values()):
-                    reward -= 5.0
-                elif 'kernel panic' in str(effect.observation_data.values()):
-                    reward -= 10.0
-
-        red_impact_count = sum(
-            1
-            for h in global_state.all_hosts.values()
-            if getattr(h, 'system_integrity', 'clean') == 'compromised'
-        )
+        # Small energy cost penalty for any action
+        if effect and getattr(effect, 'cost', 0) > 0:
+            reward -= effect.cost * 0.05
 
         if 'red' in agent_id.lower():
-            # Massive reward for each encrypted host
-            reward += red_impact_count * 50.0
-
+            reward += self._red_reward(agent_id, global_state, effect)
         elif 'blue' in agent_id.lower():
-            for h in global_state.all_hosts.values():
-                is_isolated = h.status == 'isolated'
-                is_compromised = (
-                    getattr(h, 'system_integrity', 'clean') == 'compromised'
-                )
+            reward += self._blue_reward(agent_id, global_state, effect)
 
-                if is_compromised and not is_isolated:
-                    reward -= 50.0  # Massive penalty for active ransomware
-                elif is_isolated and getattr(h, 'privilege', 'None') in [
-                    'User',
-                    'Root',
-                ]:
-                    reward += 10.0  # Successfully quarantined an infected host
-                elif not is_compromised and not is_isolated:
-                    reward += 1.0  # General uptime reward
+        return reward
+
+    # ── Red Team Rewards ──────────────────────────────────────
+
+    def _red_reward(
+        self,
+        agent_id: str,
+        global_state: 'GlobalNetworkState',
+        effect: 'ActionEffect' = None,
+    ) -> float:
+        reward = 0.0
+
+        if not effect:
+            return reward
+
+        # ── ONE-TIME action bonuses (only on success) ─────────
+        if effect.success and effect.state_deltas:
+            for delta_key, delta_val in effect.state_deltas.items():
+                # Initial compromise (None → User)
+                if 'privilege' in delta_key and delta_val == 'User':
+                    reward += 3.0
+
+                # Privilege escalation (User → Root)
+                elif 'privilege' in delta_key and delta_val == 'Root':
+                    reward += 5.0
+
+                # Ransomware impact (system_integrity → compromised)
+                elif 'system_integrity' in delta_key and delta_val == 'compromised':
+                    reward += 10.0
+
+                # Setting compromised_by (confirms exploitation)
+                elif 'compromised_by' in delta_key and delta_val != 'None':
+                    reward += 2.0
+
+        # ── Observation-based rewards ─────────────────────────
+        if effect.observation_data:
+            obs = effect.observation_data
+
+            # Reconnaissance discoveries
+            if 'discovered_hosts' in obs:
+                discovered = obs['discovered_hosts']
+                count = len(discovered) if isinstance(discovered, (list, set)) else 1
+                reward += count * 0.5
+
+            if 'scan_results' in obs:
+                reward += 0.3
+
+            # Intelligence sharing
+            if 'shared' in obs:
+                reward += 1.0
+
+            # Penalties for failures
+            if 'Failed against Decoy' in str(obs.values()):
+                reward -= 3.0
+            elif 'kernel panic' in str(obs.values()):
+                reward -= 5.0
+
+        # ── Failed action penalty ─────────────────────────────
+        if not effect.success:
+            reward -= 0.1  # Small penalty for wasted turn
+
+        return reward
+
+    # ── Blue Team Rewards ─────────────────────────────────────
+
+    def _blue_reward(
+        self,
+        agent_id: str,
+        global_state: 'GlobalNetworkState',
+        effect: 'ActionEffect' = None,
+    ) -> float:
+        reward = 0.0
+
+        # ── ONE-TIME action bonuses ───────────────────────────
+        if effect and effect.success and effect.state_deltas:
+            for delta_key, delta_val in effect.state_deltas.items():
+                # Successful isolation
+                if 'status' in delta_key and delta_val == 'isolated':
+                    ip = delta_key.split('/')[1] if '/' in delta_key else None
+                    if ip:
+                        host = global_state.all_hosts.get(ip)
+                        if host and host.compromised_by != 'None':
+                            reward += 5.0  # Correctly quarantined a compromised host
+                        else:
+                            reward -= 2.0  # False positive — isolated a clean host
+
+                # Successful restoration/cleanup
+                elif 'privilege' in delta_key and delta_val == 'None':
+                    reward += 3.0  # Successfully cleaned a host
+
+                elif 'status' in delta_key and delta_val == 'online':
+                    reward += 1.0  # Restored connectivity
+
+                # Deployed a decoy
+                elif 'decoy' in delta_key and delta_val != 'inactive':
+                    reward += 1.0  # Proactive defense
+
+        # ── Per-step network health (small, bounded) ──────────
+        # Only count the RATIO of healthy hosts to avoid scale issues
+        total_hosts = max(len(global_state.all_hosts), 1)
+        healthy = sum(
+            1
+            for h in global_state.all_hosts.values()
+            if h.compromised_by == 'None' and h.status != 'isolated'
+        )
+        health_ratio = healthy / total_hosts
+        reward += health_ratio * 1.0  # 0.0 to 1.0 per step
+
+        # Small penalty proportional to compromised hosts
+        compromised = sum(
+            1
+            for h in global_state.all_hosts.values()
+            if h.compromised_by != 'None' and h.status != 'isolated'
+        )
+        if compromised > 0:
+            reward -= (compromised / total_hosts) * 2.0  # 0.0 to -2.0
+
+        # ── Failed action penalty ─────────────────────────────
+        if effect and not effect.success:
+            reward -= 0.1
 
         return reward
 

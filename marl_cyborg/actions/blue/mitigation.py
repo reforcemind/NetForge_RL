@@ -82,8 +82,12 @@ class RestoreHost(BaseAction):
         """
         return ActionEffect(
             success=True,
-            state_deltas={f'hosts/{self.target_ip}/status': 'online'},
-            observation_data={'alert': 'Host restored.'},
+            state_deltas={
+                f'hosts/{self.target_ip}/status': 'online',
+                f'hosts/{self.target_ip}/privilege': 'None',
+                f'hosts/{self.target_ip}/compromised_by': 'None',
+            },
+            observation_data={'alert': 'Host restored and cleaned.'},
         )
 
 
@@ -125,7 +129,10 @@ class Remove(BaseAction):
         """
         return ActionEffect(
             success=True,
-            state_deltas={f'hosts/{self.target_ip}/privilege': 'None'},
+            state_deltas={
+                f'hosts/{self.target_ip}/privilege': 'None',
+                f'hosts/{self.target_ip}/compromised_by': 'None',
+            },
             observation_data={'alert': 'Unauthorized access removed.'},
         )
 
