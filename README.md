@@ -4,6 +4,7 @@ Multi-Agent Reinforcement Learning (MARL) cybersecurity simulator mathematically
 
 **Author / Maintainer:** Igor Jankowski (igorjankowwski@gmail.com)  
 **Project:** MARL Cyborg
+**GNN-based Policy Model:** https://github.com/elprofesoriqo/GNN-based-Policy-Model-for-MARL-Cyber
 
 ## Architectural Overhaul Notice
 
