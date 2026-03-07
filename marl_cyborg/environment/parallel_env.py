@@ -236,7 +236,10 @@ class ParallelMarlCyborg(BaseMarlCyborg):
             if not terminate[agent] and not truncate[agent]
         ]
 
-        return observations, rewards, terminate, truncate, {a: {} for a in self.agents}
+        # ── Build info dicts with security metrics for callbacks ──
+        infos = self._extract_agent_infos(observations, resolved_effects)
+
+        return observations, rewards, terminate, truncate, infos
 
     def render(self):
         """Standard PettingZoo GUI logging render hook."""
@@ -409,3 +412,66 @@ class ParallelMarlCyborg(BaseMarlCyborg):
     ) -> float:
         """Delegates reward logic directly to the localized Scenario module."""
         return self.scenario.calculate_reward(agent_id, state, effect)
+
+    def _extract_agent_infos(self, observations: dict, resolved_effects: dict) -> dict:
+        """Extracts security metrics for TensorBoard and CSV logging callbacks.
+
+        Args:
+            observations: Dictionary of agent observations for this step.
+            resolved_effects: Dictionary of resolved action effects.
+
+        Returns:
+            Dictionary mapping agent_id to an info dictionary with security metrics.
+        """
+        infos = {}
+        for agent in list(observations.keys()):
+            agent_effect = resolved_effects.get(agent)
+            info: dict = {}
+
+            # Count security-relevant events from this step
+            false_positives = 0
+            successful_exploits = 0
+            hosts_isolated = 0
+            services_restored = 0
+
+            if agent_effect and agent_effect.success:
+                for delta_key, delta_val in agent_effect.state_deltas.items():
+                    if 'status' in delta_key and delta_val == 'isolated':
+                        hosts_isolated += 1
+                        # Check if the isolated host was actually compromised
+                        parts = delta_key.split('/')
+                        if len(parts) >= 2:
+                            ip = parts[1]
+                            host = self.global_state.all_hosts.get(ip)
+                            if host and host.compromised_by == 'None':
+                                false_positives += 1  # Isolated a clean host
+                    elif 'privilege' in delta_key and delta_val in ('User', 'Root'):
+                        successful_exploits += 1
+                    elif 'status' in delta_key and delta_val == 'online':
+                        services_restored += 1
+
+            info['false_positives'] = float(false_positives)
+            info['successful_exploits'] = float(successful_exploits)
+            info['hosts_isolated'] = float(hosts_isolated)
+            info['services_restored'] = float(services_restored)
+
+            # Extra context for analysis
+            info['agent_energy'] = float(self.global_state.agent_energy.get(agent, 0))
+            info['compromised_hosts'] = float(
+                sum(
+                    1
+                    for h in self.global_state.all_hosts.values()
+                    if h.compromised_by != 'None'
+                )
+            )
+            info['isolated_hosts'] = float(
+                sum(
+                    1
+                    for h in self.global_state.all_hosts.values()
+                    if h.status == 'isolated'
+                )
+            )
+
+            infos[agent] = info
+
+        return infos

@@ -18,15 +18,16 @@ class PrivilegeEscalate(BaseAction):
         super().__init__(agent_id, target_ip=target_ip)
 
     def validate(self, global_state) -> bool:
-        """Validates the pre-conditions for privilege escalation natively.
+        """Validates the pre-conditions for privilege escalation.
 
-        Args:
-            global_state (GlobalNetworkState): Snapshot of the network environment.
-
-        Returns:
-            bool: True if escalation is physically feasible.
+        Requires:
+        - Valid routing to the target host.
+        - Prior User-level access on the target (must exploit first).
         """
-        return True
+        host = global_state.all_hosts.get(self.target_ip)
+        if not host or host.privilege != 'User':
+            return False
+        return global_state.can_route_to(self.target_ip)
 
     def execute(self, global_state) -> ActionEffect:
         """Applies the mathematical delta to elevate the agent's privilege
@@ -65,15 +66,13 @@ class JuicyPotato(BaseAction):
         super().__init__(agent_id, target_ip=target_ip)
 
     def validate(self, global_state) -> bool:
-        """Validates target compatibility (e.g., Windows OS assumption).
-
-        Args:
-            global_state: Network state.
-
-        Returns:
-            bool: True assuming the agent has obtained baseline 'User' access.
-        """
-        return True
+        """Validates target compatibility: requires User access + Windows OS."""
+        host = global_state.all_hosts.get(self.target_ip)
+        if not host or host.privilege != 'User':
+            return False
+        if 'Windows' not in host.os:
+            return False
+        return global_state.can_route_to(self.target_ip)
 
     def execute(self, global_state) -> ActionEffect:
         """Processes the DCOM impersonation attack delta. Fails if target OS is
@@ -120,15 +119,13 @@ class V4L2KernelExploit(BaseAction):
         super().__init__(agent_id, target_ip=target_ip)
 
     def validate(self, global_state) -> bool:
-        """Validates routing or baseline access requirements.
-
-        Args:
-            global_state: Network state.
-
-        Returns:
-            bool: Execution clearance boolean.
-        """
-        return True
+        """Validates: requires User access + Linux OS + V4L2 vulnerability."""
+        host = global_state.all_hosts.get(self.target_ip)
+        if not host or host.privilege != 'User':
+            return False
+        if 'Linux' not in host.os:
+            return False
+        return global_state.can_route_to(self.target_ip)
 
     def execute(self, global_state) -> ActionEffect:
         """Resolves the exploit outcome altering the target's privilege table.
