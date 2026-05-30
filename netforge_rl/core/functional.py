@@ -48,7 +48,7 @@ N_HOSTS = 100  # Fixed per existing NetworkGenerator contract; see state.py:212.
 # ── Categorical codebooks ──────────────────────────────────────────────────
 # Order is load-bearing — do not reorder without bumping a versioned hash.
 
-STATUS_CODES = ('online', 'isolated')
+STATUS_CODES = ('online', 'isolated', 'kernel_panic')
 PRIVILEGE_CODES = ('None', 'User', 'Root')
 DECOY_CODES = ('inactive', 'active', 'Apache', 'SSHD', 'Tomcat')
 
@@ -312,3 +312,148 @@ def to_global_state(snap: EnvState) -> 'GlobalNetworkState':
     legacy.business_downtime_score = float(snap.business_downtime_score)
 
     return legacy
+
+
+# ── Pure delta interpreter ─────────────────────────────────────────────────
+#
+# Each action in netforge_rl/actions/ emits an ``ActionEffect.state_deltas``
+# entry, today consumed by the mutating ``GlobalNetworkState.apply_delta``.
+# The functional core re-interprets those same string-keyed deltas against
+# an immutable EnvState, returning a new EnvState. Keeping the wire format
+# identical means the action layer needs zero changes — the imperative
+# shell (Phase 1 slice 4) can pick whichever interpreter it likes.
+#
+# Supported keys (mirrors the cases in GlobalNetworkState.apply_delta):
+#   ``hosts/<ip>/<attr>``        where <attr> is one of: status, privilege,
+#                                decoy, edr_active, compromised_by,
+#                                is_domain_controller, contains_honeytokens,
+#                                human_vulnerability_score, cvss_score,
+#                                os, services, vulnerabilities,
+#                                cached_credentials, system_tokens
+#   ``knowledge/<agent>/<ip>``   add <ip> to agent's fog-of-war set
+#   ``history/<agent>/<record>`` (no-op here; action_history isn't in EnvState yet)
+#   ``firewall/...``             (deferred — firewall isn't in EnvState yet)
+#
+# Unknown keys are silently ignored (matching legacy behavior). Command-
+# object deltas (``hasattr(delta, 'execute')``) are out of scope; those will
+# be migrated when their target state moves into EnvState.
+
+
+# Attribute → (HostArrays field, encoder) for vectorizable per-host fields.
+_ARRAY_FIELD: dict[str, tuple[str, callable]] = {
+    'status': ('status', lambda v: _encode(str(v), STATUS_CODES)),
+    'privilege': ('privilege', lambda v: _encode(str(v), PRIVILEGE_CODES)),
+    'decoy': ('decoy', lambda v: _encode(str(v), DECOY_CODES)),
+    'edr_active': ('edr_active', bool),
+    'is_domain_controller': ('is_domain_controller', bool),
+    'contains_honeytokens': ('contains_honeytokens', bool),
+    'human_vulnerability_score': ('human_vulnerability', float),
+    'cvss_score': ('cvss_score', float),
+}
+
+# Attribute → HostMeta field, for variable-length / string fields.
+_META_FIELD = {
+    'os': 'os',
+    'services': 'services',
+    'vulnerabilities': 'vulnerabilities',
+    'cached_credentials': 'cached_credentials',
+    'system_tokens': 'system_tokens',
+}
+
+
+def _set_host_array(
+    state: EnvState, idx: int, field_name: str, encoded_value
+) -> EnvState:
+    """Return a new EnvState with ``state.hosts.<field>[idx] = encoded_value``."""
+    arr = getattr(state.hosts, field_name).copy()
+    arr[idx] = encoded_value
+    new_hosts = replace(state.hosts, **{field_name: arr})
+    return replace(state, hosts=new_hosts)
+
+
+def _set_host_meta(
+    state: EnvState, idx: int, field_name: str, value
+) -> EnvState:
+    current = list(getattr(state.meta, field_name))
+    if field_name in ('services', 'vulnerabilities', 'cached_credentials', 'system_tokens'):
+        current[idx] = tuple(value) if not isinstance(value, str) else (value,)
+    else:
+        current[idx] = value
+    new_meta = replace(state.meta, **{field_name: tuple(current)})
+    return replace(state, meta=new_meta)
+
+
+def _set_compromised_by(state: EnvState, idx: int, agent_id: str) -> EnvState:
+    if agent_id == 'None' or agent_id is None:
+        code = -1
+    elif agent_id in state.agent_ids:
+        code = state.agent_ids.index(agent_id)
+    else:
+        # Agent not in canonical list — store as -1 and let to_global_state
+        # surface it as 'None'. Documented limitation; widen agent_ids if
+        # this becomes load-bearing.
+        code = -1
+    arr = state.hosts.compromised_by_id.copy()
+    arr[idx] = code
+    new_hosts = replace(state.hosts, compromised_by_id=arr)
+    return replace(state, hosts=new_hosts)
+
+
+def apply_state_delta(state: EnvState, delta_key: str, delta_value=None) -> EnvState:
+    """Pure interpreter for legacy ``state_deltas`` entries.
+
+    Returns a new :class:`EnvState`. Unknown keys are ignored to match the
+    legacy behavior (the legacy ``apply_delta`` silently no-ops on
+    unrecognized attribute names via the ``hasattr`` guard).
+    """
+    if not isinstance(delta_key, str):
+        # Command-object deltas are out of scope for this slice — see module
+        # docstring above.
+        return state
+
+    parts = delta_key.split('/')
+
+    if parts[0] == 'hosts' and len(parts) == 3:
+        ip, attribute = parts[1], parts[2]
+        if ip not in state.meta.ip:
+            return state
+        idx = state.meta.ip.index(ip)
+
+        if attribute == 'compromised_by':
+            return _set_compromised_by(state, idx, delta_value)
+        if attribute in _ARRAY_FIELD:
+            field_name, encoder = _ARRAY_FIELD[attribute]
+            return _set_host_array(state, idx, field_name, encoder(delta_value))
+        if attribute in _META_FIELD:
+            return _set_host_meta(state, idx, _META_FIELD[attribute], delta_value)
+        # Unknown host attribute — legacy silently ignores.
+        return state
+
+    if parts[0] == 'knowledge' and len(parts) == 3:
+        agent_id, ip = parts[1], parts[2]
+        if agent_id not in state.agent_ids:
+            return state
+        j = state.agent_ids.index(agent_id)
+        new_set = state.knowledge[j] | {ip}
+        new_knowledge = tuple(
+            new_set if k == j else s for k, s in enumerate(state.knowledge)
+        )
+        return replace(state, knowledge=new_knowledge)
+
+    # 'history/...' and 'firewall/...' are not yet modeled in EnvState.
+    return state
+
+
+def apply_state_deltas(state: EnvState, deltas) -> EnvState:
+    """Apply a dict or list of deltas left-to-right. Mirrors the two shapes
+    the legacy env feeds into ``apply_delta`` (see parallel_env.py:463-469).
+    """
+    if isinstance(deltas, dict):
+        for k, v in deltas.items():
+            state = apply_state_delta(state, k, v)
+    elif isinstance(deltas, (list, tuple)):
+        for item in deltas:
+            # Legacy list form: each entry is itself a delta key (command
+            # object or string) — preserve that contract.
+            state = apply_state_delta(state, item)
+    return state

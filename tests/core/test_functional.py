@@ -165,7 +165,7 @@ def test_round_trip_preserves_agent_budgets_and_knowledge(env_sim) -> None:
 @pytest.mark.fast
 def test_codebooks_are_stable() -> None:
     """Codebook ordering is load-bearing — pin it explicitly."""
-    assert STATUS_CODES == ('online', 'isolated')
+    assert STATUS_CODES == ('online', 'isolated', 'kernel_panic')
     assert PRIVILEGE_CODES == ('None', 'User', 'Root')
     assert DECOY_CODES[:2] == ('inactive', 'active')
 
