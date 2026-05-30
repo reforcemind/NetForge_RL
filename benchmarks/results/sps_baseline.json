@@ -1,0 +1,14 @@
+{
+  "backend": "legacy-pytorch",
+  "scenario": "ransomware",
+  "episodes": 3,
+  "max_ticks": 200,
+  "total_steps": 567,
+  "wall_seconds": 53.629888399969786,
+  "sps_mean": 10.592857217372401,
+  "sps_median": 10.526651051260409,
+  "sps_min": 10.422724511380867,
+  "sps_max": 10.829196089475928,
+  "python": "3.12.10",
+  "platform": "Windows 11"
+}
