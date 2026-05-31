@@ -450,6 +450,19 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
         """Standard PettingZoo GUI logging render hook."""
         pass
 
+    def to_envstate(self):
+        """Materialize a frozen :class:`EnvState` snapshot of the current state.
+
+        Bridge between the legacy mutable backend and the Phase 2 JAX core
+        (see netforge_rl/core/functional.py). The returned snapshot is a
+        struct-of-arrays PyTree suitable for JAX vectorization; mutating it
+        will raise. Calling this every step is cheap (O(N_HOSTS)) but the
+        env loop itself does NOT do so — consumers opt in.
+        """
+        from netforge_rl.core.functional import from_global_state
+
+        return from_global_state(self.global_state, tuple(self.possible_agents))
+
     def _decode_action(self, agent_id: str, action_int: int) -> BaseAction:
         target_ips = sorted(list(self.global_state.all_hosts.keys()))
         return action_registry.instantiate_action(agent_id, action_int, target_ips)

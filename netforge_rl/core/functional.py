@@ -457,3 +457,74 @@ def apply_state_deltas(state: EnvState, deltas) -> EnvState:
             # object or string) — preserve that contract.
             state = apply_state_delta(state, item)
     return state
+
+
+# ── Pure conflict resolution ───────────────────────────────────────────────
+#
+# Functional companion to ``ConflictResolutionEngine.resolve``. Same
+# semantics ("Blue defensive supremacy on simultaneous same-target hits")
+# but does NOT mutate input ActionEffects — returns a fresh dict whose
+# values are either the original effect or a new ActionEffect with success
+# nullified. Required for the JAX backend, where any in-place mutation in a
+# traced function silently breaks correctness.
+
+
+def _extract_targeted_ips(state_deltas) -> set[str]:
+    """Pull every ``hosts/<ip>/...`` IP out of a state_deltas payload."""
+    ips: set[str] = set()
+    if isinstance(state_deltas, dict):
+        for key in state_deltas.keys():
+            if isinstance(key, str) and key.startswith('hosts/'):
+                parts = key.split('/')
+                if len(parts) >= 2:
+                    ips.add(parts[1])
+    elif isinstance(state_deltas, (list, tuple)):
+        for delta_obj in state_deltas:
+            target = getattr(delta_obj, 'target_ip', None)
+            if target:
+                ips.add(target)
+    return ips
+
+
+def resolve_conflicts(effects):
+    """Pure variant of :meth:`ConflictResolutionEngine.resolve`.
+
+    Returns a NEW dict mapping agent_id → ActionEffect, with Red effects
+    nullified if they target a host that any Blue effect simultaneously
+    succeeds on. The input dict and its ActionEffects are NOT mutated.
+
+    Behavior mirrors the legacy engine bit-for-bit; the only difference is
+    immutability — callers that previously read ``effects[red_id].success``
+    after :meth:`resolve` should now read the return value.
+    """
+    from netforge_rl.core.action import ActionEffect
+
+    blue_defended: set[str] = set()
+    for agent_id, eff in effects.items():
+        if eff is None or not eff.success:
+            continue
+        if 'blue' in agent_id.lower():
+            blue_defended |= _extract_targeted_ips(eff.state_deltas)
+
+    resolved = {}
+    for agent_id, eff in effects.items():
+        if eff is None or not eff.success or 'red' not in agent_id.lower():
+            resolved[agent_id] = eff
+            continue
+
+        red_targets = _extract_targeted_ips(eff.state_deltas)
+        if red_targets & blue_defended:
+            empty_deltas = [] if isinstance(eff.state_deltas, list) else {}
+            new_obs = dict(eff.observation_data)
+            new_obs['alert'] = 'TEMPORAL_COLLISION_DEFENSE_SUPREMACY'
+            resolved[agent_id] = ActionEffect(
+                success=False,
+                state_deltas=empty_deltas,
+                observation_data=new_obs,
+                eta=eff.eta,
+                action=eff.action,
+            )
+        else:
+            resolved[agent_id] = eff
+
+    return resolved
