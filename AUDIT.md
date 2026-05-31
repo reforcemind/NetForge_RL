@@ -5,6 +5,10 @@
 **Auditor:** automated harness + manual review
 **Target:** NeurIPS Datasets & Benchmarks 2026 submission
 
+> **Canonical roadmap** lives in [ROADMAP.md](ROADMAP.md), including
+> Phase 8 (Semantic Bridge — Foundation-Model-Native MARL). This
+> document is the per-phase audit / measurement snapshot.
+
 ---
 
 ## 1. Repository inventory
