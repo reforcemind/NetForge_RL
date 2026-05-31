@@ -33,6 +33,12 @@ docs = [
     "mkdocs-material>=9.5.0",
     "mkdocstrings[python]>=0.25.0",
 ]
+jax = [
+    # CPU build only — install jax[cuda12] or jax[tpu] explicitly for
+    # accelerator support. Backends.jax is import-guarded so the legacy
+    # PyTorch path keeps working without this extra.
+    "jax[cpu]>=0.4.30",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
