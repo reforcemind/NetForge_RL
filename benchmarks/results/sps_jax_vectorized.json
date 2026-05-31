@@ -1,0 +1,43 @@
+{
+  "backend": "jax-vectorized",
+  "device": "cpu:0",
+  "rows": [
+    {
+      "batch_size": 1,
+      "steps": 50,
+      "wall_seconds": 0.32960579998325557,
+      "aggregate_sps": 151.6963597198231,
+      "per_env_sps": 151.6963597198231
+    },
+    {
+      "batch_size": 16,
+      "steps": 50,
+      "wall_seconds": 0.12142049998510629,
+      "aggregate_sps": 6588.673247912254,
+      "per_env_sps": 411.79207799451586
+    },
+    {
+      "batch_size": 128,
+      "steps": 50,
+      "wall_seconds": 0.15724349999800324,
+      "aggregate_sps": 40701.205455750285,
+      "per_env_sps": 317.9781676230491
+    },
+    {
+      "batch_size": 1024,
+      "steps": 50,
+      "wall_seconds": 0.08664829994086176,
+      "aggregate_sps": 590894.4553435493,
+      "per_env_sps": 577.0453665464348
+    },
+    {
+      "batch_size": 4096,
+      "steps": 50,
+      "wall_seconds": 0.1892345999367535,
+      "aggregate_sps": 1082254.5140711518,
+      "per_env_sps": 264.2222934744023
+    }
+  ],
+  "python": "3.12.10",
+  "platform": "Windows 11"
+}

@@ -21,12 +21,24 @@ from netforge_rl.backends.jax.kernels import (  # noqa: E402
     apply_compromised_by_delta,
     resolve_conflicts_mask,
 )
+from netforge_rl.backends.jax.vector_env import (  # noqa: E402
+    BatchedActions,
+    VectorEnvSpec,
+    initial_batched_state,
+    make_vector_step,
+    random_actions,
+)
 
 __all__ = [
+    'BatchedActions',
     'JaxEnvState',
+    'VectorEnvSpec',
     'apply_compromised_by_delta',
     'apply_host_privilege_delta',
     'apply_host_status_delta',
+    'initial_batched_state',
+    'make_vector_step',
+    'random_actions',
     'resolve_conflicts_mask',
     'to_jax',
     'to_numpy',

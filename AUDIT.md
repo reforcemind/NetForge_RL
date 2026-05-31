@@ -109,3 +109,33 @@ A PR may merge into `main` only if:
 - [x] Branching strategy in place (`chore/audit-baseline` → `main` after review).
 
 Next: open `refactor/functional-core` (Phase 1) — extract `EnvState` as a frozen PyTree, make `step_state` pure, route all RNG through explicit keys. Acceptance: golden fingerprint preserved; SPS within ±10 % of baseline.
+
+---
+
+## 8. Phase 1 + Phase 2 results (delta from Phase 0)
+
+| Phase | Branch | Status |
+|---|---|---|
+| 1 (slices 1–4) — Functional core | `refactor/functional-core` | ✅ shipped |
+| 2 slice 1 — JAX kernels + PyTree state | `feat/jax-core` | ✅ shipped |
+| 2 slice 2 — vmap vector step + 4096-env compile | `feat/jax-core` | ✅ shipped |
+
+### Throughput (JAX backend, Windows 11 / Python 3.12 / CPU device)
+
+Harness: [benchmarks/sps_jax_vectorized.py](benchmarks/sps_jax_vectorized.py) — record at [benchmarks/results/sps_jax_vectorized.json](benchmarks/results/sps_jax_vectorized.json).
+
+| Batch size | Aggregate SPS | Per-env SPS | Speedup vs legacy baseline (10.45 SPS) |
+|---:|---:|---:|---:|
+| 1 | 152 | 152 | 14.5× |
+| 16 | 6,589 | 412 | 630× |
+| 128 | 40,701 | 318 | 3,900× |
+| 1,024 | 590,894 | 577 | 56,500× |
+| 4,096 | **1,082,255** | 264 | **103,500×** |
+
+The CPU device saturates around batch 1024; on a GPU/TPU the curve is expected to continue scaling. Per-env SPS reflects per-env latency including vmap overhead — what matters for training throughput is the aggregate column.
+
+### Tests / regression locks
+
+- 132/132 tests pass (was 79 at Phase 0).
+- Golden trajectory hash `abd164a5…` unchanged across all Phase 1 + Phase 2 work (legacy backend untouched).
+- New parity locks: pure delta interpreter, pure conflict resolver, JAX kernels, episode-long pure-step equivalence, episode-long envstate sync.
