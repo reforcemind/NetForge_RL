@@ -13,12 +13,14 @@ from netforge_rl.backends.jax import (
     to_jax,
 )
 from netforge_rl.backends.jax.vector_env import (
+    BLUE_DEPLOY_DECOY,
     BLUE_ISOLATE,
     BLUE_RESTORE,
     RED_COMPROMISE,
     RED_PRIVESC,
 )
 from netforge_rl.core.functional import (
+    DECOY_CODES,
     PRIVILEGE_CODES,
     STATUS_CODES,
     from_global_state,
@@ -158,3 +160,29 @@ def test_privesc_reward_is_higher_than_compromise(global_state) -> None:
     ))
     # Red reward column 0 should be 3.0 (privesc bonus) > 1.0 (compromise).
     assert float(r_privesc[0, 0]) == pytest.approx(3.0)
+
+
+# ── Blue deploy decoy ────────────────────────────────────────────────────
+
+
+@pytest.mark.fast
+def test_deploy_decoy_flips_decoy_field(global_state) -> None:
+    spec = _spec()
+    state = _state(global_state, batch=1)
+    step = make_vector_step(spec)
+
+    # Pick a host that's not already a decoy.
+    idx = int(
+        next(
+            i for i in range(100)
+            if int(state.hosts.decoy[0, i]) == DECOY_CODES.index('inactive')
+        )
+    )
+    state, rewards = step(state, _act(
+        red_t=[[99]], blue_t=[[idx]],
+        red_a=[[False]], blue_a=[[True]],
+        red_type=[[RED_COMPROMISE]], blue_type=[[BLUE_DEPLOY_DECOY]],
+    ))
+    assert int(state.hosts.decoy[0, idx]) == DECOY_CODES.index('active')
+    # Blue reward 0 gets the +0.5 decoy bonus.
+    assert float(rewards[0, spec.n_red]) == pytest.approx(0.5)

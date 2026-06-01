@@ -41,11 +41,14 @@ from netforge_rl.core.functional import PRIVILEGE_CODES, STATUS_CODES
 
 # Encoded category codes pulled to module level so jit traces against
 # concrete ints, not Python lookups.
+from netforge_rl.core.functional import DECOY_CODES
+
 _STATUS_ONLINE = STATUS_CODES.index('online')
 _STATUS_ISOLATED = STATUS_CODES.index('isolated')
 _PRIV_NONE = PRIVILEGE_CODES.index('None')
 _PRIV_USER = PRIVILEGE_CODES.index('User')
 _PRIV_ROOT = PRIVILEGE_CODES.index('Root')
+_DECOY_ACTIVE = DECOY_CODES.index('active')
 
 # Action type encoding. Mirrors the legacy action_registry indexing for the
 # *shared* subset that's currently implemented in the JAX backend.
@@ -54,6 +57,7 @@ RED_PRIVESC = 1      # User -> Root on already-owned target
 
 BLUE_ISOLATE = 0     # status -> isolated
 BLUE_RESTORE = 1     # privilege -> None, status -> online (heals the host)
+BLUE_DEPLOY_DECOY = 2  # decoy -> active (proactive defense)
 
 
 class BatchedActions(NamedTuple):
@@ -121,6 +125,7 @@ def _single_env_step(
     red_is_privesc = (red_action_type == RED_PRIVESC) & red_success
     blue_is_isolate = (blue_action_type == BLUE_ISOLATE) & blue_attempt
     blue_is_restore = (blue_action_type == BLUE_RESTORE) & blue_attempt
+    blue_is_decoy = (blue_action_type == BLUE_DEPLOY_DECOY) & blue_attempt
 
     # Aggregate to per-host write masks (any-wins across agents).
     blue_writes_isolate = jnp.any(
@@ -128,6 +133,9 @@ def _single_env_step(
     )  # bool[N_HOSTS]
     blue_writes_restore = jnp.any(
         blue_target_mask & blue_is_restore[:, None], axis=0
+    )
+    blue_writes_decoy = jnp.any(
+        blue_target_mask & blue_is_decoy[:, None], axis=0
     )
     red_writes_user = jnp.any(
         red_target_mask & red_is_compromise[:, None], axis=0
@@ -165,18 +173,25 @@ def _single_env_step(
         blue_writes_restore, jnp.int8(-1), new_compromised
     )
 
+    new_decoy = jnp.where(
+        blue_writes_decoy, jnp.int8(_DECOY_ACTIVE), state.hosts.decoy
+    )
+
     new_hosts = replace(
         state.hosts,
         status=new_status,
         privilege=new_privilege,
         compromised_by_id=new_compromised,
+        decoy=new_decoy,
     )
 
-    # Reward: Blue +1 per isolate, +2 per successful restore (heal);
+    # Reward: Blue +1 per isolate, +2 per successful restore (heal),
+    # +0.5 per decoy (proactive but cheap);
     # Red +1 per fresh compromise, +3 per successful privesc (more impactful).
     blue_reward = (
         jnp.sum(blue_writes_isolate.astype(jnp.float32))
         + 2.0 * jnp.sum(blue_writes_restore.astype(jnp.float32))
+        + 0.5 * jnp.sum(blue_writes_decoy.astype(jnp.float32))
     )
     red_reward = (
         jnp.sum(red_writes_user.astype(jnp.float32))
@@ -270,7 +285,7 @@ def random_actions(
             k5, (batch_size, spec.n_red), 0, 2, dtype=jnp.int8
         ),
         blue_action_type=jax.random.randint(
-            k6, (batch_size, spec.n_blue), 0, 2, dtype=jnp.int8
+            k6, (batch_size, spec.n_blue), 0, 3, dtype=jnp.int8
         ),
     )
 
