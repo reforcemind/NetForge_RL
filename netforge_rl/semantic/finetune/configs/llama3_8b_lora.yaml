@@ -1,0 +1,45 @@
+# LoRA + PPO reference recipe for an 8B open-weights model.
+# Designed to fit on a single 24 GB consumer GPU.
+
+model:
+  name: meta-llama/Meta-Llama-3-8B-Instruct
+  load_in_4bit: true                 # bitsandbytes nf4
+  use_double_quant: true
+
+lora:
+  r: 16
+  alpha: 32
+  dropout: 0.05
+  target_modules: [q_proj, k_proj, v_proj, o_proj]
+
+ppo:
+  learning_rate: 1.4e-5
+  mini_batch_size: 4
+  batch_size: 16
+  ppo_epochs: 4
+  init_kl_coef: 0.2
+  target_kl: 0.1
+  cliprange: 0.2
+  cliprange_value: 0.2
+  vf_coef: 0.1
+  gamma: 0.99
+  lam: 0.95
+
+env:
+  scenario: enterprise-it-small
+  controlled_agent: blue_dmz
+  max_steps_per_episode: 64
+  invalid_penalty: -1.0
+  max_hosts_in_prompt: 8
+
+generation:
+  max_new_tokens: 32
+  do_sample: true
+  temperature: 0.7
+  top_p: 0.9
+
+run:
+  total_steps: 2000
+  seed: 0
+  save_every: 500
+  output_dir: ./runs/netforge-llama3-blue-v1
