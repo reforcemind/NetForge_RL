@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+title: "NetForge-MARL: A Dual-Backend, Foundation-Model-Native Benchmark for Multi-Agent Cybersecurity RL"
+message: "If you use this software, please cite as below."
+type: software
+authors:
+  - name: ReforceMind
+version: 4.0.0
+date-released: 2026-06-01
+license: MIT
+repository-code: "https://github.com/reforcemind/NetForge_RL"
+keywords:
+  - reinforcement-learning
+  - multi-agent
+  - cybersecurity
+  - JAX
+  - PettingZoo
+  - foundation-models
+  - benchmark
