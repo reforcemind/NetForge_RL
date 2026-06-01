@@ -39,6 +39,11 @@ jax = [
     # PyTorch path keeps working without this extra.
     "jax[cpu]>=0.4.30",
 ]
+render = [
+    "matplotlib>=3.8.0",
+    "networkx>=3.2.1",
+    "moviepy>=2.0.0",  # optional; only required by FrameRecorder.save
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

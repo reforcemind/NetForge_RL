@@ -26,7 +26,7 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
     Agent execution and relies exclusively on Gymnasium spaces natively.
     """
 
-    metadata = {'render_modes': ['ansi'], 'name': 'netforge_rl_v3'}
+    metadata = {'render_modes': ['ansi', 'rgb_array'], 'name': 'netforge_rl_v3'}
 
     def __init__(self, scenario_config: dict):
         # Default to procedural generation if no specific architecture config is provided
@@ -446,9 +446,19 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
 
         return observations, rewards, terminate, truncate, infos
 
-    def render(self):
-        """Standard PettingZoo GUI logging render hook."""
-        pass
+    def render(self, mode: str = 'rgb_array'):
+        """Decoupled render. ``mode='rgb_array'`` returns a uint8 HxWx3 array.
+
+        Pulls a frozen snapshot off the legacy state, then delegates to
+        :mod:`netforge_rl.render`. Never mutates state.
+        """
+        if mode == 'ansi':
+            return None
+        if mode != 'rgb_array':
+            raise ValueError(f'Unsupported render mode: {mode}')
+        from netforge_rl.render import render_rgb, snapshot_from_envstate
+
+        return render_rgb(snapshot_from_envstate(self.to_envstate()))
 
     def to_envstate(self):
         """Materialize a frozen :class:`EnvState` snapshot of the current state.
