@@ -52,22 +52,17 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
         ]
         self.agents = self.possible_agents[:]
 
-        if scenario_type.lower() == 'ransomware':
-            from netforge_rl.scenarios.ransomware import RansomwareScenario
+        from netforge_rl.scenarios import get_scenario_class
 
-            self.scenario = RansomwareScenario(self.agents)
-        elif scenario_type.lower() == 'iot_grid':
-            from netforge_rl.scenarios.iot_grid import IoTGridScenario
-
-            self.scenario = IoTGridScenario(self.agents)
-        elif scenario_type.lower() == 'ot_stuxnet':
-            from netforge_rl.scenarios.ot_stuxnet import OTStuxnetScenario
-
-            self.scenario = OTStuxnetScenario(self.agents)
-        else:
+        try:
+            scenario_cls = get_scenario_class(scenario_type)
+        except KeyError:
+            # Unknown scenario_type falls back to APT espionage (legacy
+            # behavior); registry tests pin the supported names.
             from netforge_rl.scenarios.apt_espionage import AptEspionageScenario
 
-            self.scenario = AptEspionageScenario(self.agents)
+            scenario_cls = AptEspionageScenario
+        self.scenario = scenario_cls(self.agents)
 
         self.global_state = self.network_generator.generate()
         self.resolution_engine = ConflictResolutionEngine()
