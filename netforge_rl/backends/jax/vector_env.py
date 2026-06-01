@@ -58,6 +58,7 @@ RED_PRIVESC = 1      # User -> Root on already-owned target
 BLUE_ISOLATE = 0     # status -> isolated
 BLUE_RESTORE = 1     # privilege -> None, status -> online (heals the host)
 BLUE_DEPLOY_DECOY = 2  # decoy -> active (proactive defense)
+BLUE_DEPLOY_HONEYTOKEN = 3  # contains_honeytokens -> True (trap)
 
 
 class BatchedActions(NamedTuple):
@@ -126,6 +127,7 @@ def _single_env_step(
     blue_is_isolate = (blue_action_type == BLUE_ISOLATE) & blue_attempt
     blue_is_restore = (blue_action_type == BLUE_RESTORE) & blue_attempt
     blue_is_decoy = (blue_action_type == BLUE_DEPLOY_DECOY) & blue_attempt
+    blue_is_honey = (blue_action_type == BLUE_DEPLOY_HONEYTOKEN) & blue_attempt
 
     # Aggregate to per-host write masks (any-wins across agents).
     blue_writes_isolate = jnp.any(
@@ -136,6 +138,9 @@ def _single_env_step(
     )
     blue_writes_decoy = jnp.any(
         blue_target_mask & blue_is_decoy[:, None], axis=0
+    )
+    blue_writes_honey = jnp.any(
+        blue_target_mask & blue_is_honey[:, None], axis=0
     )
     red_writes_user = jnp.any(
         red_target_mask & red_is_compromise[:, None], axis=0
@@ -176,6 +181,7 @@ def _single_env_step(
     new_decoy = jnp.where(
         blue_writes_decoy, jnp.int8(_DECOY_ACTIVE), state.hosts.decoy
     )
+    new_honey = state.hosts.contains_honeytokens | blue_writes_honey
 
     new_hosts = replace(
         state.hosts,
@@ -183,20 +189,30 @@ def _single_env_step(
         privilege=new_privilege,
         compromised_by_id=new_compromised,
         decoy=new_decoy,
+        contains_honeytokens=new_honey,
     )
 
     # Reward: Blue +1 per isolate, +2 per successful restore (heal),
-    # +0.5 per decoy (proactive but cheap);
-    # Red +1 per fresh compromise, +3 per successful privesc (more impactful).
+    # +0.5 per decoy (proactive but cheap), +0.5 per honeytoken;
+    # Red +1 per fresh compromise, +3 per privesc, -5 for compromising a
+    # honeytoken'd host (trap penalty).
+    red_trapped = jnp.any(
+        red_target_mask & red_is_compromise[:, None] & state.hosts.contains_honeytokens[None, :],
+        axis=1,
+    )  # bool[N_RED] — Red i hit a trap
     blue_reward = (
         jnp.sum(blue_writes_isolate.astype(jnp.float32))
         + 2.0 * jnp.sum(blue_writes_restore.astype(jnp.float32))
         + 0.5 * jnp.sum(blue_writes_decoy.astype(jnp.float32))
+        + 0.5 * jnp.sum(blue_writes_honey.astype(jnp.float32))
     )
-    red_reward = (
+    red_team_reward = (
         jnp.sum(red_writes_user.astype(jnp.float32))
         + 3.0 * jnp.sum(red_writes_root.astype(jnp.float32))
     )
+    # Trap penalty is per-Red-agent (not team-wide) so the trapped agent
+    # gets the negative signal directly.
+    red_trap_penalty = -5.0 * red_trapped.astype(jnp.float32)
 
     new_state = replace(
         state,
@@ -205,12 +221,9 @@ def _single_env_step(
     )
 
     # Reward shape: float32[N_RED + N_BLUE] — Red rewards first, then Blue.
-    rewards = jnp.concatenate(
-        [
-            jnp.broadcast_to(red_reward, (spec.n_red,)),
-            jnp.broadcast_to(blue_reward, (spec.n_blue,)),
-        ]
-    )
+    red_rewards = jnp.broadcast_to(red_team_reward, (spec.n_red,)) + red_trap_penalty
+    blue_rewards = jnp.broadcast_to(blue_reward, (spec.n_blue,))
+    rewards = jnp.concatenate([red_rewards, blue_rewards])
     return new_state, rewards
 
 
@@ -285,7 +298,7 @@ def random_actions(
             k5, (batch_size, spec.n_red), 0, 2, dtype=jnp.int8
         ),
         blue_action_type=jax.random.randint(
-            k6, (batch_size, spec.n_blue), 0, 3, dtype=jnp.int8
+            k6, (batch_size, spec.n_blue), 0, 4, dtype=jnp.int8
         ),
     )
 

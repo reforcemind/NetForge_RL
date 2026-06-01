@@ -14,6 +14,7 @@ from netforge_rl.backends.jax import (
 )
 from netforge_rl.backends.jax.vector_env import (
     BLUE_DEPLOY_DECOY,
+    BLUE_DEPLOY_HONEYTOKEN,
     BLUE_ISOLATE,
     BLUE_RESTORE,
     RED_COMPROMISE,
@@ -186,3 +187,30 @@ def test_deploy_decoy_flips_decoy_field(global_state) -> None:
     assert int(state.hosts.decoy[0, idx]) == DECOY_CODES.index('active')
     # Blue reward 0 gets the +0.5 decoy bonus.
     assert float(rewards[0, spec.n_red]) == pytest.approx(0.5)
+
+
+# ── Blue honeytoken + Red trap penalty ───────────────────────────────────
+
+
+@pytest.mark.fast
+def test_honeytoken_traps_red_compromise(global_state) -> None:
+    spec = _spec()
+    state = _state(global_state, batch=1)
+    step = make_vector_step(spec)
+
+    # 1. Blue deploys honeytoken on host 12.
+    state, _ = step(state, _act(
+        red_t=[[99]], blue_t=[[12]],
+        red_a=[[False]], blue_a=[[True]],
+        red_type=[[RED_COMPROMISE]], blue_type=[[BLUE_DEPLOY_HONEYTOKEN]],
+    ))
+    assert bool(state.hosts.contains_honeytokens[0, 12])
+
+    # 2. Red tries to compromise host 12 -> -5 trap penalty.
+    _, rewards = step(state, _act(
+        red_t=[[12]], blue_t=[[99]],
+        red_a=[[True]], blue_a=[[False]],
+        red_type=[[RED_COMPROMISE]], blue_type=[[BLUE_ISOLATE]],
+    ))
+    # Red 0's reward = +1 (compromise) - 5 (trap) = -4.
+    assert float(rewards[0, 0]) == pytest.approx(-4.0)
