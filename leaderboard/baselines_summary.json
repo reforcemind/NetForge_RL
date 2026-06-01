@@ -1,0 +1,110 @@
+[
+  {
+    "model_id": "heuristic-red",
+    "scenario": "apt_espionage",
+    "n_episodes": 3,
+    "mean_total_reward": 2424.0,
+    "mean_compromised": 0.0,
+    "mean_isolated": 77.0,
+    "mean_invalid_replies": 0.0
+  },
+  {
+    "model_id": "random",
+    "scenario": "apt_espionage",
+    "n_episodes": 3,
+    "mean_total_reward": 2281.3333333333335,
+    "mean_compromised": 0.0,
+    "mean_isolated": 78.33333333333333,
+    "mean_invalid_replies": 0.0
+  },
+  {
+    "model_id": "heuristic-blue",
+    "scenario": "apt_espionage",
+    "n_episodes": 3,
+    "mean_total_reward": 2272.3333333333335,
+    "mean_compromised": 0.0,
+    "mean_isolated": 78.66666666666667,
+    "mean_invalid_replies": 0.0
+  },
+  {
+    "model_id": "heuristic-red",
+    "scenario": "ot_stuxnet",
+    "n_episodes": 3,
+    "mean_total_reward": 60.0,
+    "mean_compromised": 0.0,
+    "mean_isolated": 77.0,
+    "mean_invalid_replies": 0.0
+  },
+  {
+    "model_id": "heuristic-red",
+    "scenario": "ransomware",
+    "n_episodes": 3,
+    "mean_total_reward": 59.14161616161616,
+    "mean_compromised": 0.0,
+    "mean_isolated": 77.0,
+    "mean_invalid_replies": 0.0
+  },
+  {
+    "model_id": "random",
+    "scenario": "ransomware",
+    "n_episodes": 3,
+    "mean_total_reward": 56.36333333333335,
+    "mean_compromised": 0.0,
+    "mean_isolated": 78.33333333333333,
+    "mean_invalid_replies": 0.0
+  },
+  {
+    "model_id": "random",
+    "scenario": "ot_stuxnet",
+    "n_episodes": 3,
+    "mean_total_reward": 56.0,
+    "mean_compromised": 0.0,
+    "mean_isolated": 78.33333333333333,
+    "mean_invalid_replies": 0.0
+  },
+  {
+    "model_id": "heuristic-blue",
+    "scenario": "ot_stuxnet",
+    "n_episodes": 3,
+    "mean_total_reward": 56.0,
+    "mean_compromised": 0.0,
+    "mean_isolated": 78.66666666666667,
+    "mean_invalid_replies": 0.0
+  },
+  {
+    "model_id": "heuristic-blue",
+    "scenario": "ransomware",
+    "n_episodes": 3,
+    "mean_total_reward": 45.97333333333335,
+    "mean_compromised": 0.0,
+    "mean_isolated": 78.66666666666667,
+    "mean_invalid_replies": 0.0
+  },
+  {
+    "model_id": "heuristic-red",
+    "scenario": "iot_grid",
+    "n_episodes": 3,
+    "mean_total_reward": 12.125000000000002,
+    "mean_compromised": 0.0,
+    "mean_isolated": 77.0,
+    "mean_invalid_replies": 0.0
+  },
+  {
+    "model_id": "random",
+    "scenario": "iot_grid",
+    "n_episodes": 3,
+    "mean_total_reward": 11.390000000000006,
+    "mean_compromised": 0.0,
+    "mean_isolated": 78.33333333333333,
+    "mean_invalid_replies": 0.0
+  },
+  {
+    "model_id": "heuristic-blue",
+    "scenario": "iot_grid",
+    "n_episodes": 3,
+    "mean_total_reward": 11.345000000000008,
+    "mean_compromised": 0.0,
+    "mean_isolated": 78.66666666666667,
+    "mean_invalid_replies": 0.0
+  }
+]

@@ -27,13 +27,19 @@ def test_env_step_interaction(env_sim_local):
 
 @pytest.mark.fast
 def test_env_episode_truncation(env_sim_local):
-    """Verify that episode truncates after max_ticks."""
+    """Verify that episode truncates after max_ticks.
+
+    Uses a fixed [0, 0] action (no queued event with duration > 1) so the
+    event-driven time jump can't push current_tick past max_ticks in one
+    step. action_space.sample() would be order-dependent here (gymnasium's
+    stateful np_random).
+    """
     env_sim_local.max_ticks = 2
     env_sim_local.reset(seed=42)
-    actions = {a: env_sim_local.action_space(a).sample() for a in env_sim_local.agents}
+    actions = {a: np.array([0, 0], dtype=np.int64) for a in env_sim_local.agents}
     obs, rewards, terms, truncs, _ = env_sim_local.step(actions)
     assert all(not t for t in truncs.values())
-    actions = {a: env_sim_local.action_space(a).sample() for a in env_sim_local.agents}
+    actions = {a: np.array([0, 0], dtype=np.int64) for a in env_sim_local.agents}
     obs, rewards, terms, truncs, _ = env_sim_local.step(actions)
     assert all(t for t in truncs.values())
 

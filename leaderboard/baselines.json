@@ -1,0 +1,614 @@
+[
+  {
+    "model_id": "random",
+    "scenario": "ransomware",
+    "steps": 35,
+    "rewards": {
+      "red_operator": 0.0,
+      "blue_dmz": 11.330000000000004,
+      "blue_internal": 18.330000000000005,
+      "blue_restricted": 14.329999999999998
+    },
+    "invalid_replies": {
+      "blue_dmz": 0
+    },
+    "final_compromised": 0,
+    "final_isolated": 77,
+    "metrics": {}
+  },
+  {
+    "model_id": "random",
+    "scenario": "ransomware",
+    "steps": 37,
+    "rewards": {
+      "red_operator": 0.0,
+      "blue_dmz": 14.940000000000007,
+      "blue_internal": 25.939999999999998,
+      "blue_restricted": 20.94
+    },
+    "invalid_replies": {
+      "blue_dmz": 0
+    },
+    "final_compromised": 0,
+    "final_isolated": 78,
+    "metrics": {}
+  },
+  {
+    "model_id": "random",
+    "scenario": "ransomware",
+    "steps": 40,
+    "rewards": {
+      "red_operator": 0.0,
+      "blue_dmz": 27.760000000000012,
+      "blue_internal": 13.760000000000021,
+      "blue_restricted": 21.760000000000016
+    },
+    "invalid_replies": {
+      "blue_dmz": 0
+    },
+    "final_compromised": 0,
+    "final_isolated": 80,
+    "metrics": {}
+  },
+  {
+    "model_id": "random",
+    "scenario": "apt_espionage",
+    "steps": 35,
+    "rewards": {
+      "red_operator": 6.0,
+      "blue_dmz": 803.0,
+      "blue_internal": 803.0,
+      "blue_restricted": 803.0
+    },
+    "invalid_replies": {
+      "blue_dmz": 0
+    },
+    "final_compromised": 0,
+    "final_isolated": 77,
+    "metrics": {}
+  },
+  {
+    "model_id": "random",
+    "scenario": "apt_espionage",
+    "steps": 37,
+    "rewards": {
+      "red_operator": 4.0,
+      "blue_dmz": 694.0,
+      "blue_internal": 694.0,
+      "blue_restricted": 694.0
+    },
+    "invalid_replies": {
+      "blue_dmz": 0
+    },
+    "final_compromised": 0,
+    "final_isolated": 78,
+    "metrics": {}
+  },
+  {
+    "model_id": "random",
+    "scenario": "apt_espionage",
+    "steps": 40,
+    "rewards": {
+      "red_operator": 0.0,
+      "blue_dmz": 781.0,
+      "blue_internal": 781.0,
+      "blue_restricted": 781.0
+    },
+    "invalid_replies": {
+      "blue_dmz": 0
+    },
+    "final_compromised": 0,
+    "final_isolated": 80,
+    "metrics": {}
+  },
+  {
+    "model_id": "random",
+    "scenario": "iot_grid",
+    "steps": 35,
+    "rewards": {
+      "red_operator": 0.0,
+      "blue_dmz": 4.015000000000003,
+      "blue_internal": 4.015000000000003,
+      "blue_restricted": 4.015000000000003
+    },
+    "invalid_replies": {
+      "blue_dmz": 0
+    },
+    "final_compromised": 0,
+    "final_isolated": 77,
+    "metrics": {}
+  },
+  {
+    "model_id": "random",
+    "scenario": "iot_grid",
+    "steps": 37,
+    "rewards": {
+      "red_operator": 0.0,
+      "blue_dmz": 3.4699999999999998,
+      "blue_internal": 3.4699999999999998,
+      "blue_restricted": 3.4699999999999998
+    },
+    "invalid_replies": {
+      "blue_dmz": 0
+    },
+    "final_compromised": 0,
+    "final_isolated": 78,
+    "metrics": {}
+  },
+  {
+    "model_id": "random",
+    "scenario": "iot_grid",
+    "steps": 40,
+    "rewards": {
+      "red_operator": 0.0,
+      "blue_dmz": 3.9050000000000034,
+      "blue_internal": 3.9050000000000034,
+      "blue_restricted": 3.9050000000000034
+    },
+    "invalid_replies": {
+      "blue_dmz": 0
+    },
+    "final_compromised": 0,
+    "final_isolated": 80,
+    "metrics": {}
+  },
+  {
+    "model_id": "random",
+    "scenario": "ot_stuxnet",
+    "steps": 35,
+    "rewards": {
+      "red_operator": 0.0,
+      "blue_dmz": 17.5,
+      "blue_internal": 17.5,
+      "blue_restricted": 17.5
+    },
+    "invalid_replies": {
+      "blue_dmz": 0
+    },
+    "final_compromised": 0,
+    "final_isolated": 77,
+    "metrics": {}
+  },
+  {
+    "model_id": "random",
+    "scenario": "ot_stuxnet",
+    "steps": 37,
+    "rewards": {
+      "red_operator": 0.0,
+      "blue_dmz": 18.5,
+      "blue_internal": 18.5,
+      "blue_restricted": 18.5
+    },
+    "invalid_replies": {
+      "blue_dmz": 0
+    },
+    "final_compromised": 0,
+    "final_isolated": 78,
+    "metrics": {}
+  },
+  {
+    "model_id": "random",
+    "scenario": "ot_stuxnet",
+    "steps": 40,
+    "rewards": {
+      "red_operator": 0.0,
+      "blue_dmz": 20.0,
+      "blue_internal": 20.0,
+      "blue_restricted": 20.0
+    },
+    "invalid_replies": {
+      "blue_dmz": 0
+    },
+    "final_compromised": 0,
+    "final_isolated": 80,
+    "metrics": {}
+  },
+  {
+    "model_id": "heuristic-blue",
+    "scenario": "ransomware",
+    "steps": 35,
+    "rewards": {
+      "red_operator": 0.0,
+      "blue_dmz": 8.170000000000003,
+      "blue_internal": 19.17000000000001,
+      "blue_restricted": 15.170000000000005
+    },
+    "invalid_replies": {
+      "blue_dmz": 0
+    },
+    "final_compromised": 0,
+    "final_isolated": 76,
+    "metrics": {}
+  },
+  {
+    "model_id": "heuristic-blue",
+    "scenario": "ransomware",
+    "steps": 37,
+    "rewards": {
+      "red_operator": 0.0,
+      "blue_dmz": 6.9,
+      "blue_internal": 25.900000000000006,
+      "blue_restricted": 20.90000000000001
+    },
+    "invalid_replies": {
+      "blue_dmz": 0
+    },
+    "final_compromised": 0,
+    "final_isolated": 79,
+    "metrics": {}
+  },
+  {
+    "model_id": "heuristic-blue",
+    "scenario": "ransomware",
+    "steps": 40,
+    "rewards": {
+      "red_operator": 0.0,
+      "blue_dmz": 6.569999999999996,
+      "blue_internal": 13.570000000000004,
+      "blue_restricted": 21.570000000000004
+    },
+    "invalid_replies": {
+      "blue_dmz": 0
+    },
+    "final_compromised": 0,
+    "final_isolated": 81,
+    "metrics": {}
+  },
+  {
+    "model_id": "heuristic-blue",
+    "scenario": "apt_espionage",
+    "steps": 35,
+    "rewards": {
+      "red_operator": 6.0,
+      "blue_dmz": 817.0,
+      "blue_internal": 817.0,
+      "blue_restricted": 817.0
+    },
+    "invalid_replies": {
+      "blue_dmz": 0
+    },
+    "final_compromised": 0,
+    "final_isolated": 76,
+    "metrics": {}
+  },
+  {
+    "model_id": "heuristic-blue",
+    "scenario": "apt_espionage",
+    "steps": 37,
+    "rewards": {
+      "red_operator": 4.0,
+      "blue_dmz": 690.0,
+      "blue_internal": 690.0,
+      "blue_restricted": 690.0
+    },
+    "invalid_replies": {
+      "blue_dmz": 0
+    },
+    "final_compromised": 0,
+    "final_isolated": 79,
+    "metrics": {}
+  },
+  {
+    "model_id": "heuristic-blue",
+    "scenario": "apt_espionage",
+    "steps": 40,
+    "rewards": {
+      "red_operator": 0.0,
+      "blue_dmz": 762.0,
+      "blue_internal": 762.0,
+      "blue_restricted": 762.0
+    },
+    "invalid_replies": {
+      "blue_dmz": 0
+    },
+    "final_compromised": 0,
+    "final_isolated": 81,
+    "metrics": {}
+  },
+  {
+    "model_id": "heuristic-blue",
+    "scenario": "iot_grid",
+    "steps": 35,
+    "rewards": {
+      "red_operator": 0.0,
+      "blue_dmz": 4.085000000000002,
+      "blue_internal": 4.085000000000002,
+      "blue_restricted": 4.085000000000002
+    },
+    "invalid_replies": {
+      "blue_dmz": 0
+    },
+    "final_compromised": 0,
+    "final_isolated": 76,
+    "metrics": {}
+  },
+  {
+    "model_id": "heuristic-blue",
+    "scenario": "iot_grid",
+    "steps": 37,
+    "rewards": {
+      "red_operator": 0.0,
+      "blue_dmz": 3.45,
+      "blue_internal": 3.45,
+      "blue_restricted": 3.45
+    },
+    "invalid_replies": {
+      "blue_dmz": 0
+    },
+    "final_compromised": 0,
+    "final_isolated": 79,
+    "metrics": {}
+  },
+  {
+    "model_id": "heuristic-blue",
+    "scenario": "iot_grid",
+    "steps": 40,
+    "rewards": {
+      "red_operator": 0.0,
+      "blue_dmz": 3.8100000000000045,
+      "blue_internal": 3.8100000000000045,
+      "blue_restricted": 3.8100000000000045
+    },
+    "invalid_replies": {
+      "blue_dmz": 0
+    },
+    "final_compromised": 0,
+    "final_isolated": 81,
+    "metrics": {}
+  },
+  {
+    "model_id": "heuristic-blue",
+    "scenario": "ot_stuxnet",
+    "steps": 35,
+    "rewards": {
+      "red_operator": 0.0,
+      "blue_dmz": 17.5,
+      "blue_internal": 17.5,
+      "blue_restricted": 17.5
+    },
+    "invalid_replies": {
+      "blue_dmz": 0
+    },
+    "final_compromised": 0,
+    "final_isolated": 76,
+    "metrics": {}
+  },
+  {
+    "model_id": "heuristic-blue",
+    "scenario": "ot_stuxnet",
+    "steps": 37,
+    "rewards": {
+      "red_operator": 0.0,
+      "blue_dmz": 18.5,
+      "blue_internal": 18.5,
+      "blue_restricted": 18.5
+    },
+    "invalid_replies": {
+      "blue_dmz": 0
+    },
+    "final_compromised": 0,
+    "final_isolated": 79,
+    "metrics": {}
+  },
+  {
+    "model_id": "heuristic-blue",
+    "scenario": "ot_stuxnet",
+    "steps": 40,
+    "rewards": {
+      "red_operator": 0.0,
+      "blue_dmz": 20.0,
+      "blue_internal": 20.0,
+      "blue_restricted": 20.0
+    },
+    "invalid_replies": {
+      "blue_dmz": 0
+    },
+    "final_compromised": 0,
+    "final_isolated": 81,
+    "metrics": {}
+  },
+  {
+    "model_id": "heuristic-red",
+    "scenario": "ransomware",
+    "steps": 40,
+    "rewards": {
+      "red_operator": 0.0,
+      "blue_dmz": 15.579999999999991,
+      "blue_internal": 21.58,
+      "blue_restricted": 21.57999999999999
+    },
+    "invalid_replies": {
+      "red_operator": 0
+    },
+    "final_compromised": 0,
+    "final_isolated": 75,
+    "metrics": {}
+  },
+  {
+    "model_id": "heuristic-red",
+    "scenario": "ransomware",
+    "steps": 40,
+    "rewards": {
+      "red_operator": 0.0,
+      "blue_dmz": 17.590000000000003,
+      "blue_internal": 30.589999999999996,
+      "blue_restricted": 15.59000000000001
+    },
+    "invalid_replies": {
+      "red_operator": 0
+    },
+    "final_compromised": 0,
+    "final_isolated": 78,
+    "metrics": {}
+  },
+  {
+    "model_id": "heuristic-red",
+    "scenario": "ransomware",
+    "steps": 40,
+    "rewards": {
+      "red_operator": 0.0,
+      "blue_dmz": 16.97161616161617,
+      "blue_internal": 13.97161616161616,
+      "blue_restricted": 23.971616161616172
+    },
+    "invalid_replies": {
+      "red_operator": 0
+    },
+    "final_compromised": 0,
+    "final_isolated": 78,
+    "metrics": {}
+  },
+  {
+    "model_id": "heuristic-red",
+    "scenario": "apt_espionage",
+    "steps": 40,
+    "rewards": {
+      "red_operator": 0.0,
+      "blue_dmz": 922.0,
+      "blue_internal": 922.0,
+      "blue_restricted": 922.0
+    },
+    "invalid_replies": {
+      "red_operator": 0
+    },
+    "final_compromised": 0,
+    "final_isolated": 75,
+    "metrics": {}
+  },
+  {
+    "model_id": "heuristic-red",
+    "scenario": "apt_espionage",
+    "steps": 40,
+    "rewards": {
+      "red_operator": 0.0,
+      "blue_dmz": 759.0,
+      "blue_internal": 759.0,
+      "blue_restricted": 759.0
+    },
+    "invalid_replies": {
+      "red_operator": 0
+    },
+    "final_compromised": 0,
+    "final_isolated": 78,
+    "metrics": {}
+  },
+  {
+    "model_id": "heuristic-red",
+    "scenario": "apt_espionage",
+    "steps": 40,
+    "rewards": {
+      "red_operator": 0.0,
+      "blue_dmz": 743.0,
+      "blue_internal": 743.0,
+      "blue_restricted": 743.0
+    },
+    "invalid_replies": {
+      "red_operator": 0
+    },
+    "final_compromised": 0,
+    "final_isolated": 78,
+    "metrics": {}
+  },
+  {
+    "model_id": "heuristic-red",
+    "scenario": "iot_grid",
+    "steps": 40,
+    "rewards": {
+      "red_operator": 0.0,
+      "blue_dmz": 4.615000000000002,
+      "blue_internal": 4.615000000000002,
+      "blue_restricted": 4.615000000000002
+    },
+    "invalid_replies": {
+      "red_operator": 0
+    },
+    "final_compromised": 0,
+    "final_isolated": 75,
+    "metrics": {}
+  },
+  {
+    "model_id": "heuristic-red",
+    "scenario": "iot_grid",
+    "steps": 40,
+    "rewards": {
+      "red_operator": 0.0,
+      "blue_dmz": 3.7949999999999995,
+      "blue_internal": 3.7949999999999995,
+      "blue_restricted": 3.7949999999999995
+    },
+    "invalid_replies": {
+      "red_operator": 0
+    },
+    "final_compromised": 0,
+    "final_isolated": 78,
+    "metrics": {}
+  },
+  {
+    "model_id": "heuristic-red",
+    "scenario": "iot_grid",
+    "steps": 40,
+    "rewards": {
+      "red_operator": 0.0,
+      "blue_dmz": 3.7150000000000007,
+      "blue_internal": 3.7150000000000007,
+      "blue_restricted": 3.7150000000000007
+    },
+    "invalid_replies": {
+      "red_operator": 0
+    },
+    "final_compromised": 0,
+    "final_isolated": 78,
+    "metrics": {}
+  },
+  {
+    "model_id": "heuristic-red",
+    "scenario": "ot_stuxnet",
+    "steps": 40,
+    "rewards": {
+      "red_operator": 0.0,
+      "blue_dmz": 20.0,
+      "blue_internal": 20.0,
+      "blue_restricted": 20.0
+    },
+    "invalid_replies": {
+      "red_operator": 0
+    },
+    "final_compromised": 0,
+    "final_isolated": 75,
+    "metrics": {}
+  },
+  {
+    "model_id": "heuristic-red",
+    "scenario": "ot_stuxnet",
+    "steps": 40,
+    "rewards": {
+      "red_operator": 0.0,
+      "blue_dmz": 20.0,
+      "blue_internal": 20.0,
+      "blue_restricted": 20.0
+    },
+    "invalid_replies": {
+      "red_operator": 0
+    },
+    "final_compromised": 0,
+    "final_isolated": 78,
+    "metrics": {}
+  },
+  {
+    "model_id": "heuristic-red",
+    "scenario": "ot_stuxnet",
+    "steps": 40,
+    "rewards": {
+      "red_operator": 0.0,
+      "blue_dmz": 20.0,
+      "blue_internal": 20.0,
+      "blue_restricted": 20.0
+    },
+    "invalid_replies": {
+      "red_operator": 0
+    },
+    "final_compromised": 0,
+    "final_isolated": 78,
+    "metrics": {}
+  }
+]
