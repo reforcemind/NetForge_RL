@@ -130,7 +130,20 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
         """Resets the network state to initial configuration natively
 
         (Gymnasium style + PettingZoo).
+
+        When ``seed`` is provided we re-seed both the global ``random`` module
+        and ``numpy.random`` so the legacy backend is deterministic from a
+        single seed end-to-end. Action / SIEM / agent randomness across
+        ``netforge_rl.{actions,agents,siem,nlp,core}`` reads from those globals;
+        re-seeding here means an episode is byte-reproducible without
+        threading an RNG through every call site. The JAX backend is
+        unaffected.
         """
+        if seed is not None:
+            import random as _random
+
+            _random.seed(seed)
+            np.random.seed(seed)
         # Teardown any running containers from the previous episode
         self.sim2real_bridge.teardown_all()
         self.global_state = self.network_generator.generate(seed=seed)
