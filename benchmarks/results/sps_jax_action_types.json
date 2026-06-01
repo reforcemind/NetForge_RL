@@ -1,0 +1,22 @@
+{
+  "backend": "jax-vectorized",
+  "device": "cpu:0",
+  "rows": [
+    {
+      "batch_size": 1024,
+      "steps": 50,
+      "wall_seconds": 0.6087400000542402,
+      "aggregate_sps": 84108.1578267207,
+      "per_env_sps": 82.13687287765693
+    },
+    {
+      "batch_size": 4096,
+      "steps": 50,
+      "wall_seconds": 0.30929179990198463,
+      "aggregate_sps": 662157.871837862,
+      "per_env_sps": 161.65963667916552
+    }
+  ],
+  "python": "3.12.10",
+  "platform": "Windows 11"
+}

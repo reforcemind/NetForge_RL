@@ -138,6 +138,15 @@ Harness: [benchmarks/sps_jax_vectorized.py](benchmarks/sps_jax_vectorized.py) â€
 
 The CPU device saturates around batch 1024; on a GPU/TPU the curve is expected to continue scaling. Per-env SPS reflects per-env latency including vmap overhead â€” what matters for training throughput is the aggregate column.
 
+**After Phase 2 slice 3 (RED_PRIVESC + BLUE_RESTORE):** richer action space costs ~40 % per step but the absolute number stays at headline scale.
+
+| Batch | Aggregate SPS | Per-env SPS |
+|---:|---:|---:|
+| 1,024 | 84,108 | 82.1 |
+| 4,096 | **662,158** | 161.7 |
+
+Record: [benchmarks/results/sps_jax_action_types.json](benchmarks/results/sps_jax_action_types.json).
+
 ### Tests / regression locks
 
 - 132/132 tests pass (was 79 at Phase 0).
