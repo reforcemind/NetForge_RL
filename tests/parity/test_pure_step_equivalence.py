@@ -47,28 +47,32 @@ def _scripted_actions(env, rng):
 
 
 class _ResolveSpy:
-    """Monkey-patches ConflictResolutionEngine.resolve to capture outputs."""
+    """Monkey-patches ConflictResolutionEngine.resolve to capture outputs.
+
+    resolve is a @staticmethod; we keep the descriptor on both patch and
+    revert so we don't accidentally turn it into an instance method.
+    """
 
     def __init__(self):
         self.last_resolved: dict = {}
-        self._orig = ConflictResolutionEngine.resolve
+        self._orig_func = ConflictResolutionEngine.resolve  # unwrapped
 
     def __enter__(self):
-        spy = self
+        orig = self._orig_func
 
-        def spy_resolve(self_engine, effects):
-            resolved = spy._orig(effects)
-            spy.last_resolved = resolved
+        @staticmethod
+        def spy_resolve(effects):
+            resolved = orig(effects)
+            self.last_resolved = resolved
             return resolved
 
-        # parallel_env calls self.resolution_engine.resolve(...) — bind on the
-        # instance via patching the class method (it's a @staticmethod, so we
-        # patch the descriptor).
         parallel_env_module.ConflictResolutionEngine.resolve = spy_resolve
         return self
 
     def __exit__(self, *exc):
-        parallel_env_module.ConflictResolutionEngine.resolve = self._orig
+        parallel_env_module.ConflictResolutionEngine.resolve = staticmethod(
+            self._orig_func
+        )
 
 
 def _flatten_deltas(resolved_effects) -> dict:
