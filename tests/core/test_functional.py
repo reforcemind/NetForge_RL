@@ -80,6 +80,7 @@ def test_envstate_is_frozen(global_state) -> None:
             human_vulnerability=np.zeros(N_HOSTS, dtype=np.float32),
             cvss_score=np.zeros(N_HOSTS, dtype=np.float32),
             compromised_by_id=np.zeros(N_HOSTS, dtype=np.int8),
+            system_integrity=np.zeros(N_HOSTS, dtype=np.int8),
         )
 
 

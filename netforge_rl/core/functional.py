@@ -51,6 +51,9 @@ N_HOSTS = 100  # Fixed per existing NetworkGenerator contract; see state.py:212.
 STATUS_CODES = ('online', 'isolated', 'kernel_panic')
 PRIVILEGE_CODES = ('None', 'User', 'Root')
 DECOY_CODES = ('inactive', 'active', 'Apache', 'SSHD', 'Tomcat')
+# system_integrity tracks Red ransomware / OT-kinetic damage on a host.
+# Default 'clean'; legacy hosts that never set the attribute encode to 0.
+INTEGRITY_CODES = ('clean', 'compromised', 'kinetic_destruction')
 
 
 def _encode(value: str, codebook: tuple[str, ...]) -> int:
@@ -83,6 +86,7 @@ class HostArrays:
     # (-1 == 'None' / not compromised). Strings are intentionally kept out of
     # the vectorizable leaves so XLA can fuse comparisons.
     compromised_by_id: np.ndarray   # int8[N_HOSTS]
+    system_integrity: np.ndarray    # int8[N_HOSTS], code in INTEGRITY_CODES
 
 
 @dataclass(frozen=True)
@@ -193,6 +197,13 @@ def from_global_state(
         ],
         dtype=np.int8,
     )
+    integrity_arr = np.array(
+        [
+            _encode(getattr(h, 'system_integrity', 'clean'), INTEGRITY_CODES)
+            for h in hosts_in_order
+        ],
+        dtype=np.int8,
+    )
 
     hosts = HostArrays(
         status=status_arr,
@@ -204,6 +215,7 @@ def from_global_state(
         human_vulnerability=hvuln_arr,
         cvss_score=cvss_arr,
         compromised_by_id=comp_arr,
+        system_integrity=integrity_arr,
     )
 
     meta = HostMeta(
@@ -298,6 +310,7 @@ def to_global_state(snap: EnvState) -> 'GlobalNetworkState':
         host.system_tokens = list(snap.meta.system_tokens[i])
         cid = int(snap.hosts.compromised_by_id[i])
         host.compromised_by = snap.agent_ids[cid] if cid >= 0 else 'None'
+        host.system_integrity = _decode(snap.hosts.system_integrity[i], INTEGRITY_CODES)
         legacy.register_host(host)
 
     for j, agent in enumerate(snap.agent_ids):

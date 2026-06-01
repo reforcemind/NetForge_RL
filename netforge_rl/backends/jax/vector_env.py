@@ -41,7 +41,7 @@ from netforge_rl.core.functional import PRIVILEGE_CODES, STATUS_CODES
 
 # Encoded category codes pulled to module level so jit traces against
 # concrete ints, not Python lookups.
-from netforge_rl.core.functional import DECOY_CODES
+from netforge_rl.core.functional import DECOY_CODES, INTEGRITY_CODES
 
 _STATUS_ONLINE = STATUS_CODES.index('online')
 _STATUS_ISOLATED = STATUS_CODES.index('isolated')
@@ -49,11 +49,16 @@ _PRIV_NONE = PRIVILEGE_CODES.index('None')
 _PRIV_USER = PRIVILEGE_CODES.index('User')
 _PRIV_ROOT = PRIVILEGE_CODES.index('Root')
 _DECOY_ACTIVE = DECOY_CODES.index('active')
+_INTEGRITY_CLEAN = INTEGRITY_CODES.index('clean')
+_INTEGRITY_COMPROMISED = INTEGRITY_CODES.index('compromised')
+_INTEGRITY_KINETIC = INTEGRITY_CODES.index('kinetic_destruction')
 
 # Action type encoding. Mirrors the legacy action_registry indexing for the
 # *shared* subset that's currently implemented in the JAX backend.
 RED_COMPROMISE = 0   # set privilege None -> User on target
 RED_PRIVESC = 1      # User -> Root on already-owned target
+RED_IMPACT = 2       # system_integrity -> compromised (ransomware-style)
+RED_KINETIC = 3      # system_integrity -> kinetic_destruction (OT only)
 
 BLUE_ISOLATE = 0     # status -> isolated
 BLUE_RESTORE = 1     # privilege -> None, status -> online (heals the host)
@@ -124,6 +129,8 @@ def _single_env_step(
     # the agent actually attempts (success masks already account for that).
     red_is_compromise = (red_action_type == RED_COMPROMISE) & red_success
     red_is_privesc = (red_action_type == RED_PRIVESC) & red_success
+    red_is_impact = (red_action_type == RED_IMPACT) & red_success
+    red_is_kinetic = (red_action_type == RED_KINETIC) & red_success
     blue_is_isolate = (blue_action_type == BLUE_ISOLATE) & blue_attempt
     blue_is_restore = (blue_action_type == BLUE_RESTORE) & blue_attempt
     blue_is_decoy = (blue_action_type == BLUE_DEPLOY_DECOY) & blue_attempt
@@ -148,11 +155,22 @@ def _single_env_step(
     red_writes_root = jnp.any(
         red_target_mask & red_is_privesc[:, None], axis=0
     )
+    red_writes_impact = jnp.any(
+        red_target_mask & red_is_impact[:, None], axis=0
+    )
+    red_writes_kinetic = jnp.any(
+        red_target_mask & red_is_kinetic[:, None], axis=0
+    )
 
     # Privesc only succeeds where the host is already at User+; reduces to
     # "no-op on a clean host", matching legacy ``required_prior_state``.
     host_already_owned = state.hosts.privilege >= jnp.int8(_PRIV_USER)
     red_writes_root = red_writes_root & host_already_owned
+
+    # Impact + kinetic require Root on the target — matches legacy gating.
+    host_is_root = state.hosts.privilege == jnp.int8(_PRIV_ROOT)
+    red_writes_impact = red_writes_impact & host_is_root
+    red_writes_kinetic = red_writes_kinetic & host_is_root
 
     # Status: Blue restore -> online; Blue isolate -> isolated; else keep.
     new_status = state.hosts.status
@@ -183,6 +201,19 @@ def _single_env_step(
     )
     new_honey = state.hosts.contains_honeytokens | blue_writes_honey
 
+    # system_integrity: kinetic > impact > existing. Blue restore wipes
+    # back to 'clean'.
+    new_integrity = state.hosts.system_integrity
+    new_integrity = jnp.where(
+        red_writes_impact, jnp.int8(_INTEGRITY_COMPROMISED), new_integrity
+    )
+    new_integrity = jnp.where(
+        red_writes_kinetic, jnp.int8(_INTEGRITY_KINETIC), new_integrity
+    )
+    new_integrity = jnp.where(
+        blue_writes_restore, jnp.int8(_INTEGRITY_CLEAN), new_integrity
+    )
+
     new_hosts = replace(
         state.hosts,
         status=new_status,
@@ -190,6 +221,7 @@ def _single_env_step(
         compromised_by_id=new_compromised,
         decoy=new_decoy,
         contains_honeytokens=new_honey,
+        system_integrity=new_integrity,
     )
 
     # Reward: Blue +1 per isolate, +2 per successful restore (heal),
@@ -209,6 +241,8 @@ def _single_env_step(
     red_team_reward = (
         jnp.sum(red_writes_user.astype(jnp.float32))
         + 3.0 * jnp.sum(red_writes_root.astype(jnp.float32))
+        + 10.0 * jnp.sum(red_writes_impact.astype(jnp.float32))
+        + 10_000.0 * jnp.sum(red_writes_kinetic.astype(jnp.float32))
     )
     # Trap penalty is per-Red-agent (not team-wide) so the trapped agent
     # gets the negative signal directly.
@@ -295,7 +329,7 @@ def random_actions(
             k4, p=0.5, shape=(batch_size, spec.n_blue)
         ),
         red_action_type=jax.random.randint(
-            k5, (batch_size, spec.n_red), 0, 2, dtype=jnp.int8
+            k5, (batch_size, spec.n_red), 0, 4, dtype=jnp.int8
         ),
         blue_action_type=jax.random.randint(
             k6, (batch_size, spec.n_blue), 0, 4, dtype=jnp.int8

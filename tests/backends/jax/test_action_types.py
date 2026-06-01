@@ -18,10 +18,13 @@ from netforge_rl.backends.jax.vector_env import (
     BLUE_ISOLATE,
     BLUE_RESTORE,
     RED_COMPROMISE,
+    RED_IMPACT,
+    RED_KINETIC,
     RED_PRIVESC,
 )
 from netforge_rl.core.functional import (
     DECOY_CODES,
+    INTEGRITY_CODES,
     PRIVILEGE_CODES,
     STATUS_CODES,
     from_global_state,
@@ -214,3 +217,87 @@ def test_honeytoken_traps_red_compromise(global_state) -> None:
     ))
     # Red 0's reward = +1 (compromise) - 5 (trap) = -4.
     assert float(rewards[0, 0]) == pytest.approx(-4.0)
+
+
+# ── Red impact + kinetic ────────────────────────────────────────────────
+
+
+def _own_to_root(state, step, idx: int):
+    """Helper: drive a host from None -> User -> Root via two compromise+privesc steps."""
+    state, _ = step(state, _act(
+        red_t=[[idx]], blue_t=[[99]],
+        red_a=[[True]], blue_a=[[False]],
+        red_type=[[RED_COMPROMISE]], blue_type=[[BLUE_ISOLATE]],
+    ))
+    state, _ = step(state, _act(
+        red_t=[[idx]], blue_t=[[99]],
+        red_a=[[True]], blue_a=[[False]],
+        red_type=[[RED_PRIVESC]], blue_type=[[BLUE_ISOLATE]],
+    ))
+    return state
+
+
+@pytest.mark.fast
+def test_impact_requires_root(global_state) -> None:
+    """Impact against an unowned host is a no-op."""
+    spec = _spec()
+    state = _state(global_state, batch=1)
+    step = make_vector_step(spec)
+    state, _ = step(state, _act(
+        red_t=[[4]], blue_t=[[99]],
+        red_a=[[True]], blue_a=[[False]],
+        red_type=[[RED_IMPACT]], blue_type=[[BLUE_ISOLATE]],
+    ))
+    assert int(state.hosts.system_integrity[0, 4]) == INTEGRITY_CODES.index('clean')
+
+
+@pytest.mark.fast
+def test_impact_promotes_integrity_when_root(global_state) -> None:
+    spec = _spec()
+    state = _state(global_state, batch=1)
+    step = make_vector_step(spec)
+    state = _own_to_root(state, step, idx=8)
+    state, rewards = step(state, _act(
+        red_t=[[8]], blue_t=[[99]],
+        red_a=[[True]], blue_a=[[False]],
+        red_type=[[RED_IMPACT]], blue_type=[[BLUE_ISOLATE]],
+    ))
+    assert int(state.hosts.system_integrity[0, 8]) == INTEGRITY_CODES.index('compromised')
+    assert float(rewards[0, 0]) == pytest.approx(10.0)
+
+
+@pytest.mark.fast
+def test_kinetic_super_reward(global_state) -> None:
+    spec = _spec()
+    state = _state(global_state, batch=1)
+    step = make_vector_step(spec)
+    state = _own_to_root(state, step, idx=9)
+    state, rewards = step(state, _act(
+        red_t=[[9]], blue_t=[[99]],
+        red_a=[[True]], blue_a=[[False]],
+        red_type=[[RED_KINETIC]], blue_type=[[BLUE_ISOLATE]],
+    ))
+    assert int(state.hosts.system_integrity[0, 9]) == INTEGRITY_CODES.index(
+        'kinetic_destruction'
+    )
+    assert float(rewards[0, 0]) == pytest.approx(10_000.0)
+
+
+@pytest.mark.fast
+def test_restore_clears_integrity(global_state) -> None:
+    spec = _spec()
+    state = _state(global_state, batch=1)
+    step = make_vector_step(spec)
+    state = _own_to_root(state, step, idx=10)
+    state, _ = step(state, _act(
+        red_t=[[10]], blue_t=[[99]],
+        red_a=[[True]], blue_a=[[False]],
+        red_type=[[RED_IMPACT]], blue_type=[[BLUE_ISOLATE]],
+    ))
+    assert int(state.hosts.system_integrity[0, 10]) == INTEGRITY_CODES.index('compromised')
+    state, _ = step(state, _act(
+        red_t=[[99]], blue_t=[[10]],
+        red_a=[[False]], blue_a=[[True]],
+        red_type=[[RED_COMPROMISE]], blue_type=[[BLUE_RESTORE]],
+    ))
+    assert int(state.hosts.system_integrity[0, 10]) == INTEGRITY_CODES.index('clean')

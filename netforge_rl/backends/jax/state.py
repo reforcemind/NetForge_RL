@@ -34,6 +34,7 @@ class JaxHostArrays:
     human_vulnerability: jax.Array  # float32[N_HOSTS]
     cvss_score: jax.Array
     compromised_by_id: jax.Array   # int8[N_HOSTS], -1 == None
+    system_integrity: jax.Array    # int8[N_HOSTS], code in INTEGRITY_CODES
 
 
 @jax.tree_util.register_dataclass
@@ -71,6 +72,7 @@ def to_jax(state: EnvState) -> JaxEnvState:
         human_vulnerability=jnp.asarray(h.human_vulnerability),
         cvss_score=jnp.asarray(h.cvss_score),
         compromised_by_id=jnp.asarray(h.compromised_by_id),
+        system_integrity=jnp.asarray(h.system_integrity),
     )
     return JaxEnvState(
         hosts=jhosts,
@@ -102,6 +104,7 @@ def to_numpy(jstate: JaxEnvState, meta: HostMeta, agent_ids, knowledge=(), inven
         human_vulnerability=np.asarray(h.human_vulnerability),
         cvss_score=np.asarray(h.cvss_score),
         compromised_by_id=np.asarray(h.compromised_by_id),
+        system_integrity=np.asarray(h.system_integrity),
     )
     return EnvState(
         hosts=hosts,
