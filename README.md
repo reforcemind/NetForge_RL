@@ -93,11 +93,11 @@ netforge_rl/
 
 ## Citation
 
-If you use NetForge-MARL, please cite the NeurIPS 2026 Datasets & Benchmarks paper (preprint forthcoming):
+If you use NetForge RL, please cite:
 
 ```bibtex
-@misc{netforge_marl_2026,
-  title  = {NetForge-MARL: A Dual-Backend, Foundation-Model-Native Benchmark for Multi-Agent Cybersecurity RL},
+@misc{netforge_rl_2026,
+  title  = {NetForge RL},
   author = {ReforceMind},
   year   = {2026},
   url    = {https://github.com/reforcemind/NetForge_RL}

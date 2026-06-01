@@ -1,5 +1,5 @@
 cff-version: 1.2.0
-title: "NetForge-MARL: A Dual-Backend, Foundation-Model-Native Benchmark for Multi-Agent Cybersecurity RL"
+title: "NetForge RL"
 message: "If you use this software, please cite as below."
 type: software
 authors:
