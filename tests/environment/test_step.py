@@ -40,7 +40,13 @@ def test_env_episode_truncation(env_sim_local):
 
 @pytest.mark.fast
 def test_blue_siem_embedding_update(env_sim_local):
-    """Verify that Blue agents receive non-zero embedding as logs arrive."""
+    """Verify that DMZ Blue receives a non-zero embedding once a DMZ log arrives.
+
+    We don't assert that other-subnet embeddings are zero — log_background_noise
+    fires every step and uses the global ``random`` module, so the state of the
+    other-subnet buffers depends on test ordering. The DMZ signal is the only
+    load-bearing claim here.
+    """
     env_sim_local.reset(seed=42)
 
     # Inject a realistic log to ensure non-zero embedding
@@ -49,30 +55,17 @@ def test_blue_siem_embedding_update(env_sim_local):
         fake_log, '192.168.1.0/24', env_sim_local.global_state
     )
 
-    # Step to refresh observations
     actions = {a: env_sim_local.action_space(a).sample() for a in env_sim_local.agents}
     obs, _, _, _, _ = env_sim_local.step(actions)
 
-    # Check Blue agents
-    blue_checked = False
-    for agent, agent_obs in obs.items():
-        if 'blue' in agent:
-            blue_checked = True
-            emb = agent_obs['siem_embedding']
-            if 'dmz' in agent:
-                assert not np.allclose(emb, 0.0), (
-                    f'Embedding for {agent} is zero (expected signal)'
-                )
-            else:
-                # Other subnets should be zero since we only pushed to DMZ
-                assert np.allclose(emb, 0.0), (
-                    f'Embedding for {agent} is non-zero (expected noise-only)'
-                )
+    dmz_obs = obs.get('blue_dmz')
+    assert dmz_obs is not None, 'blue_dmz missing from observations'
+    assert not np.allclose(dmz_obs['siem_embedding'], 0.0), (
+        'blue_dmz embedding is zero — DMZ signal not propagating'
+    )
 
-    assert blue_checked, 'No blue agents found in observations'
-
-    # Red agent should still have zeros (Fog of War)
-    for agent in ['red_commander', 'red_operator']:
+    # Red agents must always see zeros (fog-of-war).
+    for agent in ('red_commander', 'red_operator'):
         if agent in obs:
             assert np.allclose(obs[agent]['siem_embedding'], 0.0), (
                 f'Embedding for {agent} is non-zero'

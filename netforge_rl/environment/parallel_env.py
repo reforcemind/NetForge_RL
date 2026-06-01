@@ -56,6 +56,14 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
             from netforge_rl.scenarios.ransomware import RansomwareScenario
 
             self.scenario = RansomwareScenario(self.agents)
+        elif scenario_type.lower() == 'iot_grid':
+            from netforge_rl.scenarios.iot_grid import IoTGridScenario
+
+            self.scenario = IoTGridScenario(self.agents)
+        elif scenario_type.lower() == 'ot_stuxnet':
+            from netforge_rl.scenarios.ot_stuxnet import OTStuxnetScenario
+
+            self.scenario = OTStuxnetScenario(self.agents)
         else:
             from netforge_rl.scenarios.apt_espionage import AptEspionageScenario
 
