@@ -52,8 +52,10 @@ red's gid=2 ("DiscoverNetworkServices") and is unreachable via that path.
 | `RED_EXPLOIT_BLUEKEEP` (4) | ExploitBlueKeep | COMPROMISE gated on `vuln_mask[CVE-2019-0708]` | +1.5 | ✅ |
 | `RED_EXPLOIT_ETERNALBLUE` (5) | ExploitEternalBlue | COMPROMISE gated on `vuln_mask[MS17-010]` | +1.5 | ✅ |
 | `RED_EXPLOIT_HTTP_RFI` (6) | ExploitHTTP_RFI | COMPROMISE gated on `vuln_mask[CVE-2021-44228]` | +1.5 | ✅ |
+| `RED_RECON` (7) | DiscoverRemoteSystems / NetworkScan | `knowledge_mask[red_agent, target] = True` | +0.2 on new intel | ✅ |
+| `BLUE_MONITOR` (6) | Monitor / Analyze | `knowledge_mask[blue_agent, target] = True` | +0.2 on new intel | ✅ |
 
-**Coverage:** 7 red + 6 blue = 13 unique behaviours. Conflict resolution
+**Coverage:** 8 red + 7 blue = 15 unique behaviours. Conflict resolution
 between any same-target Red/Blue pair holds via `resolve_conflicts_mask`.
 
 ---

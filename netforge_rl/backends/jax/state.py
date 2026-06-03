@@ -55,6 +55,9 @@ class JaxEnvState:
     agent_locked_until: jax.Array
     current_tick: jax.Array              # int32 scalar
     business_downtime_score: jax.Array   # float32 scalar
+    # bool[N_AGENTS, N_HOSTS] — agent i has knowledge of host h. Recon /
+    # monitor actions flip bits here. Agents are ordered by agent_ids.
+    knowledge_mask: jax.Array
 
 
 # ── Conversion ─────────────────────────────────────────────────────────────
@@ -62,6 +65,15 @@ class JaxEnvState:
 
 def to_jax(state: EnvState) -> JaxEnvState:
     """Move a numpy-backed :class:`EnvState` onto the default JAX device."""
+    n_agents = len(state.agent_ids)
+    n_hosts = state.hosts.status.shape[0]
+    knowledge_mask = np.zeros((n_agents, n_hosts), dtype=bool)
+    ip_to_idx = {ip: i for i, ip in enumerate(state.meta.ip)}
+    for j, known_set in enumerate(state.knowledge):
+        for ip in known_set:
+            if ip in ip_to_idx:
+                knowledge_mask[j, ip_to_idx[ip]] = True
+
     h = state.hosts
     jhosts = JaxHostArrays(
         status=jnp.asarray(h.status),
@@ -86,6 +98,7 @@ def to_jax(state: EnvState) -> JaxEnvState:
         business_downtime_score=jnp.asarray(
             state.business_downtime_score, dtype=jnp.float32
         ),
+        knowledge_mask=jnp.asarray(knowledge_mask),
     )
 
 

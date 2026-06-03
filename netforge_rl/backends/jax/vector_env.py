@@ -62,6 +62,7 @@ RED_KINETIC = 3      # system_integrity -> kinetic_destruction (OT only)
 RED_EXPLOIT_BLUEKEEP = 4      # CVE-gated compromise: needs CVE-2019-0708
 RED_EXPLOIT_ETERNALBLUE = 5   # CVE-gated compromise: needs MS17-010
 RED_EXPLOIT_HTTP_RFI = 6      # CVE-gated compromise: needs CVE-2021-44228
+RED_RECON = 7                 # learn target host (knowledge_mask bit)
 
 # CVE bit indices, captured at module load so the kernel traces against
 # concrete ints instead of doing tuple lookups inside jit.
@@ -75,6 +76,7 @@ BLUE_DEPLOY_DECOY = 2  # decoy -> active (proactive defense)
 BLUE_DEPLOY_HONEYTOKEN = 3  # contains_honeytokens -> True (trap)
 BLUE_REMOVE = 4      # privilege -> None (does NOT touch status — partial cleanup)
 BLUE_SAT = 5         # human_vulnerability_score -= SAT_DROP (training)
+BLUE_MONITOR = 6     # learn target host (knowledge_mask bit)
 
 # Tunable: how much SAT reduces phishability per application.
 SAT_DROP = 0.1
@@ -171,6 +173,8 @@ def _single_env_step(
     blue_is_honey = (blue_action_type == BLUE_DEPLOY_HONEYTOKEN) & blue_attempt
     blue_is_remove = (blue_action_type == BLUE_REMOVE) & blue_attempt
     blue_is_sat = (blue_action_type == BLUE_SAT) & blue_attempt
+    blue_is_monitor = (blue_action_type == BLUE_MONITOR) & blue_attempt
+    red_is_recon = (red_action_type == RED_RECON) & red_success
 
     # Aggregate to per-host write masks (any-wins across agents).
     blue_writes_isolate = jnp.any(
@@ -263,6 +267,19 @@ def _single_env_step(
         state.hosts.human_vulnerability,
     )
 
+    # Knowledge mask: per-agent writes are the agent's own target_mask
+    # AND its recon/monitor flag. Red rows = [0:N_RED]; Blue rows =
+    # [N_RED:N_RED+N_BLUE] (matches the agent_ids order used by from_global_state).
+    red_knowledge_writes = red_target_mask & red_is_recon[:, None]
+    blue_knowledge_writes = blue_target_mask & blue_is_monitor[:, None]
+    new_knowledge = jnp.concatenate(
+        [
+            state.knowledge_mask[: spec.n_red] | red_knowledge_writes,
+            state.knowledge_mask[spec.n_red:] | blue_knowledge_writes,
+        ],
+        axis=0,
+    )
+
     new_hosts = replace(
         state.hosts,
         status=new_status,
@@ -282,6 +299,11 @@ def _single_env_step(
         red_target_mask & red_is_compromise[:, None] & state.hosts.contains_honeytokens[None, :],
         axis=1,
     )  # bool[N_RED] — Red i hit a trap
+    # Monitor / recon reward only on NEWLY learned bits (delta against
+    # prior knowledge) so policies can't farm the same target.
+    blue_new_intel = (~state.knowledge_mask[spec.n_red:]) & blue_knowledge_writes
+    red_new_intel = (~state.knowledge_mask[: spec.n_red]) & red_knowledge_writes
+
     blue_reward = (
         jnp.sum(blue_writes_isolate.astype(jnp.float32))
         + 2.0 * jnp.sum(blue_writes_restore.astype(jnp.float32))
@@ -289,6 +311,7 @@ def _single_env_step(
         + 0.5 * jnp.sum(blue_writes_honey.astype(jnp.float32))
         + 1.5 * jnp.sum(blue_writes_remove.astype(jnp.float32))
         + 0.3 * jnp.sum(blue_writes_sat.astype(jnp.float32))
+        + 0.2 * jnp.sum(blue_new_intel.astype(jnp.float32))
     )
     # CVE-gated compromise is "intel-driven" — small bonus over a blind
     # COMPROMISE to encourage the policy to learn vuln-conditioned routing.
@@ -301,6 +324,7 @@ def _single_env_step(
         + 3.0 * jnp.sum(red_writes_root.astype(jnp.float32))
         + 10.0 * jnp.sum(red_writes_impact.astype(jnp.float32))
         + 10_000.0 * jnp.sum(red_writes_kinetic.astype(jnp.float32))
+        + 0.2 * jnp.sum(red_new_intel.astype(jnp.float32))
     )
     # Trap penalty is per-Red-agent (not team-wide) so the trapped agent
     # gets the negative signal directly.
@@ -310,6 +334,7 @@ def _single_env_step(
         state,
         hosts=new_hosts,
         current_tick=state.current_tick + 1,
+        knowledge_mask=new_knowledge,
     )
 
     # Reward shape: float32[N_RED + N_BLUE] — Red rewards first, then Blue.
@@ -387,10 +412,10 @@ def random_actions(
             k4, p=0.5, shape=(batch_size, spec.n_blue)
         ),
         red_action_type=jax.random.randint(
-            k5, (batch_size, spec.n_red), 0, 7, dtype=jnp.int8
+            k5, (batch_size, spec.n_red), 0, 8, dtype=jnp.int8
         ),
         blue_action_type=jax.random.randint(
-            k6, (batch_size, spec.n_blue), 0, 6, dtype=jnp.int8
+            k6, (batch_size, spec.n_blue), 0, 7, dtype=jnp.int8
         ),
     )
 

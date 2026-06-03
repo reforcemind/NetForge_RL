@@ -16,6 +16,7 @@ from netforge_rl.backends.jax.vector_env import (
     BLUE_DEPLOY_DECOY,
     BLUE_DEPLOY_HONEYTOKEN,
     BLUE_ISOLATE,
+    BLUE_MONITOR,
     BLUE_REMOVE,
     BLUE_RESTORE,
     BLUE_SAT,
@@ -26,6 +27,7 @@ from netforge_rl.backends.jax.vector_env import (
     RED_IMPACT,
     RED_KINETIC,
     RED_PRIVESC,
+    RED_RECON,
     SAT_DROP,
 )
 from netforge_rl.core.functional import CVE_CODES
@@ -428,6 +430,63 @@ def test_cve_exploit_compromises_when_bit_set(global_state) -> None:
     assert int(state.hosts.privilege[0, 13]) == PRIVILEGE_CODES.index('User')
     # Compromise (+1) + CVE bonus (+0.5) = 1.5.
     assert float(rewards[0, 0]) == pytest.approx(1.5)
+
+
+# ── Knowledge mask + recon ──────────────────────────────────────────────
+
+
+@pytest.mark.fast
+def test_recon_sets_red_knowledge_bit(global_state) -> None:
+    spec = _spec()
+    state = _state(global_state, batch=1)
+    step = make_vector_step(spec)
+
+    assert not bool(state.knowledge_mask[0, 0, 23])  # red row 0, host 23
+    state, rewards = step(state, _act(
+        red_t=[[23]], blue_t=[[99]],
+        red_a=[[True]], blue_a=[[False]],
+        red_type=[[RED_RECON]], blue_type=[[BLUE_ISOLATE]],
+    ))
+    assert bool(state.knowledge_mask[0, 0, 23])
+    # +0.2 intel reward on first sighting.
+    assert float(rewards[0, 0]) == pytest.approx(0.2)
+
+
+@pytest.mark.fast
+def test_monitor_sets_blue_knowledge_bit(global_state) -> None:
+    spec = _spec()
+    state = _state(global_state, batch=1)
+    step = make_vector_step(spec)
+
+    # Blue row 0 starts at agent_ids index N_RED=1.
+    assert not bool(state.knowledge_mask[0, 1, 42])
+    state, _ = step(state, _act(
+        red_t=[[99]], blue_t=[[42]],
+        red_a=[[False]], blue_a=[[True]],
+        red_type=[[RED_COMPROMISE]], blue_type=[[BLUE_MONITOR]],
+    ))
+    assert bool(state.knowledge_mask[0, 1, 42])
+
+
+@pytest.mark.fast
+def test_intel_reward_only_on_first_sighting(global_state) -> None:
+    spec = _spec()
+    state = _state(global_state, batch=1)
+    step = make_vector_step(spec)
+
+    state, r_first = step(state, _act(
+        red_t=[[5]], blue_t=[[99]],
+        red_a=[[True]], blue_a=[[False]],
+        red_type=[[RED_RECON]], blue_type=[[BLUE_ISOLATE]],
+    ))
+    state, r_second = step(state, _act(
+        red_t=[[5]], blue_t=[[99]],
+        red_a=[[True]], blue_a=[[False]],
+        red_type=[[RED_RECON]], blue_type=[[BLUE_ISOLATE]],
+    ))
+    assert float(r_first[0, 0]) > 0.0
+    # Already known -> no intel reward on repeat.
+    assert float(r_second[0, 0]) == pytest.approx(0.0)
 
 
 @pytest.mark.fast
