@@ -15,7 +15,7 @@ class NetworkGenerator:
     RNG is routed through an explicit ``random.Random`` instance instead of
     the global ``random`` module so generation is referentially transparent
     and safe to interleave with other seeded callers (required for the JAX
-    backend refactor — see AUDIT.md blocker B3).
+    backend refactor — see docs/AUDIT.md blocker B3).
     """
 
     def __init__(self, config_path: Optional[str] = None):

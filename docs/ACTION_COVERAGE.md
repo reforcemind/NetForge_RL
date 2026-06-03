@@ -3,10 +3,10 @@
 **Status at HEAD (`ad6e9dc`).** Sourced by introspecting `action_registry`
 plus reading `netforge_rl/backends/jax/vector_env.py`.
 
-The repo has two backends sharing one functional core ([core/functional.py](netforge_rl/core/functional.py)).
-The **legacy PyTorch / PettingZoo backend** ([environment/parallel_env.py](netforge_rl/environment/parallel_env.py))
+The repo has two backends sharing one functional core ([core/functional.py](../netforge_rl/core/functional.py)).
+The **legacy PyTorch / PettingZoo backend** ([environment/parallel_env.py](../netforge_rl/environment/parallel_env.py))
 wires up all 34 actions registered in `action_registry`. The **JAX backend**
-([backends/jax/vector_env.py](netforge_rl/backends/jax/vector_env.py)) is a
+([backends/jax/vector_env.py](../netforge_rl/backends/jax/vector_env.py)) is a
 parallel reimplementation optimized for `jax.vmap` — it currently implements
 8 of those 34 action semantics.
 

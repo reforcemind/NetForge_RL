@@ -1,6 +1,6 @@
 """Semantic Bridge — foundation-model-native MARL wrappers.
 
-See ROADMAP.md Phase 8 for the full design. M1 ships three primitives:
+See docs/ROADMAP.md Phase 8 for the full design. M1 ships three primitives:
 
 * :func:`state_to_text` — frozen :class:`EnvState` -> structured SIEM report
 * :func:`build_vla_prompt` — RGB frame + report -> multimodal prompt dict
