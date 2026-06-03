@@ -55,6 +55,19 @@ DECOY_CODES = ('inactive', 'active', 'Apache', 'SSHD', 'Tomcat')
 # Default 'clean'; legacy hosts that never set the attribute encode to 0.
 INTEGRITY_CODES = ('clean', 'compromised', 'kinetic_destruction')
 
+# Pinned CVE codebook. Index 0 is reserved as 'no CVE' so legacy hosts
+# without vulnerabilities encode to all-zero. Order is load-bearing —
+# expanding the tuple appends only; never reorder or remove.
+CVE_CODES = (
+    'MS17-010',          # EternalBlue
+    'CVE-2019-0708',     # BlueKeep
+    'CVE-2021-44228',    # Log4Shell / HTTP_RFI proxy
+    'V4L2',
+    'CVE-2010-2772',     # Stuxnet-related
+    'Stuxnet_0day',
+)
+N_CVE = len(CVE_CODES)
+
 
 def _encode(value: str, codebook: tuple[str, ...]) -> int:
     try:
@@ -87,6 +100,7 @@ class HostArrays:
     # the vectorizable leaves so XLA can fuse comparisons.
     compromised_by_id: np.ndarray   # int8[N_HOSTS]
     system_integrity: np.ndarray    # int8[N_HOSTS], code in INTEGRITY_CODES
+    vuln_mask: np.ndarray           # bool[N_HOSTS, N_CVE] — host has CVE i
 
 
 @dataclass(frozen=True)
@@ -205,6 +219,12 @@ def from_global_state(
         dtype=np.int8,
     )
 
+    vuln_mask = np.zeros((n, N_CVE), dtype=bool)
+    for i, h in enumerate(hosts_in_order):
+        for cve in getattr(h, 'vulnerabilities', None) or ():
+            if cve in CVE_CODES:
+                vuln_mask[i, CVE_CODES.index(cve)] = True
+
     hosts = HostArrays(
         status=status_arr,
         privilege=priv_arr,
@@ -216,6 +236,7 @@ def from_global_state(
         cvss_score=cvss_arr,
         compromised_by_id=comp_arr,
         system_integrity=integrity_arr,
+        vuln_mask=vuln_mask,
     )
 
     meta = HostMeta(

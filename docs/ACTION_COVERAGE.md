@@ -49,8 +49,11 @@ red's gid=2 ("DiscoverNetworkServices") and is unreachable via that path.
 | `BLUE_DEPLOY_HONEYTOKEN` (3) | DeployHoneytoken | `contains_honeytokens → True`; Red trap penalty -5 | +0.5 | ✅ |
 | `BLUE_REMOVE` (4) | Remove | `privilege → None` (status unchanged) | +1.5 | ✅ |
 | `BLUE_SAT` (5) | SecurityAwarenessTraining | `human_vulnerability -= 0.1` (clamped at 0) | +0.3 | ✅ |
+| `RED_EXPLOIT_BLUEKEEP` (4) | ExploitBlueKeep | COMPROMISE gated on `vuln_mask[CVE-2019-0708]` | +1.5 | ✅ |
+| `RED_EXPLOIT_ETERNALBLUE` (5) | ExploitEternalBlue | COMPROMISE gated on `vuln_mask[MS17-010]` | +1.5 | ✅ |
+| `RED_EXPLOIT_HTTP_RFI` (6) | ExploitHTTP_RFI | COMPROMISE gated on `vuln_mask[CVE-2021-44228]` | +1.5 | ✅ |
 
-**Coverage:** 4 red + 6 blue = 10 unique behaviours. Conflict resolution
+**Coverage:** 7 red + 6 blue = 13 unique behaviours. Conflict resolution
 between any same-target Red/Blue pair holds via `resolve_conflicts_mask`.
 
 ---

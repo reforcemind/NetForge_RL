@@ -70,6 +70,8 @@ def test_envstate_is_frozen(global_state) -> None:
     with pytest.raises(dataclasses.FrozenInstanceError):
         snap.current_tick = 999  # type: ignore[misc]
     with pytest.raises(dataclasses.FrozenInstanceError):
+        from netforge_rl.core.functional import N_CVE
+
         snap.hosts = HostArrays(  # type: ignore[misc]
             status=np.zeros(N_HOSTS, dtype=np.int8),
             privilege=np.zeros(N_HOSTS, dtype=np.int8),
@@ -81,6 +83,7 @@ def test_envstate_is_frozen(global_state) -> None:
             cvss_score=np.zeros(N_HOSTS, dtype=np.float32),
             compromised_by_id=np.zeros(N_HOSTS, dtype=np.int8),
             system_integrity=np.zeros(N_HOSTS, dtype=np.int8),
+            vuln_mask=np.zeros((N_HOSTS, N_CVE), dtype=bool),
         )
 
 

@@ -20,11 +20,15 @@ from netforge_rl.backends.jax.vector_env import (
     BLUE_RESTORE,
     BLUE_SAT,
     RED_COMPROMISE,
+    RED_EXPLOIT_BLUEKEEP,
+    RED_EXPLOIT_ETERNALBLUE,
+    RED_EXPLOIT_HTTP_RFI,
     RED_IMPACT,
     RED_KINETIC,
     RED_PRIVESC,
     SAT_DROP,
 )
+from netforge_rl.core.functional import CVE_CODES
 from netforge_rl.core.functional import (
     DECOY_CODES,
     INTEGRITY_CODES,
@@ -361,6 +365,69 @@ def test_sat_decrements_human_vulnerability(global_state) -> None:
     after = float(state.hosts.human_vulnerability[0, idx])
     assert after == pytest.approx(max(before - SAT_DROP, 0.0))
     assert float(rewards[0, spec.n_red]) == pytest.approx(0.3)
+
+
+# ── CVE-gated exploits ──────────────────────────────────────────────────
+
+
+def _find_vulnerable_host(state, cve_name: str) -> int | None:
+    """Return a host index whose vuln_mask has the named CVE bit set, or None."""
+    col = CVE_CODES.index(cve_name)
+    mask = state.hosts.vuln_mask[0, :, col]  # batch=0
+    candidates = [int(i) for i, v in enumerate(mask) if bool(v)]
+    return candidates[0] if candidates else None
+
+
+@pytest.mark.fast
+def test_bluekeep_needs_cve_bit_set(global_state) -> None:
+    """RED_EXPLOIT_BLUEKEEP against a host without CVE-2019-0708 is a no-op."""
+    spec = _spec()
+    state = _state(global_state, batch=1)
+    step = make_vector_step(spec)
+
+    # Find a host that does NOT have BlueKeep.
+    col = CVE_CODES.index('CVE-2019-0708')
+    no_bluekeep = [
+        int(i) for i in range(100)
+        if not bool(state.hosts.vuln_mask[0, i, col])
+        and int(state.hosts.privilege[0, i]) == 0
+    ]
+    if not no_bluekeep:
+        pytest.skip('topology had no BlueKeep-free host')
+    idx = no_bluekeep[0]
+    before = int(state.hosts.privilege[0, idx])
+    state, _ = step(state, _act(
+        red_t=[[idx]], blue_t=[[99]],
+        red_a=[[True]], blue_a=[[False]],
+        red_type=[[RED_EXPLOIT_BLUEKEEP]], blue_type=[[BLUE_ISOLATE]],
+    ))
+    assert int(state.hosts.privilege[0, idx]) == before
+
+
+@pytest.mark.fast
+def test_cve_exploit_compromises_when_bit_set(global_state) -> None:
+    spec = _spec()
+    state = _state(global_state, batch=1)
+    step = make_vector_step(spec)
+
+    # Pick any host and force a known CVE bit on for it (mutate the
+    # batched state — safe inside a test).
+    import jax.numpy as jnp
+    col = CVE_CODES.index('MS17-010')
+    new_vm = state.hosts.vuln_mask.at[0, 13, col].set(True)
+    state = state.__class__(
+        **{**state.__dict__, 'hosts': state.hosts.__class__(
+            **{**state.hosts.__dict__, 'vuln_mask': new_vm}
+        )}
+    )
+    state, rewards = step(state, _act(
+        red_t=[[13]], blue_t=[[99]],
+        red_a=[[True]], blue_a=[[False]],
+        red_type=[[RED_EXPLOIT_ETERNALBLUE]], blue_type=[[BLUE_ISOLATE]],
+    ))
+    assert int(state.hosts.privilege[0, 13]) == PRIVILEGE_CODES.index('User')
+    # Compromise (+1) + CVE bonus (+0.5) = 1.5.
+    assert float(rewards[0, 0]) == pytest.approx(1.5)
 
 
 @pytest.mark.fast

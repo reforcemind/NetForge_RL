@@ -41,7 +41,7 @@ from netforge_rl.core.functional import PRIVILEGE_CODES, STATUS_CODES
 
 # Encoded category codes pulled to module level so jit traces against
 # concrete ints, not Python lookups.
-from netforge_rl.core.functional import DECOY_CODES, INTEGRITY_CODES
+from netforge_rl.core.functional import CVE_CODES, DECOY_CODES, INTEGRITY_CODES
 
 _STATUS_ONLINE = STATUS_CODES.index('online')
 _STATUS_ISOLATED = STATUS_CODES.index('isolated')
@@ -59,6 +59,15 @@ RED_COMPROMISE = 0   # set privilege None -> User on target
 RED_PRIVESC = 1      # User -> Root on already-owned target
 RED_IMPACT = 2       # system_integrity -> compromised (ransomware-style)
 RED_KINETIC = 3      # system_integrity -> kinetic_destruction (OT only)
+RED_EXPLOIT_BLUEKEEP = 4      # CVE-gated compromise: needs CVE-2019-0708
+RED_EXPLOIT_ETERNALBLUE = 5   # CVE-gated compromise: needs MS17-010
+RED_EXPLOIT_HTTP_RFI = 6      # CVE-gated compromise: needs CVE-2021-44228
+
+# CVE bit indices, captured at module load so the kernel traces against
+# concrete ints instead of doing tuple lookups inside jit.
+_CVE_BLUEKEEP = CVE_CODES.index('CVE-2019-0708')
+_CVE_ETERNALBLUE = CVE_CODES.index('MS17-010')
+_CVE_HTTP_RFI = CVE_CODES.index('CVE-2021-44228')
 
 BLUE_ISOLATE = 0     # status -> isolated
 BLUE_RESTORE = 1     # privilege -> None, status -> online (heals the host)
@@ -136,6 +145,26 @@ def _single_env_step(
     red_is_privesc = (red_action_type == RED_PRIVESC) & red_success
     red_is_impact = (red_action_type == RED_IMPACT) & red_success
     red_is_kinetic = (red_action_type == RED_KINETIC) & red_success
+
+    # CVE-gated variants of COMPROMISE — succeed only if the target host's
+    # vuln_mask bit for the named CVE is set. Per-agent target gating
+    # happens via the one-hot target mask; we additionally AND in the CVE
+    # column to disqualify unsuitable hosts.
+    def _cve_compromise(action_code: int, cve_idx: int) -> jax.Array:
+        is_attempt = (red_action_type == action_code) & red_success
+        target_has_cve = jnp.take(
+            state.hosts.vuln_mask[:, cve_idx], red_targets
+        )  # bool[N_RED]
+        return is_attempt & target_has_cve
+
+    red_is_bluekeep = _cve_compromise(RED_EXPLOIT_BLUEKEEP, _CVE_BLUEKEEP)
+    red_is_eternalblue = _cve_compromise(RED_EXPLOIT_ETERNALBLUE, _CVE_ETERNALBLUE)
+    red_is_http_rfi = _cve_compromise(RED_EXPLOIT_HTTP_RFI, _CVE_HTTP_RFI)
+
+    # All three CVE exploits behave like COMPROMISE on success.
+    red_is_compromise = (
+        red_is_compromise | red_is_bluekeep | red_is_eternalblue | red_is_http_rfi
+    )
     blue_is_isolate = (blue_action_type == BLUE_ISOLATE) & blue_attempt
     blue_is_restore = (blue_action_type == BLUE_RESTORE) & blue_attempt
     blue_is_decoy = (blue_action_type == BLUE_DEPLOY_DECOY) & blue_attempt
@@ -261,8 +290,14 @@ def _single_env_step(
         + 1.5 * jnp.sum(blue_writes_remove.astype(jnp.float32))
         + 0.3 * jnp.sum(blue_writes_sat.astype(jnp.float32))
     )
+    # CVE-gated compromise is "intel-driven" — small bonus over a blind
+    # COMPROMISE to encourage the policy to learn vuln-conditioned routing.
+    n_cve_compromises = (
+        red_is_bluekeep.sum() + red_is_eternalblue.sum() + red_is_http_rfi.sum()
+    )
     red_team_reward = (
         jnp.sum(red_writes_user.astype(jnp.float32))
+        + 0.5 * n_cve_compromises.astype(jnp.float32)
         + 3.0 * jnp.sum(red_writes_root.astype(jnp.float32))
         + 10.0 * jnp.sum(red_writes_impact.astype(jnp.float32))
         + 10_000.0 * jnp.sum(red_writes_kinetic.astype(jnp.float32))
@@ -352,7 +387,7 @@ def random_actions(
             k4, p=0.5, shape=(batch_size, spec.n_blue)
         ),
         red_action_type=jax.random.randint(
-            k5, (batch_size, spec.n_red), 0, 4, dtype=jnp.int8
+            k5, (batch_size, spec.n_red), 0, 7, dtype=jnp.int8
         ),
         blue_action_type=jax.random.randint(
             k6, (batch_size, spec.n_blue), 0, 6, dtype=jnp.int8
