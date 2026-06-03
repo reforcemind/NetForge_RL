@@ -154,14 +154,53 @@ def _build_actions(target_idx, env_agents, controlled, n_red, n_blue, n_hosts, k
     )
 
 
-def train(cfg: PPOConfig) -> dict:
-    """Run PPO. Returns the final params + iteration loss trace.
-
-    The full rollout loop is *not* placed inside jax.lax.scan in this
-    reference impl — that's the obvious follow-up perf win once a
-    Phase 5 scenario suite lands. Iteration count is intentionally low
-    so the smoke test stays cheap on CI.
+def make_rollout_scan(env: JaxMARLEnv, cfg: PPOConfig):
+    """Compile a jit'd rollout that fuses ``cfg.num_steps`` env steps into
+    one XLA graph via ``jax.lax.scan``. Headline perf trick from PureJaxRL:
+    eliminates the per-step Python dispatch overhead the legacy ``train``
+    rollout pays.
     """
+    controlled = cfg.controlled_agent
+    agents = env.agents
+    n_red, n_blue, n_hosts = cfg.n_red, cfg.n_blue, cfg.n_hosts
+
+    def step_body(carry, _):
+        params, state, obs_dict, key = carry
+        obs = obs_dict[controlled]
+        logits, value = forward(params, obs)
+        key, k_act, k_env = jax.random.split(key, 3)
+        target_idx = jax.random.categorical(k_act, logits)
+        logp_all = jax.nn.log_softmax(logits)
+        logp = jnp.take_along_axis(logp_all, target_idx[..., None], axis=-1)[..., 0]
+
+        actions = _build_actions(
+            target_idx, agents, controlled, n_red, n_blue, n_hosts, k_env
+        )
+        obs_dict, state, reward, done, _ = env.step(k_env, state, actions)
+        out = {
+            'obs': obs,
+            'action': target_idx,
+            'logp': logp,
+            'value': value,
+            'reward': reward[controlled],
+            'done': done[controlled].astype(jnp.float32),
+        }
+        return (params, state, obs_dict, key), out
+
+    @jax.jit
+    def rollout(params, state, obs_dict, key):
+        (params, state, obs_dict, key), traj = jax.lax.scan(
+            step_body, (params, state, obs_dict, key), None, length=cfg.num_steps
+        )
+        # Bootstrap value of last obs for GAE.
+        _, last_value = forward(params, obs_dict[controlled])
+        return state, obs_dict, key, traj, last_value
+
+    return rollout
+
+
+def train(cfg: PPOConfig) -> dict:
+    """Run PPO with a fused rollout. Returns final params + iteration loss trace."""
     env = JaxMARLEnv(
         spec=VectorEnvSpec(n_hosts=cfg.n_hosts, n_red=cfg.n_red, n_blue=cfg.n_blue),
         batch_size=cfg.batch_size,
@@ -172,43 +211,21 @@ def train(cfg: PPOConfig) -> dict:
     obs_dim = obs_dict[cfg.controlled_agent].shape[-1]
     params = init_mlp_params(jax.random.PRNGKey(cfg.seed + 1), obs_dim, cfg.n_hosts)
     opt_state = init_adam(params)
+    rollout = make_rollout_scan(env, cfg)
 
     losses: list[float] = []
-    for it in range(cfg.total_iters):
-        # Rollout
-        obs_buf, act_buf, logp_buf, val_buf, rew_buf, done_buf = [], [], [], [], [], []
-        for _ in range(cfg.num_steps):
-            obs = obs_dict[cfg.controlled_agent]
-            logits, value = forward(params, obs)
-            key, k_act, k_env = jax.random.split(key, 3)
-            target_idx = jax.random.categorical(k_act, logits)
-            logp_all = jax.nn.log_softmax(logits)
-            logp = jnp.take_along_axis(logp_all, target_idx[..., None], axis=-1)[..., 0]
+    for _ in range(cfg.total_iters):
+        state, obs_dict, key, traj, last_value = rollout(params, state, obs_dict, key)
 
-            actions = _build_actions(
-                target_idx, env.agents, cfg.controlled_agent,
-                cfg.n_red, cfg.n_blue, cfg.n_hosts, k_env,
-            )
-            obs_dict, state, reward, done, _ = env.step(k_env, state, actions)
-
-            obs_buf.append(obs)
-            act_buf.append(target_idx)
-            logp_buf.append(logp)
-            val_buf.append(value)
-            rew_buf.append(reward[cfg.controlled_agent])
-            done_buf.append(done[cfg.controlled_agent].astype(jnp.float32))
-
-        # Bootstrap value of last obs.
-        _, last_value = forward(params, obs_dict[cfg.controlled_agent])
-        values_extended = jnp.stack(val_buf + [last_value])
-        rewards = jnp.stack(rew_buf)
-        dones = jnp.stack(done_buf)
-        advantages = gae(rewards, values_extended, dones, gamma=cfg.gamma, lam=cfg.lam)
+        values_extended = jnp.concatenate([traj['value'], last_value[None]])
+        advantages = gae(
+            traj['reward'], values_extended, traj['done'], gamma=cfg.gamma, lam=cfg.lam
+        )
         returns = advantages + values_extended[:-1]
 
-        obs_arr = jnp.stack(obs_buf).reshape(-1, obs_dim)
-        act_arr = jnp.stack(act_buf).reshape(-1)
-        logp_arr = jnp.stack(logp_buf).reshape(-1)
+        obs_arr = traj['obs'].reshape(-1, obs_dim)
+        act_arr = traj['action'].reshape(-1)
+        logp_arr = traj['logp'].reshape(-1)
         adv_arr = advantages.reshape(-1)
         ret_arr = returns.reshape(-1)
         adv_arr = (adv_arr - adv_arr.mean()) / (adv_arr.std() + 1e-8)
