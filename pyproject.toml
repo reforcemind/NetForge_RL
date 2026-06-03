@@ -54,6 +54,27 @@ finetune = [
     "bitsandbytes>=0.43.0",
     "accelerate>=0.33.0",
 ]
+pcap = [
+    # netforge_rl/environment/pcap_synthesizer.py imports scapy at module
+    # top-level. Without this extra, importing the pcap_synthesizer fails.
+    "scapy>=2.5.0",
+]
+sim2real = [
+    # netforge_rl/sim2real/docker_hypervisor.py — lazy-imports docker
+    # when toggled to 'real' mode against Vulhub containers.
+    "docker>=7.0.0",
+]
+nlp = [
+    # Optional dense embedding backend for SIEM log encoding (BERT-style).
+    # The default TF-IDF backend (sklearn) requires no extra.
+    "sentence-transformers>=2.7.0",
+]
+llm_clients = [
+    # Closed-source API clients for the zero-shot leaderboard
+    # (Phase 8 M2). Lazy-imported by the respective client adapters.
+    "anthropic>=0.34.0",
+    "openai>=1.40.0",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
