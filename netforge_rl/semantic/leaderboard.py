@@ -1,7 +1,3 @@
-"""JSON-backed scoreboard aggregator for the zero-shot leaderboard."""
-
-from __future__ import annotations
-
 import json
 from dataclasses import asdict
 from pathlib import Path
@@ -9,7 +5,7 @@ from pathlib import Path
 from netforge_rl.semantic.runner import EpisodeResult
 
 
-def append_result(path: Path, result: EpisodeResult) -> Path:
+def append_result(path, result: EpisodeResult):
     """Append a single episode result to ``path`` (creates if missing)."""
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -21,10 +17,10 @@ def append_result(path: Path, result: EpisodeResult) -> Path:
     return path
 
 
-def summarize(path: Path) -> list[dict]:
+def summarize(path):
     """Return per-(model, scenario) aggregates ordered by mean total reward."""
     rows = json.loads(Path(path).read_text())
-    groups: dict[tuple[str, str], list[dict]] = {}
+    groups = {}
     for r in rows:
         groups.setdefault((r['model_id'], r['scenario']), []).append(r)
 
@@ -41,8 +37,7 @@ def summarize(path: Path) -> list[dict]:
                 'mean_isolated': sum(r['final_isolated'] for r in rs) / len(rs),
                 'mean_invalid_replies': sum(
                     sum(r['invalid_replies'].values()) for r in rs
-                )
-                / len(rs),
+                ) / len(rs),
             }
         )
     summary.sort(key=lambda r: r['mean_total_reward'], reverse=True)

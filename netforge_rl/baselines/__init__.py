@@ -1,5 +1,3 @@
-"""Reference baseline policies + eval harness."""
-
 from netforge_rl.baselines.policies import (
     BasePolicy,
     HeuristicBluePolicy,

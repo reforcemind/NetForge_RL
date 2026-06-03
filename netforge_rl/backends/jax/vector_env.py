@@ -1,31 +1,3 @@
-"""Vectorized batched-env step under ``jax.vmap`` — the headline Phase 2
-throughput demonstration.
-
-This is a *simplified* step semantics: each Red agent attempts to compromise
-its target host (sets ``privilege`` and ``compromised_by_id``); each Blue
-agent attempts to isolate its target host (sets ``status='isolated'``).
-Blue defensive supremacy is enforced via :func:`resolve_conflicts_mask` —
-on a same-target collision, the Red attempt is nullified.
-
-This is enough physics to:
-
-  * Be a faithful subset of the legacy step's host-array mutations
-    (the same fields, the same conflict semantics — see
-    test_pure_step_equivalence in tests/parity/).
-  * Saturate the JAX compiler so the throughput numbers we report are
-    representative of the eventual full port (the cost is dominated by
-    the .at[idx].set masked scatters, not by the action dispatch
-    Python).
-  * Provide a real ``vmap``'d step that batches cleanly across thousands
-    of parallel envs.
-
-The full 32-action / SIEM / NLP pipeline lands in later Phase 2 slices.
-Until then this module is what we benchmark and what the Phase 5
-baseline trainers will call.
-"""
-
-from __future__ import annotations
-
 from dataclasses import dataclass, replace
 from functools import partial
 from typing import NamedTuple
@@ -36,12 +8,14 @@ import numpy as np
 
 from netforge_rl.backends.jax.kernels import resolve_conflicts_mask
 from netforge_rl.backends.jax.state import JaxEnvState
-from netforge_rl.core.functional import PRIVILEGE_CODES, STATUS_CODES
+from netforge_rl.core.functional import (
+    CVE_CODES,
+    DECOY_CODES,
+    INTEGRITY_CODES,
+    PRIVILEGE_CODES,
+    STATUS_CODES,
+)
 
-
-# Encoded category codes pulled to module level so jit traces against
-# concrete ints, not Python lookups.
-from netforge_rl.core.functional import CVE_CODES, DECOY_CODES, INTEGRITY_CODES
 
 _STATUS_ONLINE = STATUS_CODES.index('online')
 _STATUS_ISOLATED = STATUS_CODES.index('isolated')
@@ -52,51 +26,31 @@ _DECOY_ACTIVE = DECOY_CODES.index('active')
 _INTEGRITY_CLEAN = INTEGRITY_CODES.index('clean')
 _INTEGRITY_COMPROMISED = INTEGRITY_CODES.index('compromised')
 _INTEGRITY_KINETIC = INTEGRITY_CODES.index('kinetic_destruction')
-
-# Action type encoding. Mirrors the legacy action_registry indexing for the
-# *shared* subset that's currently implemented in the JAX backend.
-RED_COMPROMISE = 0   # set privilege None -> User on target
-RED_PRIVESC = 1      # User -> Root on already-owned target
-RED_IMPACT = 2       # system_integrity -> compromised (ransomware-style)
-RED_KINETIC = 3      # system_integrity -> kinetic_destruction (OT only)
-RED_EXPLOIT_BLUEKEEP = 4      # CVE-gated compromise: needs CVE-2019-0708
-RED_EXPLOIT_ETERNALBLUE = 5   # CVE-gated compromise: needs MS17-010
-RED_EXPLOIT_HTTP_RFI = 6      # CVE-gated compromise: needs CVE-2021-44228
-RED_RECON = 7                 # learn target host (knowledge_mask bit)
-
-# CVE bit indices, captured at module load so the kernel traces against
-# concrete ints instead of doing tuple lookups inside jit.
 _CVE_BLUEKEEP = CVE_CODES.index('CVE-2019-0708')
 _CVE_ETERNALBLUE = CVE_CODES.index('MS17-010')
 _CVE_HTTP_RFI = CVE_CODES.index('CVE-2021-44228')
 
-BLUE_ISOLATE = 0     # status -> isolated
-BLUE_RESTORE = 1     # privilege -> None, status -> online (heals the host)
-BLUE_DEPLOY_DECOY = 2  # decoy -> active (proactive defense)
-BLUE_DEPLOY_HONEYTOKEN = 3  # contains_honeytokens -> True (trap)
-BLUE_REMOVE = 4      # privilege -> None (does NOT touch status — partial cleanup)
-BLUE_SAT = 5         # human_vulnerability_score -= SAT_DROP (training)
-BLUE_MONITOR = 6     # learn target host (knowledge_mask bit)
+RED_COMPROMISE = 0
+RED_PRIVESC = 1
+RED_IMPACT = 2
+RED_KINETIC = 3
+RED_EXPLOIT_BLUEKEEP = 4
+RED_EXPLOIT_ETERNALBLUE = 5
+RED_EXPLOIT_HTTP_RFI = 6
+RED_RECON = 7
 
-# Tunable: how much SAT reduces phishability per application.
+BLUE_ISOLATE = 0
+BLUE_RESTORE = 1
+BLUE_DEPLOY_DECOY = 2
+BLUE_DEPLOY_HONEYTOKEN = 3
+BLUE_REMOVE = 4
+BLUE_SAT = 5
+BLUE_MONITOR = 6
+
 SAT_DROP = 0.1
 
 
 class BatchedActions(NamedTuple):
-    """One contiguous action specification per env in the batch.
-
-    All arrays have leading dimension = batch size.
-
-    Attributes:
-        red_target_idx: int32[B, N_RED] — host slot each Red agent targets.
-        blue_target_idx: int32[B, N_BLUE] — host slot each Blue agent targets.
-        red_attempt: bool[B, N_RED] — whether each Red agent acts this tick.
-        blue_attempt: bool[B, N_BLUE] — whether each Blue agent acts this tick.
-        red_action_type: int8[B, N_RED] — RED_COMPROMISE or RED_PRIVESC.
-            Default-zero (back-compat) means COMPROMISE for every slot.
-        blue_action_type: int8[B, N_BLUE] — BLUE_ISOLATE or BLUE_RESTORE.
-    """
-
     red_target_idx: jax.Array
     blue_target_idx: jax.Array
     red_attempt: jax.Array
@@ -107,66 +61,53 @@ class BatchedActions(NamedTuple):
 
 @dataclass(frozen=True)
 class VectorEnvSpec:
-    """Static shape contract — never traced, captured in closures."""
-
     n_hosts: int
     n_red: int
     n_blue: int
 
 
 def _single_env_step(
-    state: JaxEnvState,
-    red_targets: jax.Array,        # int32[N_RED]
-    blue_targets: jax.Array,       # int32[N_BLUE]
-    red_attempt: jax.Array,        # bool[N_RED]
-    blue_attempt: jax.Array,       # bool[N_BLUE]
-    red_action_type: jax.Array,    # int8[N_RED]; 0=compromise, 1=privesc
-    blue_action_type: jax.Array,   # int8[N_BLUE]; 0=isolate, 1=restore
+    state,
+    red_targets,
+    blue_targets,
+    red_attempt,
+    blue_attempt,
+    red_action_type,
+    blue_action_type,
     *,
     spec: VectorEnvSpec,
-) -> tuple[JaxEnvState, jax.Array]:
-    """Per-env step kernel; batched by vmap to produce the vector step."""
+):
+    """One environment tick — batched by vmap to produce the vectorized step."""
     n_hosts = spec.n_hosts
 
-    # Per-agent target masks: bool[N_AGENTS, N_HOSTS].
-    one_hot = lambda idx, attempt: (
-        jax.nn.one_hot(idx, n_hosts, dtype=jnp.bool_) & attempt[:, None]
-    )
+    def one_hot(idx, attempt):
+        return jax.nn.one_hot(idx, n_hosts, dtype=jnp.bool_) & attempt[:, None]
+
     red_target_mask = one_hot(red_targets, red_attempt)
     blue_target_mask = one_hot(blue_targets, blue_attempt)
 
-    # Conflict resolution still applies — Blue defensive supremacy holds for
-    # any same-target collision regardless of action type.
     red_success = resolve_conflicts_mask(
         red_target_mask, blue_target_mask, red_attempt, blue_attempt
     )
 
-    # Split agent slots by chosen action type. Action type only matters when
-    # the agent actually attempts (success masks already account for that).
     red_is_compromise = (red_action_type == RED_COMPROMISE) & red_success
     red_is_privesc = (red_action_type == RED_PRIVESC) & red_success
     red_is_impact = (red_action_type == RED_IMPACT) & red_success
     red_is_kinetic = (red_action_type == RED_KINETIC) & red_success
+    red_is_recon = (red_action_type == RED_RECON) & red_success
 
-    # CVE-gated variants of COMPROMISE — succeed only if the target host's
-    # vuln_mask bit for the named CVE is set. Per-agent target gating
-    # happens via the one-hot target mask; we additionally AND in the CVE
-    # column to disqualify unsuitable hosts.
-    def _cve_compromise(action_code: int, cve_idx: int) -> jax.Array:
+    def _cve_compromise(action_code, cve_idx):
         is_attempt = (red_action_type == action_code) & red_success
-        target_has_cve = jnp.take(
-            state.hosts.vuln_mask[:, cve_idx], red_targets
-        )  # bool[N_RED]
+        target_has_cve = jnp.take(state.hosts.vuln_mask[:, cve_idx], red_targets)
         return is_attempt & target_has_cve
 
     red_is_bluekeep = _cve_compromise(RED_EXPLOIT_BLUEKEEP, _CVE_BLUEKEEP)
     red_is_eternalblue = _cve_compromise(RED_EXPLOIT_ETERNALBLUE, _CVE_ETERNALBLUE)
     red_is_http_rfi = _cve_compromise(RED_EXPLOIT_HTTP_RFI, _CVE_HTTP_RFI)
-
-    # All three CVE exploits behave like COMPROMISE on success.
     red_is_compromise = (
         red_is_compromise | red_is_bluekeep | red_is_eternalblue | red_is_http_rfi
     )
+
     blue_is_isolate = (blue_action_type == BLUE_ISOLATE) & blue_attempt
     blue_is_restore = (blue_action_type == BLUE_RESTORE) & blue_attempt
     blue_is_decoy = (blue_action_type == BLUE_DEPLOY_DECOY) & blue_attempt
@@ -174,82 +115,44 @@ def _single_env_step(
     blue_is_remove = (blue_action_type == BLUE_REMOVE) & blue_attempt
     blue_is_sat = (blue_action_type == BLUE_SAT) & blue_attempt
     blue_is_monitor = (blue_action_type == BLUE_MONITOR) & blue_attempt
-    red_is_recon = (red_action_type == RED_RECON) & red_success
 
-    # Aggregate to per-host write masks (any-wins across agents).
-    blue_writes_isolate = jnp.any(
-        blue_target_mask & blue_is_isolate[:, None], axis=0
-    )  # bool[N_HOSTS]
-    blue_writes_restore = jnp.any(
-        blue_target_mask & blue_is_restore[:, None], axis=0
-    )
-    blue_writes_decoy = jnp.any(
-        blue_target_mask & blue_is_decoy[:, None], axis=0
-    )
-    blue_writes_honey = jnp.any(
-        blue_target_mask & blue_is_honey[:, None], axis=0
-    )
-    blue_writes_remove = jnp.any(
-        blue_target_mask & blue_is_remove[:, None], axis=0
-    )
-    blue_writes_sat = jnp.any(
-        blue_target_mask & blue_is_sat[:, None], axis=0
-    )
-    red_writes_user = jnp.any(
-        red_target_mask & red_is_compromise[:, None], axis=0
-    )
-    red_writes_root = jnp.any(
-        red_target_mask & red_is_privesc[:, None], axis=0
-    )
-    red_writes_impact = jnp.any(
-        red_target_mask & red_is_impact[:, None], axis=0
-    )
-    red_writes_kinetic = jnp.any(
-        red_target_mask & red_is_kinetic[:, None], axis=0
-    )
+    blue_writes_isolate = jnp.any(blue_target_mask & blue_is_isolate[:, None], axis=0)
+    blue_writes_restore = jnp.any(blue_target_mask & blue_is_restore[:, None], axis=0)
+    blue_writes_decoy = jnp.any(blue_target_mask & blue_is_decoy[:, None], axis=0)
+    blue_writes_honey = jnp.any(blue_target_mask & blue_is_honey[:, None], axis=0)
+    blue_writes_remove = jnp.any(blue_target_mask & blue_is_remove[:, None], axis=0)
+    blue_writes_sat = jnp.any(blue_target_mask & blue_is_sat[:, None], axis=0)
+    red_writes_user = jnp.any(red_target_mask & red_is_compromise[:, None], axis=0)
+    red_writes_root = jnp.any(red_target_mask & red_is_privesc[:, None], axis=0)
+    red_writes_impact = jnp.any(red_target_mask & red_is_impact[:, None], axis=0)
+    red_writes_kinetic = jnp.any(red_target_mask & red_is_kinetic[:, None], axis=0)
 
-    # Privesc only succeeds where the host is already at User+; reduces to
-    # "no-op on a clean host", matching legacy ``required_prior_state``.
+    # Gating: privesc/impact/kinetic only succeed where the host is owned.
     host_already_owned = state.hosts.privilege >= jnp.int8(_PRIV_USER)
-    red_writes_root = red_writes_root & host_already_owned
-
-    # Impact + kinetic require Root on the target — matches legacy gating.
     host_is_root = state.hosts.privilege == jnp.int8(_PRIV_ROOT)
+    red_writes_root = red_writes_root & host_already_owned
     red_writes_impact = red_writes_impact & host_is_root
     red_writes_kinetic = red_writes_kinetic & host_is_root
 
-    # Status: Blue restore -> online; Blue isolate -> isolated; else keep.
     new_status = state.hosts.status
     new_status = jnp.where(blue_writes_restore, jnp.int8(_STATUS_ONLINE), new_status)
     new_status = jnp.where(blue_writes_isolate, jnp.int8(_STATUS_ISOLATED), new_status)
 
-    # Privilege: Red privesc -> Root; Red compromise -> User; Blue restore /
-    # remove -> None. Order matters: Blue wipes Red writes on the same host.
     new_privilege = state.hosts.privilege
     new_privilege = jnp.where(red_writes_user, jnp.int8(_PRIV_USER), new_privilege)
     new_privilege = jnp.where(red_writes_root, jnp.int8(_PRIV_ROOT), new_privilege)
     new_privilege = jnp.where(blue_writes_restore, jnp.int8(_PRIV_NONE), new_privilege)
     new_privilege = jnp.where(blue_writes_remove, jnp.int8(_PRIV_NONE), new_privilege)
 
-    # compromised_by_id: pick the first successful Red owner per host.
-    red_owners = red_target_mask & red_is_compromise[:, None]  # bool[N_RED, N_HOSTS]
+    red_owners = red_target_mask & red_is_compromise[:, None]
     any_red_owns = jnp.any(red_owners, axis=0)
     chosen_red = jnp.argmax(red_owners.astype(jnp.int8), axis=0).astype(jnp.int8)
-    new_compromised = jnp.where(
-        any_red_owns, chosen_red, state.hosts.compromised_by_id
-    )
-    # Restore also clears ownership.
-    new_compromised = jnp.where(
-        blue_writes_restore, jnp.int8(-1), new_compromised
-    )
+    new_compromised = jnp.where(any_red_owns, chosen_red, state.hosts.compromised_by_id)
+    new_compromised = jnp.where(blue_writes_restore, jnp.int8(-1), new_compromised)
 
-    new_decoy = jnp.where(
-        blue_writes_decoy, jnp.int8(_DECOY_ACTIVE), state.hosts.decoy
-    )
+    new_decoy = jnp.where(blue_writes_decoy, jnp.int8(_DECOY_ACTIVE), state.hosts.decoy)
     new_honey = state.hosts.contains_honeytokens | blue_writes_honey
 
-    # system_integrity: kinetic > impact > existing. Blue restore wipes
-    # back to 'clean'.
     new_integrity = state.hosts.system_integrity
     new_integrity = jnp.where(
         red_writes_impact, jnp.int8(_INTEGRITY_COMPROMISED), new_integrity
@@ -267,9 +170,6 @@ def _single_env_step(
         state.hosts.human_vulnerability,
     )
 
-    # Knowledge mask: per-agent writes are the agent's own target_mask
-    # AND its recon/monitor flag. Red rows = [0:N_RED]; Blue rows =
-    # [N_RED:N_RED+N_BLUE] (matches the agent_ids order used by from_global_state).
     red_knowledge_writes = red_target_mask & red_is_recon[:, None]
     blue_knowledge_writes = blue_target_mask & blue_is_monitor[:, None]
     new_knowledge = jnp.concatenate(
@@ -291,18 +191,17 @@ def _single_env_step(
         human_vulnerability=new_human_vuln,
     )
 
-    # Reward: Blue +1 per isolate, +2 per successful restore (heal),
-    # +0.5 per decoy (proactive but cheap), +0.5 per honeytoken;
-    # Red +1 per fresh compromise, +3 per privesc, -5 for compromising a
-    # honeytoken'd host (trap penalty).
     red_trapped = jnp.any(
-        red_target_mask & red_is_compromise[:, None] & state.hosts.contains_honeytokens[None, :],
+        red_target_mask
+        & red_is_compromise[:, None]
+        & state.hosts.contains_honeytokens[None, :],
         axis=1,
-    )  # bool[N_RED] — Red i hit a trap
-    # Monitor / recon reward only on NEWLY learned bits (delta against
-    # prior knowledge) so policies can't farm the same target.
+    )
     blue_new_intel = (~state.knowledge_mask[spec.n_red:]) & blue_knowledge_writes
     red_new_intel = (~state.knowledge_mask[: spec.n_red]) & red_knowledge_writes
+    n_cve_compromises = (
+        red_is_bluekeep.sum() + red_is_eternalblue.sum() + red_is_http_rfi.sum()
+    )
 
     blue_reward = (
         jnp.sum(blue_writes_isolate.astype(jnp.float32))
@@ -313,11 +212,6 @@ def _single_env_step(
         + 0.3 * jnp.sum(blue_writes_sat.astype(jnp.float32))
         + 0.2 * jnp.sum(blue_new_intel.astype(jnp.float32))
     )
-    # CVE-gated compromise is "intel-driven" — small bonus over a blind
-    # COMPROMISE to encourage the policy to learn vuln-conditioned routing.
-    n_cve_compromises = (
-        red_is_bluekeep.sum() + red_is_eternalblue.sum() + red_is_http_rfi.sum()
-    )
     red_team_reward = (
         jnp.sum(red_writes_user.astype(jnp.float32))
         + 0.5 * n_cve_compromises.astype(jnp.float32)
@@ -326,8 +220,6 @@ def _single_env_step(
         + 10_000.0 * jnp.sum(red_writes_kinetic.astype(jnp.float32))
         + 0.2 * jnp.sum(red_new_intel.astype(jnp.float32))
     )
-    # Trap penalty is per-Red-agent (not team-wide) so the trapped agent
-    # gets the negative signal directly.
     red_trap_penalty = -5.0 * red_trapped.astype(jnp.float32)
 
     new_state = replace(
@@ -337,40 +229,27 @@ def _single_env_step(
         knowledge_mask=new_knowledge,
     )
 
-    # Reward shape: float32[N_RED + N_BLUE] — Red rewards first, then Blue.
     red_rewards = jnp.broadcast_to(red_team_reward, (spec.n_red,)) + red_trap_penalty
     blue_rewards = jnp.broadcast_to(blue_reward, (spec.n_blue,))
-    rewards = jnp.concatenate([red_rewards, blue_rewards])
-    return new_state, rewards
+    return new_state, jnp.concatenate([red_rewards, blue_rewards])
 
 
 def _default_action_types(actions: BatchedActions, spec: VectorEnvSpec) -> BatchedActions:
-    """Fill in zero action_type arrays when callers leave them unset."""
-    if actions.red_action_type is None or actions.blue_action_type is None:
-        batch = actions.red_target_idx.shape[0]
-        return actions._replace(
-            red_action_type=(
-                actions.red_action_type
-                if actions.red_action_type is not None
-                else jnp.zeros((batch, spec.n_red), dtype=jnp.int8)
-            ),
-            blue_action_type=(
-                actions.blue_action_type
-                if actions.blue_action_type is not None
-                else jnp.zeros((batch, spec.n_blue), dtype=jnp.int8)
-            ),
-        )
-    return actions
+    if actions.red_action_type is not None and actions.blue_action_type is not None:
+        return actions
+    batch = actions.red_target_idx.shape[0]
+    return actions._replace(
+        red_action_type=actions.red_action_type
+        if actions.red_action_type is not None
+        else jnp.zeros((batch, spec.n_red), dtype=jnp.int8),
+        blue_action_type=actions.blue_action_type
+        if actions.blue_action_type is not None
+        else jnp.zeros((batch, spec.n_blue), dtype=jnp.int8),
+    )
 
 
 def make_vector_step(spec: VectorEnvSpec):
-    """Compile a vmap'd batched step closed over the static shape spec.
-
-    Returns a function ``step_fn(batched_state, batched_actions)`` that
-    runs ``B`` independent envs in parallel. The wrapper is ``jax.jit``'d
-    so the first call pays compile cost; subsequent calls run at fused-
-    kernel speed.
-    """
+    """Return a jit'd vmap'd step closed over ``spec``."""
     per_env = partial(_single_env_step, spec=spec)
     batched = jax.vmap(per_env)
 
@@ -378,7 +257,7 @@ def make_vector_step(spec: VectorEnvSpec):
     def _step_impl(state, rt, bt, ra, ba, rat, bat):
         return batched(state, rt, bt, ra, ba, rat, bat)
 
-    def step_fn(state: JaxEnvState, actions: BatchedActions):
+    def step_fn(state, actions):
         actions = _default_action_types(actions, spec)
         return _step_impl(
             state,
@@ -393,10 +272,7 @@ def make_vector_step(spec: VectorEnvSpec):
     return step_fn
 
 
-def random_actions(
-    spec: VectorEnvSpec, batch_size: int, key: jax.Array
-) -> BatchedActions:
-    """Cheap random action sampler for SPS benchmarking and smoke tests."""
+def random_actions(spec: VectorEnvSpec, batch_size: int, key: jax.Array) -> BatchedActions:
     k1, k2, k3, k4, k5, k6 = jax.random.split(key, 6)
     return BatchedActions(
         red_target_idx=jax.random.randint(
@@ -405,12 +281,8 @@ def random_actions(
         blue_target_idx=jax.random.randint(
             k2, (batch_size, spec.n_blue), 0, spec.n_hosts, dtype=jnp.int32
         ),
-        red_attempt=jax.random.bernoulli(
-            k3, p=0.5, shape=(batch_size, spec.n_red)
-        ),
-        blue_attempt=jax.random.bernoulli(
-            k4, p=0.5, shape=(batch_size, spec.n_blue)
-        ),
+        red_attempt=jax.random.bernoulli(k3, p=0.5, shape=(batch_size, spec.n_red)),
+        blue_attempt=jax.random.bernoulli(k4, p=0.5, shape=(batch_size, spec.n_blue)),
         red_action_type=jax.random.randint(
             k5, (batch_size, spec.n_red), 0, 8, dtype=jnp.int8
         ),
@@ -420,10 +292,8 @@ def random_actions(
     )
 
 
-def initial_batched_state(
-    template: JaxEnvState, batch_size: int
-) -> JaxEnvState:
-    """Tile a single :class:`JaxEnvState` across a leading batch axis."""
+def initial_batched_state(template: JaxEnvState, batch_size: int) -> JaxEnvState:
+    """Tile a single JaxEnvState across a leading batch axis."""
 
     def tile(x):
         if isinstance(x, (jax.Array, np.ndarray)):

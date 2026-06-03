@@ -1,17 +1,4 @@
-"""PyTree-registered JAX mirror of :class:`netforge_rl.core.functional.EnvState`.
-
-The numpy-backed :class:`~netforge_rl.core.functional.HostArrays` is the
-canonical authoring format; :class:`JaxEnvState` is the version that gets
-batched under ``jax.vmap`` and traced by ``jax.jit``. Only the
-vectorizable host fields and per-agent budget arrays become PyTree leaves;
-string metadata travels as ``static_argnums`` / closure-captured aux data
-(see :func:`to_jax`).
-"""
-
-from __future__ import annotations
-
 from dataclasses import dataclass
-from typing import Any
 
 import jax
 import jax.numpy as jnp
@@ -23,48 +10,33 @@ from netforge_rl.core.functional import EnvState, HostArrays, HostMeta
 @jax.tree_util.register_dataclass
 @dataclass(frozen=True)
 class JaxHostArrays:
-    """JAX-leaf host SoA. Mirrors :class:`HostArrays` field-for-field."""
-
     status: jax.Array              # int8[N_HOSTS]
-    privilege: jax.Array           # int8[N_HOSTS]
-    decoy: jax.Array               # int8[N_HOSTS]
-    edr_active: jax.Array          # bool[N_HOSTS]
+    privilege: jax.Array
+    decoy: jax.Array
+    edr_active: jax.Array
     is_domain_controller: jax.Array
     contains_honeytokens: jax.Array
     human_vulnerability: jax.Array  # float32[N_HOSTS]
     cvss_score: jax.Array
     compromised_by_id: jax.Array   # int8[N_HOSTS], -1 == None
-    system_integrity: jax.Array    # int8[N_HOSTS], code in INTEGRITY_CODES
+    system_integrity: jax.Array
     vuln_mask: jax.Array           # bool[N_HOSTS, N_CVE]
 
 
 @jax.tree_util.register_dataclass
 @dataclass(frozen=True)
 class JaxEnvState:
-    """JAX PyTree mirror of :class:`EnvState`.
-
-    Only the numeric fields are leaves. ``meta`` and ``agent_ids`` ride
-    along as Python objects on a non-traced auxiliary slot — when this
-    state goes through ``vmap`` they are not batched, by design.
-    """
-
     hosts: JaxHostArrays
     agent_energy: jax.Array
     agent_funds: jax.Array
     agent_compute: jax.Array
     agent_locked_until: jax.Array
-    current_tick: jax.Array              # int32 scalar
-    business_downtime_score: jax.Array   # float32 scalar
-    # bool[N_AGENTS, N_HOSTS] — agent i has knowledge of host h. Recon /
-    # monitor actions flip bits here. Agents are ordered by agent_ids.
-    knowledge_mask: jax.Array
-
-
-# ── Conversion ─────────────────────────────────────────────────────────────
+    current_tick: jax.Array
+    business_downtime_score: jax.Array
+    knowledge_mask: jax.Array      # bool[N_AGENTS, N_HOSTS]
 
 
 def to_jax(state: EnvState) -> JaxEnvState:
-    """Move a numpy-backed :class:`EnvState` onto the default JAX device."""
     n_agents = len(state.agent_ids)
     n_hosts = state.hosts.status.shape[0]
     knowledge_mask = np.zeros((n_agents, n_hosts), dtype=bool)
@@ -102,11 +74,10 @@ def to_jax(state: EnvState) -> JaxEnvState:
     )
 
 
-def to_numpy(jstate: JaxEnvState, meta: HostMeta, agent_ids, knowledge=(), inventory=()) -> EnvState:
-    """Materialize a numpy-backed :class:`EnvState` from a :class:`JaxEnvState`.
+def to_numpy(jstate, meta: HostMeta, agent_ids, knowledge=(), inventory=()) -> EnvState:
+    """Materialize a numpy-backed EnvState from a JaxEnvState.
 
-    String metadata (``meta``, ``agent_ids``, ``knowledge``, ``inventory``)
-    must be supplied separately since it isn't carried by the JAX PyTree.
+    String metadata isn't carried by the PyTree — supply it explicitly.
     """
     h = jstate.hosts
     hosts = HostArrays(

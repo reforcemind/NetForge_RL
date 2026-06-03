@@ -1,12 +1,4 @@
-"""Build the public baselines leaderboard.
-
-Runs each (policy, scenario) cell for N episodes, dumps both raw per-episode
-results and an aggregate summary. Idempotent — overwrites the output files.
-
-    python -m benchmarks.build_leaderboard --episodes 5 --max-steps 80
-"""
-
-from __future__ import annotations
+"""Run baselines × scenarios and dump leaderboard JSON + summary."""
 
 import argparse
 import json
@@ -32,7 +24,7 @@ POLICIES = {
 SCENARIOS = ('ransomware', 'apt_espionage', 'iot_grid', 'ot_stuxnet')
 
 
-def main() -> None:
+def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--episodes', type=int, default=5)
     p.add_argument('--max-steps', type=int, default=80)
@@ -51,7 +43,7 @@ def main() -> None:
 
     args.results.parent.mkdir(parents=True, exist_ok=True)
 
-    rows: list[dict] = []
+    rows = []
     t0 = time.perf_counter()
     for policy_name, policy_cls in POLICIES.items():
         for scen in SCENARIOS:
@@ -72,8 +64,10 @@ def main() -> None:
     args.summary.write_text(json.dumps(summary, indent=2))
 
     wall = time.perf_counter() - t0
-    print(f'Ran {len(rows)} episodes across {len(POLICIES) * len(SCENARIOS)} cells '
-          f'in {wall:.1f}s')
+    print(
+        f'Ran {len(rows)} episodes across {len(POLICIES) * len(SCENARIOS)} cells '
+        f'in {wall:.1f}s'
+    )
     print(f'Results: {args.results}')
     print(f'Summary: {args.summary}\n')
     print(f'{"model":<16} {"scenario":<16} {"n":>3} {"reward":>10} {"comp":>6} {"iso":>5}')

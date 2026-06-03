@@ -1,18 +1,3 @@
-"""Parse a model's text reply into an env action ID.
-
-The protocol the LA wrapper instructs the model to use is:
-
-    ACTION <action_id> TARGET <host_ip>
-
-This module accepts that form (case-insensitive, free-form whitespace,
-optional ``#`` comments, optional preamble) and returns
-``(action_type_id, target_idx)`` ready for ``env.step``. Hallucinated
-action_ids or unknown IPs return ``None`` rather than raising — the
-caller chooses how to handle invalid replies (resample, no-op, penalty).
-"""
-
-from __future__ import annotations
-
 import re
 
 from netforge_rl.semantic.action_menu import action_menu
@@ -24,12 +9,8 @@ _ACTION_RE = re.compile(
 )
 
 
-def parse_action(
-    text: str,
-    agent_id: str,
-    target_ips: list[str],
-) -> tuple[int, int] | None:
-    """Return ``(action_type_id, target_idx)`` or ``None`` if unparseable."""
+def parse_action(text, agent_id, target_ips):
+    """Parse `ACTION <id> TARGET <ip>` -> (action_type_id, target_idx) or None."""
     match = _ACTION_RE.search(text)
     if not match:
         return None

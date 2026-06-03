@@ -1,7 +1,5 @@
-"""Baseline evaluation harness. Runs N episodes per (policy, scenario) pair
-and emits results in the same JSON format as the zero-shot LLM leaderboard."""
-
-from __future__ import annotations
+"""Baseline evaluation harness — emits the same JSON shape as the zero-shot
+LLM leaderboard so both can be summarized together."""
 
 import argparse
 from pathlib import Path
@@ -18,7 +16,7 @@ from netforge_rl.environment.parallel_env import NetForgeRLEnv
 from netforge_rl.semantic import EpisodeResult, append_result
 
 
-POLICY_REGISTRY: dict[str, type[BasePolicy]] = {
+POLICY_REGISTRY = {
     'random': RandomPolicy,
     'heuristic-blue': HeuristicBluePolicy,
     'heuristic-red': HeuristicRedPolicy,
@@ -27,17 +25,17 @@ POLICY_REGISTRY: dict[str, type[BasePolicy]] = {
 
 def evaluate(
     policy: BasePolicy,
-    scenario: str = 'ransomware',
-    episodes: int = 5,
-    max_steps: int = 100,
-    seed: int = 0,
-    controlled_agent: str = 'blue_dmz',
-) -> list[EpisodeResult]:
-    """Run ``episodes`` rollouts; the named policy controls ``controlled_agent``,
-    all other agents act randomly. Returns one :class:`EpisodeResult` per episode."""
-    rng = np.random.default_rng(seed)
+    scenario='ransomware',
+    episodes=5,
+    max_steps=100,
+    seed=0,
+    controlled_agent='blue_dmz',
+):
+    """Run ``episodes`` rollouts; the policy controls ``controlled_agent``,
+    other agents act randomly.
+    """
     fallback = RandomPolicy(seed=seed)
-    results: list[EpisodeResult] = []
+    results = []
 
     for ep in range(episodes):
         env = NetForgeRLEnv({'scenario_type': scenario, 'max_ticks': max_steps})
@@ -79,7 +77,7 @@ def evaluate(
     return results
 
 
-def main() -> None:
+def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument(
         '--policy', choices=sorted(POLICY_REGISTRY.keys()), default='heuristic-blue'

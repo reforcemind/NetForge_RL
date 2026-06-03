@@ -1,8 +1,42 @@
 # NetForge-MARL — Roadmap (NeurIPS Datasets & Benchmarks 2026)
 
-This is the canonical planning document. Phase 0 audit findings, measured
-SPS deltas, and regression locks live in [AUDIT.md](AUDIT.md); per-phase
-implementation lives on the named feature branches.
+Phase 0 audit findings, measured SPS deltas, and regression locks live in
+[AUDIT.md](AUDIT.md); per-action JAX porting status in
+[ACTION_COVERAGE.md](ACTION_COVERAGE.md).
+
+## Status at a glance
+
+| Phase | Status | Notes |
+|---|---|---|
+| 0 Audit + golden hash | ✅ | hash `abd164a5…` preserved across every refactor |
+| 1 Functional core (frozen EnvState, pure delta interpreter, conflict resolver) | ✅ | episode-long parity test against legacy |
+| 2 JAX backend (vmap step, jit, 4096-env compile) | ✅ slice 1+2 + extras | 662k–1M aggregate SPS at 4096 envs CPU |
+| 2 ext — full action port | ⚠️ 15/34 | see [ACTION_COVERAGE.md](ACTION_COVERAGE.md) |
+| 3 Bridges (JaxMARL adapter, DLPack, CleanRLVecEnv) | ✅ | |
+| 4 Decoupled renderer (Snapshot, matplotlib, FrameRecorder) | ✅ | gif/mp4 export |
+| 5 Baselines (random, heuristic, JAX PPO) + leaderboard JSON | ✅ | |
+| 5 scenarios | ✅ 4 of 5 | `cloud_hybrid` deferred |
+| 6 Notebooks 01–07 | ✅ | |
+| 7 CHANGELOG / DATASHEET / CITATION | ✅ | v4.0.0 tag not yet pushed |
+| 8-M1 LA + VLA wrappers + parser | ✅ | |
+| 8-M2 zero-shot leaderboard + Anthropic + OpenAI clients | ✅ | Google client deferred |
+| 8-M3 LoRA + PPO adapter + Colab | ✅ | flagship notebook 07 |
+| **Diagnostics (bsuite-style)** | ✅ 2 probes | `MemoryProbe` + `NoisySIEM`; `DelayedKinetic` deferred |
+
+## Recent perf wins
+
+* `jax.lax.scan`-fused PPO rollout — one XLA graph per iteration.
+* Mini-batched PPO updates with K epochs (CleanRL-pattern).
+* Action-type richer kernel: COMPROMISE / PRIVESC / IMPACT / KINETIC / 3 CVE exploits / RECON for Red; ISOLATE / RESTORE / DECOY / HONEYTOKEN / REMOVE / SAT / MONITOR for Blue.
+
+## Open items
+
+* Remaining 19 JAX action ports (knowledge-mask actions partially done).
+* `cloud_hybrid` scenario.
+* Google LLM client.
+* Grammar-constrained decoding hooks (xgrammar / tool-use schemas).
+* MkDocs nav refresh + site rebuild.
+* `v4.0.0` git tag + Zenodo deposit.
 
 ---
 

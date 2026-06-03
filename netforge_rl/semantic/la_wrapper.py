@@ -1,12 +1,3 @@
-"""Language-Action wrapper: frozen ``EnvState`` -> SIEM-style text report.
-
-Reports are templated per agent role (Red operator vs Blue SOC). The
-classifier reuses the renderer's color taxonomy so the text and image
-modalities stay in lock-step.
-"""
-
-from __future__ import annotations
-
 from netforge_rl.core.functional import (
     DECOY_CODES,
     EnvState,
@@ -16,11 +7,11 @@ from netforge_rl.core.functional import (
 from netforge_rl.semantic.action_menu import action_menu
 
 
-def _is_padding(subnet: str) -> bool:
+def _is_padding(subnet):
     return subnet.startswith('169.254.')
 
 
-def _host_phrase(state: EnvState, idx: int) -> str:
+def _host_phrase(state, idx):
     ip = state.meta.ip[idx]
     status = STATUS_CODES[int(state.hosts.status[idx])]
     priv = PRIVILEGE_CODES[int(state.hosts.privilege[idx])]
@@ -40,24 +31,12 @@ def _host_phrase(state: EnvState, idx: int) -> str:
     return ' | '.join(parts)
 
 
-def state_to_text(
-    state: EnvState,
-    agent_id: str,
-    *,
-    max_hosts: int = 12,
-    include_menu: bool = True,
-) -> str:
-    """Render a SIEM-style telemetry report for ``agent_id``.
-
-    ``max_hosts`` caps the most-interesting-first host list so the report
-    fits inside small context windows. Padding hosts are filtered.
-    """
+def state_to_text(state: EnvState, agent_id, *, max_hosts=12, include_menu=True):
+    """Render a SIEM-style telemetry report for ``agent_id``."""
     role = 'Blue SOC Operator' if 'blue' in agent_id.lower() else 'Red Operator'
     j = state.agent_ids.index(agent_id) if agent_id in state.agent_ids else None
 
-    # Triage: surface non-default hosts first.
-    interesting: list[int] = []
-    others: list[int] = []
+    interesting, others = [], []
     for i, sn in enumerate(state.meta.subnet_cidr):
         if _is_padding(sn):
             continue

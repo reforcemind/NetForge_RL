@@ -1,13 +1,4 @@
-"""Measure rollout throughput of the JAX PPO baseline.
-
-Reports steps-per-second (counting batch_size * num_steps as "steps") and
-seconds-per-iter so users can compare a fresh `lax.scan`-fused rollout
-against the legacy Python loop or against future perf changes.
-
-    python -m benchmarks.bench_ppo_rollout --batch 1024 --num-steps 32
-"""
-
-from __future__ import annotations
+"""Measure rollout throughput of the JAX PPO baseline (steps/sec)."""
 
 import argparse
 import json
@@ -18,13 +9,13 @@ from pathlib import Path
 
 import jax
 
+from netforge_rl.backends.jax import VectorEnvSpec
 from netforge_rl.baselines.jax_ppo import (
     PPOConfig,
     init_adam,
     init_mlp_params,
     make_rollout_scan,
 )
-from netforge_rl.backends.jax import VectorEnvSpec
 from netforge_rl.bridges.jaxmarl import JaxMARLEnv
 
 
@@ -38,7 +29,7 @@ class Row:
     rollout_sps: float
 
 
-def measure(batch: int, num_steps: int, iters: int) -> Row:
+def measure(batch, num_steps, iters):
     cfg = PPOConfig(batch_size=batch, num_steps=num_steps, n_hosts=100)
     env = JaxMARLEnv(
         spec=VectorEnvSpec(n_hosts=cfg.n_hosts, n_red=cfg.n_red, n_blue=cfg.n_blue),
@@ -53,7 +44,6 @@ def measure(batch: int, num_steps: int, iters: int) -> Row:
     _ = init_adam(params)
     rollout = make_rollout_scan(env, cfg)
 
-    # Warm up — pays the compile cost.
     state, obs_dict, key, traj, last_value = rollout(params, state, obs_dict, key)
     traj['reward'].block_until_ready()
 
@@ -76,7 +66,7 @@ def measure(batch: int, num_steps: int, iters: int) -> Row:
     )
 
 
-def main() -> None:
+def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--batch', type=int, default=1024)
     p.add_argument('--num-steps', type=int, default=32)

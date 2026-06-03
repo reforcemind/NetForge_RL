@@ -1,38 +1,3 @@
-"""Frozen, PyTree-compatible environment state — Phase 1 scaffolding.
-
-This module introduces the immutable struct-of-arrays representation that
-will become the canonical state object once the JAX backend lands in Phase 2.
-For now it coexists with the legacy mutable :class:`GlobalNetworkState`, and a
-round-trip-tested converter (:func:`from_global_state` / :func:`to_global_state`)
-lets us shift consumers over incrementally without breaking the legacy
-PettingZoo path.
-
-Design choices:
-
-* **Numeric leaves only.** All vectorizable fields live as ``np.ndarray`` of
-  length ``N_HOSTS`` so they can later be marked as JAX PyTree leaves and
-  ``jax.vmap``'d over a batch axis without restructuring.
-* **Categorical encoding.** ``status``, ``privilege``, ``decoy`` are stored as
-  small integer codes against the codebooks below. The codebooks themselves
-  are module-level constants so the integer↔string mapping is process-wide
-  stable.
-* **Static metadata is segregated.** Variable-length / string fields (``ip``,
-  ``hostname``, ``services``, ``vulnerabilities``) live in
-  :class:`HostMeta` as Python tuples/lists. These are *not* PyTree leaves;
-  when the JAX backend arrives they will be carried as static auxiliary data
-  on the PyTree so XLA never sees them.
-* **No mutation.** Every dataclass is ``frozen=True``. State transitions in
-  Phase 1.5+ will return a *new* :class:`EnvState` via :func:`dataclasses.replace`.
-
-The converter is intentionally lossy in one direction only: round-tripping
-through :class:`EnvState` preserves all fields currently consumed by the
-environment loop, but discards a handful of legacy-only fields (action
-history, pending effects, SIEM buffer) that the functional core will model
-explicitly in later slices. The converter test pins this contract.
-"""
-
-from __future__ import annotations
-
 from dataclasses import dataclass, field, replace
 from typing import TYPE_CHECKING
 
@@ -42,141 +7,105 @@ if TYPE_CHECKING:
     from netforge_rl.core.state import GlobalNetworkState
 
 
-N_HOSTS = 100  # Fixed per existing NetworkGenerator contract; see state.py:212.
+N_HOSTS = 100  # NetworkGenerator always pads to this for tensor-shape stability.
 
-
-# ── Categorical codebooks ──────────────────────────────────────────────────
-# Order is load-bearing — do not reorder without bumping a versioned hash.
-
+# Codebook order is load-bearing — appends only, no reorders.
 STATUS_CODES = ('online', 'isolated', 'kernel_panic')
 PRIVILEGE_CODES = ('None', 'User', 'Root')
 DECOY_CODES = ('inactive', 'active', 'Apache', 'SSHD', 'Tomcat')
-# system_integrity tracks Red ransomware / OT-kinetic damage on a host.
-# Default 'clean'; legacy hosts that never set the attribute encode to 0.
 INTEGRITY_CODES = ('clean', 'compromised', 'kinetic_destruction')
-
-# Pinned CVE codebook. Index 0 is reserved as 'no CVE' so legacy hosts
-# without vulnerabilities encode to all-zero. Order is load-bearing —
-# expanding the tuple appends only; never reorder or remove.
 CVE_CODES = (
     'MS17-010',          # EternalBlue
     'CVE-2019-0708',     # BlueKeep
     'CVE-2021-44228',    # Log4Shell / HTTP_RFI proxy
     'V4L2',
-    'CVE-2010-2772',     # Stuxnet-related
+    'CVE-2010-2772',
     'Stuxnet_0day',
 )
 N_CVE = len(CVE_CODES)
 
 
-def _encode(value: str, codebook: tuple[str, ...]) -> int:
+def _encode(value, codebook):
     try:
         return codebook.index(value)
     except ValueError:
-        return 0  # unknown -> first entry (None/inactive/online)
+        return 0
 
 
-def _decode(code: int, codebook: tuple[str, ...]) -> str:
-    return codebook[int(code)] if 0 <= int(code) < len(codebook) else codebook[0]
-
-
-# ── Frozen state containers ────────────────────────────────────────────────
+def _decode(code, codebook):
+    code = int(code)
+    if 0 <= code < len(codebook):
+        return codebook[code]
+    return codebook[0]
 
 
 @dataclass(frozen=True)
 class HostArrays:
-    """Vectorizable per-host state — destined to become JAX PyTree leaves."""
-
-    status: np.ndarray              # int8[N_HOSTS], code in STATUS_CODES
-    privilege: np.ndarray           # int8[N_HOSTS], code in PRIVILEGE_CODES
-    decoy: np.ndarray               # int8[N_HOSTS], code in DECOY_CODES
-    edr_active: np.ndarray          # bool[N_HOSTS]
-    is_domain_controller: np.ndarray  # bool[N_HOSTS]
-    contains_honeytokens: np.ndarray  # bool[N_HOSTS]
-    human_vulnerability: np.ndarray  # float32[N_HOSTS]
-    cvss_score: np.ndarray          # float32[N_HOSTS]
-    # compromised_by is stored as an integer ID against EnvState.agent_ids
-    # (-1 == 'None' / not compromised). Strings are intentionally kept out of
-    # the vectorizable leaves so XLA can fuse comparisons.
-    compromised_by_id: np.ndarray   # int8[N_HOSTS]
-    system_integrity: np.ndarray    # int8[N_HOSTS], code in INTEGRITY_CODES
-    vuln_mask: np.ndarray           # bool[N_HOSTS, N_CVE] — host has CVE i
+    """Vectorizable per-host SoA — JAX PyTree leaves."""
+    status: np.ndarray
+    privilege: np.ndarray
+    decoy: np.ndarray
+    edr_active: np.ndarray
+    is_domain_controller: np.ndarray
+    contains_honeytokens: np.ndarray
+    human_vulnerability: np.ndarray
+    cvss_score: np.ndarray
+    compromised_by_id: np.ndarray   # int8[N_HOSTS], -1 == not compromised
+    system_integrity: np.ndarray
+    vuln_mask: np.ndarray           # bool[N_HOSTS, N_CVE]
 
 
 @dataclass(frozen=True)
 class HostMeta:
-    """Static / variable-length host metadata. NOT a vectorizable leaf."""
-
-    ip: tuple[str, ...]
-    hostname: tuple[str, ...]
-    subnet_cidr: tuple[str, ...]
-    os: tuple[str, ...]
-    services: tuple[tuple[str, ...], ...]
-    vulnerabilities: tuple[tuple[str, ...], ...]
-    cached_credentials: tuple[tuple[str, ...], ...]
-    system_tokens: tuple[tuple[str, ...], ...]
+    """Static / variable-length host metadata. Not a PyTree leaf."""
+    ip: tuple
+    hostname: tuple
+    subnet_cidr: tuple
+    os: tuple
+    services: tuple
+    vulnerabilities: tuple
+    cached_credentials: tuple
+    system_tokens: tuple
 
 
 @dataclass(frozen=True)
 class EnvState:
-    """Single immutable snapshot of the MARL environment.
-
-    Phase 1 scaffolding: produced by the converter, consumed by no-one yet.
-    Phase 1.5+ will route the legacy ParallelEnv through this type.
-    """
-
+    """Immutable snapshot of the MARL environment."""
     hosts: HostArrays
     meta: HostMeta
-
-    agent_ids: tuple[str, ...]              # canonical agent order
-    agent_energy: np.ndarray                # int32[len(agent_ids)]
-    agent_funds: np.ndarray                 # int32[len(agent_ids)]
-    agent_compute: np.ndarray               # int32[len(agent_ids)]
-    agent_locked_until: np.ndarray          # int32[len(agent_ids)]
-
+    agent_ids: tuple
+    agent_energy: np.ndarray
+    agent_funds: np.ndarray
+    agent_compute: np.ndarray
+    agent_locked_until: np.ndarray
     current_tick: int = 0
     business_downtime_score: float = 0.0
-
-    # Per-agent fog-of-war: tuple of frozensets aligned to agent_ids.
-    knowledge: tuple[frozenset[str], ...] = field(default_factory=tuple)
-    # Per-agent stolen tokens / credentials, aligned to agent_ids.
-    inventory: tuple[frozenset[str], ...] = field(default_factory=tuple)
+    knowledge: tuple = field(default_factory=tuple)
+    inventory: tuple = field(default_factory=tuple)
 
     @property
-    def host_count(self) -> int:
+    def host_count(self):
         return self.hosts.status.shape[0]
 
-    def agent_index(self, agent_id: str) -> int:
+    def agent_index(self, agent_id):
         return self.agent_ids.index(agent_id)
 
-    def host_index(self, ip: str) -> int:
+    def host_index(self, ip):
         return self.meta.ip.index(ip)
 
-    def with_tick(self, tick: int) -> 'EnvState':
+    def with_tick(self, tick):
         return replace(self, current_tick=tick)
 
 
-# ── Converters ─────────────────────────────────────────────────────────────
+def from_global_state(legacy, agent_ids):
+    """Build a frozen EnvState from a legacy GlobalNetworkState.
 
-
-def from_global_state(
-    legacy: 'GlobalNetworkState',
-    agent_ids: tuple[str, ...],
-) -> EnvState:
-    """Materialize a frozen ``EnvState`` from the legacy mutable state.
-
-    Hosts are ordered by sorted IP — the same canonical order already used
-    everywhere in the legacy env (e.g. ``parallel_env.py:222`` and
-    ``state.get_adjacency_matrix``). This guarantees ``host_index(ip)`` agrees
-    with the legacy ``sorted(state.all_hosts)`` ordering relied on by the
-    action registry.
+    Hosts are ordered by sorted IP (same canonical order the legacy env uses).
     """
     sorted_ips = tuple(sorted(legacy.all_hosts.keys()))
     n = len(sorted_ips)
     if n != N_HOSTS:
-        raise ValueError(
-            f'Expected exactly {N_HOSTS} hosts (legacy pads to this); got {n}.'
-        )
+        raise ValueError(f'Expected exactly {N_HOSTS} hosts; got {n}.')
 
     hosts_in_order = [legacy.all_hosts[ip] for ip in sorted_ips]
 
@@ -246,66 +175,49 @@ def from_global_state(
         os=tuple(h.os for h in hosts_in_order),
         services=tuple(tuple(h.services) for h in hosts_in_order),
         vulnerabilities=tuple(tuple(h.vulnerabilities) for h in hosts_in_order),
-        cached_credentials=tuple(
-            tuple(h.cached_credentials) for h in hosts_in_order
-        ),
+        cached_credentials=tuple(tuple(h.cached_credentials) for h in hosts_in_order),
         system_tokens=tuple(tuple(h.system_tokens) for h in hosts_in_order),
-    )
-
-    energy = np.array(
-        [int(legacy.agent_energy.get(a, 0)) for a in agent_ids], dtype=np.int32
-    )
-    funds = np.array(
-        [int(legacy.agent_funds.get(a, 0)) for a in agent_ids], dtype=np.int32
-    )
-    compute = np.array(
-        [int(legacy.agent_compute.get(a, 0)) for a in agent_ids], dtype=np.int32
-    )
-    locked = np.array(
-        [int(legacy.agent_locked_until.get(a, 0)) for a in agent_ids], dtype=np.int32
-    )
-
-    knowledge = tuple(
-        frozenset(legacy.agent_knowledge.get(a, set())) for a in agent_ids
-    )
-    inventory = tuple(
-        frozenset(legacy.agent_inventory.get(a, set())) for a in agent_ids
     )
 
     return EnvState(
         hosts=hosts,
         meta=meta,
         agent_ids=tuple(agent_ids),
-        agent_energy=energy,
-        agent_funds=funds,
-        agent_compute=compute,
-        agent_locked_until=locked,
+        agent_energy=np.array(
+            [int(legacy.agent_energy.get(a, 0)) for a in agent_ids], dtype=np.int32
+        ),
+        agent_funds=np.array(
+            [int(legacy.agent_funds.get(a, 0)) for a in agent_ids], dtype=np.int32
+        ),
+        agent_compute=np.array(
+            [int(legacy.agent_compute.get(a, 0)) for a in agent_ids], dtype=np.int32
+        ),
+        agent_locked_until=np.array(
+            [int(legacy.agent_locked_until.get(a, 0)) for a in agent_ids],
+            dtype=np.int32,
+        ),
         current_tick=int(legacy.current_tick),
         business_downtime_score=float(legacy.business_downtime_score),
-        knowledge=knowledge,
-        inventory=inventory,
+        knowledge=tuple(
+            frozenset(legacy.agent_knowledge.get(a, set())) for a in agent_ids
+        ),
+        inventory=tuple(
+            frozenset(legacy.agent_inventory.get(a, set())) for a in agent_ids
+        ),
     )
 
 
-def to_global_state(snap: EnvState) -> 'GlobalNetworkState':
-    """Inverse of :func:`from_global_state`.
-
-    Reconstructs a mutable :class:`GlobalNetworkState` from a frozen snapshot.
-    Used during the migration window so functional-core code paths can hand
-    off to legacy consumers that haven't been ported yet.
+def to_global_state(snap: EnvState):
+    """Inverse of from_global_state. Discards action_history / SIEM buffer
+    fields not yet modelled on EnvState.
     """
     from netforge_rl.core.state import GlobalNetworkState, Subnet, Host
 
     legacy = GlobalNetworkState()
-
-    # Recreate subnets in first-seen order; legacy code keys them by CIDR.
-    seen: dict[str, Subnet] = {}
+    seen = {}
     for cidr in snap.meta.subnet_cidr:
         if cidr in seen:
             continue
-        # Subnet name is not roundtrippable from the snapshot (we don't store
-        # it). The legacy state only uses Subnet.name for diagnostics, never
-        # for routing decisions — derive a stable label from the CIDR.
         sn = Subnet(cidr=cidr, name=cidr)
         seen[cidr] = sn
         legacy.add_subnet(sn)
@@ -344,37 +256,10 @@ def to_global_state(snap: EnvState) -> 'GlobalNetworkState':
 
     legacy.current_tick = int(snap.current_tick)
     legacy.business_downtime_score = float(snap.business_downtime_score)
-
     return legacy
 
 
-# ── Pure delta interpreter ─────────────────────────────────────────────────
-#
-# Each action in netforge_rl/actions/ emits an ``ActionEffect.state_deltas``
-# entry, today consumed by the mutating ``GlobalNetworkState.apply_delta``.
-# The functional core re-interprets those same string-keyed deltas against
-# an immutable EnvState, returning a new EnvState. Keeping the wire format
-# identical means the action layer needs zero changes — the imperative
-# shell (Phase 1 slice 4) can pick whichever interpreter it likes.
-#
-# Supported keys (mirrors the cases in GlobalNetworkState.apply_delta):
-#   ``hosts/<ip>/<attr>``        where <attr> is one of: status, privilege,
-#                                decoy, edr_active, compromised_by,
-#                                is_domain_controller, contains_honeytokens,
-#                                human_vulnerability_score, cvss_score,
-#                                os, services, vulnerabilities,
-#                                cached_credentials, system_tokens
-#   ``knowledge/<agent>/<ip>``   add <ip> to agent's fog-of-war set
-#   ``history/<agent>/<record>`` (no-op here; action_history isn't in EnvState yet)
-#   ``firewall/...``             (deferred — firewall isn't in EnvState yet)
-#
-# Unknown keys are silently ignored (matching legacy behavior). Command-
-# object deltas (``hasattr(delta, 'execute')``) are out of scope; those will
-# be migrated when their target state moves into EnvState.
-
-
-# Attribute → (HostArrays field, encoder) for vectorizable per-host fields.
-_ARRAY_FIELD: dict[str, tuple[str, callable]] = {
+_ARRAY_FIELD = {
     'status': ('status', lambda v: _encode(str(v), STATUS_CODES)),
     'privilege': ('privilege', lambda v: _encode(str(v), PRIVILEGE_CODES)),
     'decoy': ('decoy', lambda v: _encode(str(v), DECOY_CODES)),
@@ -385,7 +270,6 @@ _ARRAY_FIELD: dict[str, tuple[str, callable]] = {
     'cvss_score': ('cvss_score', float),
 }
 
-# Attribute → HostMeta field, for variable-length / string fields.
 _META_FIELD = {
     'os': 'os',
     'services': 'services',
@@ -395,19 +279,14 @@ _META_FIELD = {
 }
 
 
-def _set_host_array(
-    state: EnvState, idx: int, field_name: str, encoded_value
-) -> EnvState:
-    """Return a new EnvState with ``state.hosts.<field>[idx] = encoded_value``."""
+def _set_host_array(state, idx, field_name, encoded_value):
     arr = getattr(state.hosts, field_name).copy()
     arr[idx] = encoded_value
     new_hosts = replace(state.hosts, **{field_name: arr})
     return replace(state, hosts=new_hosts)
 
 
-def _set_host_meta(
-    state: EnvState, idx: int, field_name: str, value
-) -> EnvState:
+def _set_host_meta(state, idx, field_name, value):
     current = list(getattr(state.meta, field_name))
     if field_name in ('services', 'vulnerabilities', 'cached_credentials', 'system_tokens'):
         current[idx] = tuple(value) if not isinstance(value, str) else (value,)
@@ -417,15 +296,12 @@ def _set_host_meta(
     return replace(state, meta=new_meta)
 
 
-def _set_compromised_by(state: EnvState, idx: int, agent_id: str) -> EnvState:
+def _set_compromised_by(state, idx, agent_id):
     if agent_id == 'None' or agent_id is None:
         code = -1
     elif agent_id in state.agent_ids:
         code = state.agent_ids.index(agent_id)
     else:
-        # Agent not in canonical list — store as -1 and let to_global_state
-        # surface it as 'None'. Documented limitation; widen agent_ids if
-        # this becomes load-bearing.
         code = -1
     arr = state.hosts.compromised_by_id.copy()
     arr[idx] = code
@@ -433,16 +309,9 @@ def _set_compromised_by(state: EnvState, idx: int, agent_id: str) -> EnvState:
     return replace(state, hosts=new_hosts)
 
 
-def apply_state_delta(state: EnvState, delta_key: str, delta_value=None) -> EnvState:
-    """Pure interpreter for legacy ``state_deltas`` entries.
-
-    Returns a new :class:`EnvState`. Unknown keys are ignored to match the
-    legacy behavior (the legacy ``apply_delta`` silently no-ops on
-    unrecognized attribute names via the ``hasattr`` guard).
-    """
+def apply_state_delta(state, delta_key, delta_value=None):
+    """Pure interpreter for legacy ``state_deltas`` entries. Unknown keys no-op."""
     if not isinstance(delta_key, str):
-        # Command-object deltas are out of scope for this slice — see module
-        # docstring above.
         return state
 
     parts = delta_key.split('/')
@@ -460,7 +329,6 @@ def apply_state_delta(state: EnvState, delta_key: str, delta_value=None) -> EnvS
             return _set_host_array(state, idx, field_name, encoder(delta_value))
         if attribute in _META_FIELD:
             return _set_host_meta(state, idx, _META_FIELD[attribute], delta_value)
-        # Unknown host attribute — legacy silently ignores.
         return state
 
     if parts[0] == 'knowledge' and len(parts) == 3:
@@ -474,38 +342,23 @@ def apply_state_delta(state: EnvState, delta_key: str, delta_value=None) -> EnvS
         )
         return replace(state, knowledge=new_knowledge)
 
-    # 'history/...' and 'firewall/...' are not yet modeled in EnvState.
     return state
 
 
-def apply_state_deltas(state: EnvState, deltas) -> EnvState:
-    """Apply a dict or list of deltas left-to-right. Mirrors the two shapes
-    the legacy env feeds into ``apply_delta`` (see parallel_env.py:463-469).
-    """
+def apply_state_deltas(state, deltas):
+    """Apply a dict-of-deltas or list-of-command-deltas left to right."""
     if isinstance(deltas, dict):
         for k, v in deltas.items():
             state = apply_state_delta(state, k, v)
     elif isinstance(deltas, (list, tuple)):
         for item in deltas:
-            # Legacy list form: each entry is itself a delta key (command
-            # object or string) — preserve that contract.
             state = apply_state_delta(state, item)
     return state
 
 
-# ── Pure conflict resolution ───────────────────────────────────────────────
-#
-# Functional companion to ``ConflictResolutionEngine.resolve``. Same
-# semantics ("Blue defensive supremacy on simultaneous same-target hits")
-# but does NOT mutate input ActionEffects — returns a fresh dict whose
-# values are either the original effect or a new ActionEffect with success
-# nullified. Required for the JAX backend, where any in-place mutation in a
-# traced function silently breaks correctness.
-
-
-def _extract_targeted_ips(state_deltas) -> set[str]:
+def _extract_targeted_ips(state_deltas):
     """Pull every ``hosts/<ip>/...`` IP out of a state_deltas payload."""
-    ips: set[str] = set()
+    ips = set()
     if isinstance(state_deltas, dict):
         for key in state_deltas.keys():
             if isinstance(key, str) and key.startswith('hosts/'):
@@ -521,19 +374,14 @@ def _extract_targeted_ips(state_deltas) -> set[str]:
 
 
 def resolve_conflicts(effects):
-    """Pure variant of :meth:`ConflictResolutionEngine.resolve`.
+    """Pure variant of ConflictResolutionEngine.resolve — does NOT mutate input.
 
-    Returns a NEW dict mapping agent_id → ActionEffect, with Red effects
-    nullified if they target a host that any Blue effect simultaneously
-    succeeds on. The input dict and its ActionEffects are NOT mutated.
-
-    Behavior mirrors the legacy engine bit-for-bit; the only difference is
-    immutability — callers that previously read ``effects[red_id].success``
-    after :meth:`resolve` should now read the return value.
+    Returns a NEW dict mapping agent_id → ActionEffect with Red nullified on
+    same-target collision with a successful Blue.
     """
     from netforge_rl.core.action import ActionEffect
 
-    blue_defended: set[str] = set()
+    blue_defended = set()
     for agent_id, eff in effects.items():
         if eff is None or not eff.success:
             continue

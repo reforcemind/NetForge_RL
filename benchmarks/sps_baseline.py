@@ -1,12 +1,4 @@
-"""Steps-Per-Second baseline harness for the legacy PyTorch/PettingZoo backend.
-
-This locks in the pre-refactor throughput so every later phase can assert no
-regression beyond a tolerated band. Run as:
-
-    python -m benchmarks.sps_baseline --episodes 5 --max-ticks 1000
-"""
-
-from __future__ import annotations
+"""Legacy single-env SPS baseline. Locks the pre-refactor throughput."""
 
 import argparse
 import json
@@ -37,7 +29,7 @@ class SPSResult:
     platform: str
 
 
-def _random_actions(env: NetForgeRLEnv, rng: np.random.Generator) -> dict:
+def _random_actions(env, rng):
     actions = {}
     for agent in env.agents:
         space = env.action_space(agent)
@@ -47,12 +39,7 @@ def _random_actions(env: NetForgeRLEnv, rng: np.random.Generator) -> dict:
     return actions
 
 
-def run(
-    episodes: int = 5,
-    max_ticks: int = 500,
-    scenario: str = 'ransomware',
-    seed: int = 42,
-) -> SPSResult:
+def run(episodes=5, max_ticks=500, scenario='ransomware', seed=42):
     config = {
         'scenario_type': scenario,
         'sim2real_mode': 'sim',
@@ -63,7 +50,7 @@ def run(
     env = NetForgeRLEnv(config)
     rng = np.random.default_rng(seed)
 
-    per_ep_sps: list[float] = []
+    per_ep_sps = []
     total_steps = 0
     wall_start = time.perf_counter()
 
@@ -72,8 +59,7 @@ def run(
         ep_steps = 0
         ep_start = time.perf_counter()
         while env.agents:
-            actions = _random_actions(env, rng)
-            _, _, term, trunc, _ = env.step(actions)
+            _, _, term, trunc, _ = env.step(_random_actions(env, rng))
             ep_steps += 1
             if all(term.values()) or all(trunc.values()):
                 break
@@ -99,7 +85,7 @@ def run(
     )
 
 
-def main() -> None:
+def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--episodes', type=int, default=5)
     p.add_argument('--max-ticks', type=int, default=500)

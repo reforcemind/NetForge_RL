@@ -1,7 +1,3 @@
-"""Matplotlib + NetworkX renderer. Headless by default."""
-
-from __future__ import annotations
-
 import io
 
 import matplotlib
@@ -15,10 +11,10 @@ import numpy as np
 from netforge_rl.render.snapshot import Snapshot
 
 
-_LAYOUT_CACHE: dict[int, dict] = {}
+_LAYOUT_CACHE = {}
 
 
-def _layout_for(snap: Snapshot) -> dict:
+def _layout_for(snap):
     key = hash((snap.labels, snap.subnets, snap.edges))
     cached = _LAYOUT_CACHE.get(key)
     if cached is not None:
@@ -31,14 +27,8 @@ def _layout_for(snap: Snapshot) -> dict:
     return layout
 
 
-def render_rgb(
-    snap: Snapshot,
-    *,
-    figsize: tuple[float, float] = (6.0, 6.0),
-    dpi: int = 100,
-    show_labels: bool = False,
-) -> np.ndarray:
-    """Render a snapshot to an RGB uint8 array of shape (H, W, 3)."""
+def render_rgb(snap: Snapshot, *, figsize=(6.0, 6.0), dpi=100, show_labels=False):
+    """Render a snapshot to a uint8 H×W×3 array."""
     fig, ax = plt.subplots(figsize=figsize, dpi=dpi)
     g = nx.Graph()
     g.add_nodes_from(range(snap.n_nodes))
@@ -51,8 +41,10 @@ def render_rgb(
         linewidths=0.5,
     )
     if show_labels:
-        nx.draw_networkx_labels(g, pos, labels={i: s for i, s in enumerate(snap.labels)},
-                                font_size=6, ax=ax)
+        nx.draw_networkx_labels(
+            g, pos, labels={i: s for i, s in enumerate(snap.labels)},
+            font_size=6, ax=ax,
+        )
 
     ax.set_title(f'NetForge — tick {snap.tick}', fontsize=10)
     ax.axis('off')

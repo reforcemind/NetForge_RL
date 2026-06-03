@@ -1,13 +1,4 @@
-"""Reference LoRA + PPO training loop. Skeleton only; run on Colab/local GPU.
-
-Lazily imports trl + transformers + peft + bitsandbytes; this module
-imports cleanly without them so the rest of the package stays light.
-
-    python -m netforge_rl.semantic.finetune.ppo_recipe \
-        --config netforge_rl/semantic/finetune/configs/llama3_8b_lora.yaml
-"""
-
-from __future__ import annotations
+"""Reference LoRA + PPO recipe; lazy-imports trl/transformers/peft."""
 
 import argparse
 from pathlib import Path
@@ -18,17 +9,17 @@ from netforge_rl.environment.parallel_env import NetForgeRLEnv
 from netforge_rl.semantic.finetune.adapter import LMPolicyAdapter
 
 
-def _require(modname: str):
+def _require(modname):
     try:
         return __import__(modname)
     except ImportError as e:
         raise ImportError(
-            f'{modname} is required for fine-tuning. Install with '
-            "`pip install 'netforge_rl[finetune]'`."
+            f'{modname} is required for fine-tuning. '
+            f"Install with `pip install 'netforge_rl[finetune]'`."
         ) from e
 
 
-def main(config_path: str) -> None:
+def main(config_path):
     cfg = yaml.safe_load(Path(config_path).read_text())
 
     _require('torch')
@@ -86,6 +77,8 @@ def main(config_path: str) -> None:
     out_dir = Path(cfg['run']['output_dir'])
     out_dir.mkdir(parents=True, exist_ok=True)
 
+    import torch
+
     for step in range(cfg['run']['total_steps']):
         queries = adapter.queries()
         query_ids = tok(queries, return_tensors='pt', padding=True).input_ids.to(
@@ -95,12 +88,10 @@ def main(config_path: str) -> None:
         responses = tok.batch_decode(response_ids, skip_special_tokens=True)
         batch = adapter.step(responses)
 
-        import torch  # noqa: F401  — present once we're inside the run
-
         trainer.step(
             list(query_ids),
             response_ids,
-            [__import__('torch').tensor(r) for r in batch.rewards],
+            [torch.tensor(r) for r in batch.rewards],
         )
 
         if (step + 1) % cfg['run']['save_every'] == 0:

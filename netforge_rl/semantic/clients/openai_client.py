@@ -1,38 +1,30 @@
-"""OpenAI API client (chat.completions) for the zero-shot leaderboard.
-
-Lazy import; reads ``OPENAI_API_KEY``. Supports text + image (data URI)
-content blocks.
-"""
-
-from __future__ import annotations
-
 import os
-from typing import Any
 
 
 class OpenAIClient:
+    """LLMClient implementation against the OpenAI Chat Completions API."""
+
     def __init__(
         self,
-        model: str = 'gpt-4o-mini',
+        model='gpt-4o-mini',
         *,
-        api_key: str | None = None,
-        max_tokens: int = 256,
-        system: str | None = None,
+        api_key=None,
+        max_tokens=256,
+        system=None,
     ):
         try:
             import openai  # noqa: F401
         except ImportError as e:
             raise ImportError(
-                "openai SDK required. Install with `pip install openai`."
+                'openai SDK required. Install with `pip install openai`.'
             ) from e
         self.model_id = model
         self._key = api_key or os.environ.get('OPENAI_API_KEY')
         if not self._key:
             raise ValueError('OPENAI_API_KEY missing')
         self._max_tokens = max_tokens
-        self._system = (
-            system
-            or 'You are a network defense operator. Reply with exactly one '
+        self._system = system or (
+            'You are a network defense operator. Reply with exactly one '
             '`ACTION <id> TARGET <ip>` line and nothing else.'
         )
         self._client = None
@@ -44,8 +36,8 @@ class OpenAIClient:
             self._client = openai.OpenAI(api_key=self._key)
         return self._client
 
-    def act(self, prompt: dict[str, Any]) -> str:
-        content: list[dict] = [{'type': 'text', 'text': prompt['text']}]
+    def act(self, prompt):
+        content = [{'type': 'text', 'text': prompt['text']}]
         if 'image_b64_png' in prompt:
             mime = prompt.get('mime_type', 'image/png')
             content.append(
