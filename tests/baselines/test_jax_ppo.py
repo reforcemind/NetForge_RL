@@ -67,9 +67,22 @@ def test_ppo_loss_is_scalar() -> None:
 
 @pytest.mark.integration
 def test_train_smoke_runs_and_returns_losses() -> None:
-    cfg = PPOConfig(total_iters=2, num_steps=4, batch_size=4, n_hosts=100)
+    cfg = PPOConfig(
+        total_iters=2, num_steps=4, batch_size=4, n_hosts=100,
+        update_epochs=2, num_minibatches=2,
+    )
     out = train(cfg)
     assert 'params' in out
     assert len(out['losses']) == 2
     for L in out['losses']:
         assert np.isfinite(L)
+
+
+@pytest.mark.fast
+def test_train_rejects_indivisible_minibatch_config() -> None:
+    cfg = PPOConfig(
+        total_iters=1, num_steps=4, batch_size=4, n_hosts=100,
+        update_epochs=1, num_minibatches=3,  # 16 % 3 != 0
+    )
+    with pytest.raises(ValueError, match='divisible'):
+        train(cfg)

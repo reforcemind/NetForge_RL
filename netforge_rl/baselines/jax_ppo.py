@@ -130,6 +130,10 @@ class PPOConfig:
     n_blue: int = 3
     controlled_agent: str = 'blue_dmz'
     seed: int = 0
+    # Minibatch update: K epochs * M minibatches per rollout. The product
+    # num_steps * batch_size must be divisible by num_minibatches.
+    update_epochs: int = 4
+    num_minibatches: int = 4
 
 
 def _build_actions(target_idx, env_agents, controlled, n_red, n_blue, n_hosts, key):
@@ -213,6 +217,16 @@ def train(cfg: PPOConfig) -> dict:
     opt_state = init_adam(params)
     rollout = make_rollout_scan(env, cfg)
 
+    total_samples = cfg.num_steps * cfg.batch_size
+    if total_samples % cfg.num_minibatches != 0:
+        raise ValueError(
+            f'num_steps*batch_size ({total_samples}) must be divisible by '
+            f'num_minibatches ({cfg.num_minibatches}).'
+        )
+    minibatch_size = total_samples // cfg.num_minibatches
+
+    grad_step = _make_grad_step(cfg)
+
     losses: list[float] = []
     for _ in range(cfg.total_iters):
         state, obs_dict, key, traj, last_value = rollout(params, state, obs_dict, key)
@@ -223,18 +237,49 @@ def train(cfg: PPOConfig) -> dict:
         )
         returns = advantages + values_extended[:-1]
 
-        obs_arr = traj['obs'].reshape(-1, obs_dim)
-        act_arr = traj['action'].reshape(-1)
-        logp_arr = traj['logp'].reshape(-1)
-        adv_arr = advantages.reshape(-1)
-        ret_arr = returns.reshape(-1)
-        adv_arr = (adv_arr - adv_arr.mean()) / (adv_arr.std() + 1e-8)
+        flat = {
+            'obs': traj['obs'].reshape(-1, obs_dim),
+            'action': traj['action'].reshape(-1),
+            'logp': traj['logp'].reshape(-1),
+            'adv': advantages.reshape(-1),
+            'ret': returns.reshape(-1),
+        }
+        flat['adv'] = (flat['adv'] - flat['adv'].mean()) / (flat['adv'].std() + 1e-8)
 
-        (loss, _), grads = jax.value_and_grad(ppo_loss, has_aux=True)(
-            params, obs_arr, act_arr, logp_arr, adv_arr, ret_arr,
-            clip=cfg.clip, vf_coef=cfg.vf_coef,
-        )
-        params, opt_state = adam_update(params, grads, opt_state, lr=cfg.learning_rate)
-        losses.append(float(loss))
+        iter_loss = 0.0
+        n_updates = 0
+        for _ in range(cfg.update_epochs):
+            key, perm_key = jax.random.split(key)
+            perm = jax.random.permutation(perm_key, total_samples)
+            for mb in range(cfg.num_minibatches):
+                idx = perm[mb * minibatch_size : (mb + 1) * minibatch_size]
+                params, opt_state, loss = grad_step(
+                    params, opt_state, flat, idx,
+                )
+                iter_loss += float(loss)
+                n_updates += 1
+        losses.append(iter_loss / n_updates)
 
     return {'params': params, 'losses': losses}
+
+
+def _make_grad_step(cfg: PPOConfig):
+    """Compile one jit'd minibatch grad + Adam step."""
+
+    @jax.jit
+    def grad_step(params, opt_state, flat, idx):
+        obs = flat['obs'][idx]
+        action = flat['action'][idx]
+        logp = flat['logp'][idx]
+        adv = flat['adv'][idx]
+        ret = flat['ret'][idx]
+        (loss, _), grads = jax.value_and_grad(ppo_loss, has_aux=True)(
+            params, obs, action, logp, adv, ret,
+            clip=cfg.clip, vf_coef=cfg.vf_coef,
+        )
+        params, opt_state = adam_update(
+            params, grads, opt_state, lr=cfg.learning_rate
+        )
+        return params, opt_state, loss
+
+    return grad_step
