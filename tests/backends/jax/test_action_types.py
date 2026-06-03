@@ -16,11 +16,14 @@ from netforge_rl.backends.jax.vector_env import (
     BLUE_DEPLOY_DECOY,
     BLUE_DEPLOY_HONEYTOKEN,
     BLUE_ISOLATE,
+    BLUE_REMOVE,
     BLUE_RESTORE,
+    BLUE_SAT,
     RED_COMPROMISE,
     RED_IMPACT,
     RED_KINETIC,
     RED_PRIVESC,
+    SAT_DROP,
 )
 from netforge_rl.core.functional import (
     DECOY_CODES,
@@ -301,3 +304,77 @@ def test_restore_clears_integrity(global_state) -> None:
         red_type=[[RED_COMPROMISE]], blue_type=[[BLUE_RESTORE]],
     ))
     assert int(state.hosts.system_integrity[0, 10]) == INTEGRITY_CODES.index('clean')
+
+
+# ── Blue extras: REMOVE + SAT ───────────────────────────────────────────
+
+
+@pytest.mark.fast
+def test_remove_clears_priv_but_keeps_status(global_state) -> None:
+    """REMOVE wipes privilege; unlike RESTORE it does NOT flip status."""
+    spec = _spec()
+    state = _state(global_state, batch=1)
+    step = make_vector_step(spec)
+
+    # Red compromises host 11.
+    state, _ = step(state, _act(
+        red_t=[[11]], blue_t=[[99]],
+        red_a=[[True]], blue_a=[[False]],
+        red_type=[[RED_COMPROMISE]], blue_type=[[BLUE_ISOLATE]],
+    ))
+    assert int(state.hosts.privilege[0, 11]) == PRIVILEGE_CODES.index('User')
+
+    # Isolate host 11 so we can verify REMOVE keeps it isolated.
+    state, _ = step(state, _act(
+        red_t=[[99]], blue_t=[[11]],
+        red_a=[[False]], blue_a=[[True]],
+        red_type=[[RED_COMPROMISE]], blue_type=[[BLUE_ISOLATE]],
+    ))
+    assert int(state.hosts.status[0, 11]) == STATUS_CODES.index('isolated')
+
+    state, rewards = step(state, _act(
+        red_t=[[99]], blue_t=[[11]],
+        red_a=[[False]], blue_a=[[True]],
+        red_type=[[RED_COMPROMISE]], blue_type=[[BLUE_REMOVE]],
+    ))
+    assert int(state.hosts.privilege[0, 11]) == PRIVILEGE_CODES.index('None')
+    assert int(state.hosts.status[0, 11]) == STATUS_CODES.index('isolated')  # unchanged
+    # Blue reward 0 gets the +1.5 remove bonus.
+    assert float(rewards[0, spec.n_red]) == pytest.approx(1.5)
+
+
+@pytest.mark.fast
+def test_sat_decrements_human_vulnerability(global_state) -> None:
+    spec = _spec()
+    state = _state(global_state, batch=1)
+    step = make_vector_step(spec)
+
+    # Pick a host with high human_vulnerability to make the assertion stable.
+    idx = int(state.hosts.human_vulnerability[0].argmax())
+    before = float(state.hosts.human_vulnerability[0, idx])
+
+    state, rewards = step(state, _act(
+        red_t=[[99]], blue_t=[[idx]],
+        red_a=[[False]], blue_a=[[True]],
+        red_type=[[RED_COMPROMISE]], blue_type=[[BLUE_SAT]],
+    ))
+    after = float(state.hosts.human_vulnerability[0, idx])
+    assert after == pytest.approx(max(before - SAT_DROP, 0.0))
+    assert float(rewards[0, spec.n_red]) == pytest.approx(0.3)
+
+
+@pytest.mark.fast
+def test_sat_clamps_at_zero(global_state) -> None:
+    """Repeated SAT shouldn't drive vulnerability negative."""
+    spec = _spec()
+    state = _state(global_state, batch=1)
+    step = make_vector_step(spec)
+
+    idx = int(state.hosts.human_vulnerability[0].argmax())
+    for _ in range(50):
+        state, _ = step(state, _act(
+            red_t=[[99]], blue_t=[[idx]],
+            red_a=[[False]], blue_a=[[True]],
+            red_type=[[RED_COMPROMISE]], blue_type=[[BLUE_SAT]],
+        ))
+    assert float(state.hosts.human_vulnerability[0, idx]) == 0.0

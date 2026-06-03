@@ -47,8 +47,10 @@ red's gid=2 ("DiscoverNetworkServices") and is unreachable via that path.
 | `BLUE_RESTORE` (1) | RestoreHost / RestoreFromBackup | `priv → None`, `status → online`, `integrity → clean`, `compromised_by → -1` | +2 | ✅ |
 | `BLUE_DEPLOY_DECOY` (2) | DecoyApache / SSHD / Tomcat | `decoy → active` | +0.5 | ✅ |
 | `BLUE_DEPLOY_HONEYTOKEN` (3) | DeployHoneytoken | `contains_honeytokens → True`; Red trap penalty -5 | +0.5 | ✅ |
+| `BLUE_REMOVE` (4) | Remove | `privilege → None` (status unchanged) | +1.5 | ✅ |
+| `BLUE_SAT` (5) | SecurityAwarenessTraining | `human_vulnerability -= 0.1` (clamped at 0) | +0.3 | ✅ |
 
-**Coverage:** 4 red + 4 blue = 8 unique behaviours. Conflict resolution
+**Coverage:** 4 red + 6 blue = 10 unique behaviours. Conflict resolution
 between any same-target Red/Blue pair holds via `resolve_conflicts_mask`.
 
 ---

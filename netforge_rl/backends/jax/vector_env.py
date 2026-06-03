@@ -64,6 +64,11 @@ BLUE_ISOLATE = 0     # status -> isolated
 BLUE_RESTORE = 1     # privilege -> None, status -> online (heals the host)
 BLUE_DEPLOY_DECOY = 2  # decoy -> active (proactive defense)
 BLUE_DEPLOY_HONEYTOKEN = 3  # contains_honeytokens -> True (trap)
+BLUE_REMOVE = 4      # privilege -> None (does NOT touch status — partial cleanup)
+BLUE_SAT = 5         # human_vulnerability_score -= SAT_DROP (training)
+
+# Tunable: how much SAT reduces phishability per application.
+SAT_DROP = 0.1
 
 
 class BatchedActions(NamedTuple):
@@ -135,6 +140,8 @@ def _single_env_step(
     blue_is_restore = (blue_action_type == BLUE_RESTORE) & blue_attempt
     blue_is_decoy = (blue_action_type == BLUE_DEPLOY_DECOY) & blue_attempt
     blue_is_honey = (blue_action_type == BLUE_DEPLOY_HONEYTOKEN) & blue_attempt
+    blue_is_remove = (blue_action_type == BLUE_REMOVE) & blue_attempt
+    blue_is_sat = (blue_action_type == BLUE_SAT) & blue_attempt
 
     # Aggregate to per-host write masks (any-wins across agents).
     blue_writes_isolate = jnp.any(
@@ -148,6 +155,12 @@ def _single_env_step(
     )
     blue_writes_honey = jnp.any(
         blue_target_mask & blue_is_honey[:, None], axis=0
+    )
+    blue_writes_remove = jnp.any(
+        blue_target_mask & blue_is_remove[:, None], axis=0
+    )
+    blue_writes_sat = jnp.any(
+        blue_target_mask & blue_is_sat[:, None], axis=0
     )
     red_writes_user = jnp.any(
         red_target_mask & red_is_compromise[:, None], axis=0
@@ -177,12 +190,13 @@ def _single_env_step(
     new_status = jnp.where(blue_writes_restore, jnp.int8(_STATUS_ONLINE), new_status)
     new_status = jnp.where(blue_writes_isolate, jnp.int8(_STATUS_ISOLATED), new_status)
 
-    # Privilege: Red privesc -> Root; Red compromise -> User; Blue restore ->
-    # None. Order matters: restore wipes Red writes on the same host.
+    # Privilege: Red privesc -> Root; Red compromise -> User; Blue restore /
+    # remove -> None. Order matters: Blue wipes Red writes on the same host.
     new_privilege = state.hosts.privilege
     new_privilege = jnp.where(red_writes_user, jnp.int8(_PRIV_USER), new_privilege)
     new_privilege = jnp.where(red_writes_root, jnp.int8(_PRIV_ROOT), new_privilege)
     new_privilege = jnp.where(blue_writes_restore, jnp.int8(_PRIV_NONE), new_privilege)
+    new_privilege = jnp.where(blue_writes_remove, jnp.int8(_PRIV_NONE), new_privilege)
 
     # compromised_by_id: pick the first successful Red owner per host.
     red_owners = red_target_mask & red_is_compromise[:, None]  # bool[N_RED, N_HOSTS]
@@ -214,6 +228,12 @@ def _single_env_step(
         blue_writes_restore, jnp.int8(_INTEGRITY_CLEAN), new_integrity
     )
 
+    new_human_vuln = jnp.where(
+        blue_writes_sat,
+        jnp.maximum(state.hosts.human_vulnerability - SAT_DROP, 0.0),
+        state.hosts.human_vulnerability,
+    )
+
     new_hosts = replace(
         state.hosts,
         status=new_status,
@@ -222,6 +242,7 @@ def _single_env_step(
         decoy=new_decoy,
         contains_honeytokens=new_honey,
         system_integrity=new_integrity,
+        human_vulnerability=new_human_vuln,
     )
 
     # Reward: Blue +1 per isolate, +2 per successful restore (heal),
@@ -237,6 +258,8 @@ def _single_env_step(
         + 2.0 * jnp.sum(blue_writes_restore.astype(jnp.float32))
         + 0.5 * jnp.sum(blue_writes_decoy.astype(jnp.float32))
         + 0.5 * jnp.sum(blue_writes_honey.astype(jnp.float32))
+        + 1.5 * jnp.sum(blue_writes_remove.astype(jnp.float32))
+        + 0.3 * jnp.sum(blue_writes_sat.astype(jnp.float32))
     )
     red_team_reward = (
         jnp.sum(red_writes_user.astype(jnp.float32))
@@ -332,7 +355,7 @@ def random_actions(
             k5, (batch_size, spec.n_red), 0, 4, dtype=jnp.int8
         ),
         blue_action_type=jax.random.randint(
-            k6, (batch_size, spec.n_blue), 0, 4, dtype=jnp.int8
+            k6, (batch_size, spec.n_blue), 0, 6, dtype=jnp.int8
         ),
     )
 
