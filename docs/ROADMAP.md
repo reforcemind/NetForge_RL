@@ -30,11 +30,12 @@ Phase 0 audit findings, measured SPS deltas, and regression locks live in
 * Mini-batched PPO updates with K epochs (CleanRL-pattern).
 * Action-type richer kernel — 10 Red + 9 Blue ported (full list in [ACTION_COVERAGE.md](ACTION_COVERAGE.md)).
 
-## Open items
+## Open items (priority order)
 
-* Remaining ~15 JAX action ports (credential mask, KillProcess, SpearPhishing, RestoreFromBackup).
-* MkDocs nav refresh + site rebuild.
-* `v4.0.0` git tag + Zenodo deposit (user-driven).
+1. **NeurIPS submission package** — `paper/` LaTeX skeleton + figures, README hero animation, CI workflow stub.
+2. Remaining ~11 JAX action ports (KillProcess, SpearPhishing — needs PRNG threading, RestoreFromBackup variants).
+3. **MkDocs nav refresh + missing pages** (Architecture / Cybersecurity / API stub pages currently break `mkdocs build --strict`). Last because it needs ~8 new doc pages written to satisfy the existing nav structure.
+4. `v4.0.0` git tag + Zenodo DOI deposit — user-driven.
 
 ---
 
