@@ -34,6 +34,7 @@ class JaxEnvState:
     current_tick: jax.Array
     business_downtime_score: jax.Array
     knowledge_mask: jax.Array      # bool[N_AGENTS, N_HOSTS]
+    exfiltrated_bytes: jax.Array   # float32 scalar — cumulative Red exfil
 
 
 def to_jax(state: EnvState) -> JaxEnvState:
@@ -71,6 +72,7 @@ def to_jax(state: EnvState) -> JaxEnvState:
             state.business_downtime_score, dtype=jnp.float32
         ),
         knowledge_mask=jnp.asarray(knowledge_mask),
+        exfiltrated_bytes=jnp.asarray(0.0, dtype=jnp.float32),
     )
 
 

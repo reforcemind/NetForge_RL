@@ -108,3 +108,65 @@ def test_openai_act_with_image(fake_openai, monkeypatch):
     user_content = kw['messages'][1]['content']
     assert any(b['type'] == 'image_url' for b in user_content)
     assert 'data:image/png;base64,AAA' in user_content[-1]['image_url']['url']
+
+
+# ── Google (Gemini) ─────────────────────────────────────────────────────
+
+
+@pytest.fixture
+def fake_google(monkeypatch):
+    google = types.ModuleType('google')
+    genai = types.ModuleType('google.generativeai')
+
+    class FakeResp:
+        text = 'ACTION 2 TARGET 10.0.0.3'
+
+    class FakeModel:
+        def __init__(self, model_name, system_instruction=None):
+            self.model_name = model_name
+            self.system_instruction = system_instruction
+            self.last_parts = None
+
+        def generate_content(self, parts, generation_config=None):
+            self.last_parts = parts
+            return FakeResp()
+
+    def configure(api_key=None):
+        genai.last_key = api_key
+
+    genai.configure = configure
+    genai.GenerativeModel = FakeModel
+    google.generativeai = genai
+    monkeypatch.setitem(sys.modules, 'google', google)
+    monkeypatch.setitem(sys.modules, 'google.generativeai', genai)
+    return genai
+
+
+def test_google_requires_api_key(fake_google, monkeypatch):
+    monkeypatch.delenv('GOOGLE_API_KEY', raising=False)
+    from netforge_rl.semantic.clients.google_client import GoogleClient
+    with pytest.raises(ValueError, match='GOOGLE_API_KEY'):
+        GoogleClient()
+
+
+def test_google_act_text_only(fake_google, monkeypatch):
+    monkeypatch.setenv('GOOGLE_API_KEY', 'ga-test')
+    from netforge_rl.semantic.clients.google_client import GoogleClient
+    c = GoogleClient(model='gemini-2.0-flash')
+    out = c.act({'text': 'hi'})
+    assert out == 'ACTION 2 TARGET 10.0.0.3'
+    assert c._model.last_parts == ['hi']
+
+
+def test_google_act_with_image(fake_google, monkeypatch):
+    import base64
+    monkeypatch.setenv('GOOGLE_API_KEY', 'ga-test')
+    from netforge_rl.semantic.clients.google_client import GoogleClient
+    c = GoogleClient()
+    payload = base64.b64encode(b'fakepng').decode('ascii')
+    c.act({'text': 'hi', 'image_b64_png': payload, 'mime_type': 'image/png'})
+    parts = c._model.last_parts
+    assert parts[0] == 'hi'
+    assert parts[1]['mime_type'] == 'image/png'
+    assert parts[1]['data'] == b'fakepng'
+

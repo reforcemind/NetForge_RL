@@ -74,6 +74,7 @@ llm_clients = [
     # (Phase 8 M2). Lazy-imported by the respective client adapters.
     "anthropic>=0.34.0",
     "openai>=1.40.0",
+    "google-generativeai>=0.7.0",
 ]
 
 [tool.pytest.ini_options]

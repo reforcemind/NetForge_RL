@@ -16,11 +16,14 @@ from netforge_rl.backends.jax.vector_env import (
     BLUE_DEPLOY_DECOY,
     BLUE_DEPLOY_HONEYTOKEN,
     BLUE_ISOLATE,
+    BLUE_MISINFORM,
     BLUE_MONITOR,
     BLUE_REMOVE,
     BLUE_RESTORE,
     BLUE_SAT,
+    EXFIL_PER_HOST,
     RED_COMPROMISE,
+    RED_EXFILTRATE,
     RED_EXPLOIT_BLUEKEEP,
     RED_EXPLOIT_ETERNALBLUE,
     RED_EXPLOIT_HTTP_RFI,
@@ -487,6 +490,57 @@ def test_intel_reward_only_on_first_sighting(global_state) -> None:
     assert float(r_first[0, 0]) > 0.0
     # Already known -> no intel reward on repeat.
     assert float(r_second[0, 0]) == pytest.approx(0.0)
+
+
+@pytest.mark.fast
+def test_misinform_brands_decoy_as_apache(global_state):
+    spec = _spec()
+    state = _state(global_state, batch=1)
+    step = make_vector_step(spec)
+    idx = int(
+        next(
+            i for i in range(100)
+            if int(state.hosts.decoy[0, i]) == DECOY_CODES.index('inactive')
+        )
+    )
+    state, _ = step(state, _act(
+        red_t=[[99]], blue_t=[[idx]],
+        red_a=[[False]], blue_a=[[True]],
+        red_type=[[RED_COMPROMISE]], blue_type=[[BLUE_MISINFORM]],
+    ))
+    assert int(state.hosts.decoy[0, idx]) == DECOY_CODES.index('Apache')
+
+
+@pytest.mark.fast
+def test_exfiltrate_requires_root(global_state):
+    spec = _spec()
+    state = _state(global_state, batch=1)
+    step = make_vector_step(spec)
+    before = float(state.exfiltrated_bytes[0])
+    state, rewards = step(state, _act(
+        red_t=[[6]], blue_t=[[99]],
+        red_a=[[True]], blue_a=[[False]],
+        red_type=[[RED_EXFILTRATE]], blue_type=[[BLUE_ISOLATE]],
+    ))
+    assert float(state.exfiltrated_bytes[0]) == before  # not Root -> no bytes
+    assert float(rewards[0, 0]) == pytest.approx(0.0)
+
+
+@pytest.mark.fast
+def test_exfiltrate_accumulates_when_root(global_state):
+    spec = _spec()
+    state = _state(global_state, batch=1)
+    step = make_vector_step(spec)
+    state = _own_to_root(state, step, idx=14)
+    before = float(state.exfiltrated_bytes[0])
+    state, rewards = step(state, _act(
+        red_t=[[14]], blue_t=[[99]],
+        red_a=[[True]], blue_a=[[False]],
+        red_type=[[RED_EXFILTRATE]], blue_type=[[BLUE_ISOLATE]],
+    ))
+    after = float(state.exfiltrated_bytes[0])
+    assert after == pytest.approx(before + EXFIL_PER_HOST)
+    assert float(rewards[0, 0]) == pytest.approx(EXFIL_PER_HOST)
 
 
 @pytest.mark.fast

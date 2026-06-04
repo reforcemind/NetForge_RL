@@ -57,7 +57,13 @@ def _ot_stuxnet():
     return OTStuxnetScenario
 
 
+def _cloud_hybrid():
+    from netforge_rl.scenarios.cloud_hybrid import CloudHybridScenario
+    return CloudHybridScenario
+
+
 register('ransomware', _ransomware)
 register('apt_espionage', _apt)
 register('iot_grid', _iot_grid)
 register('ot_stuxnet', _ot_stuxnet)
+register('cloud_hybrid', _cloud_hybrid)
