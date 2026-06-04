@@ -20,29 +20,14 @@ MAX_ACTION_DURATION = 50.0
 
 
 class NetForgeRLEnv(BaseNetForgeRLEnv):
-    """MARL Environment for CybORG.
-
-    Follows the PettingZoo Parallel API standard for simultaneous Multi-
-    Agent execution and relies exclusively on Gymnasium spaces natively.
-    """
+    """PettingZoo-style MARL environment for the NetForge cybersecurity sim."""
 
     metadata = {'render_modes': ['ansi', 'rgb_array'], 'name': 'netforge_rl_v3'}
 
     def __init__(self, scenario_config: dict):
-        # Default to procedural generation if no specific architecture config is provided
-        topology_path = (
-            scenario_config.get('topology_path') if scenario_config else None
-        )
-        self.network_generator = NetworkGenerator(config_path=topology_path)
-
-        scenario_type = (
-            scenario_config.get('scenario_type', 'ransomware')
-            if scenario_config
-            else 'ransomware'
-        )
-        self.log_latency = (
-            scenario_config.get('log_latency', 2) if scenario_config else 2
-        )
+        cfg = scenario_config or {}
+        self.network_generator = NetworkGenerator(config_path=cfg.get('topology_path'))
+        self.log_latency = cfg.get('log_latency', 2)
         self.green_agent = GreenAgent()
         self.possible_agents = [
             'red_operator',
@@ -55,10 +40,8 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
         from netforge_rl.scenarios import get_scenario_class
 
         try:
-            scenario_cls = get_scenario_class(scenario_type)
+            scenario_cls = get_scenario_class(cfg.get('scenario_type', 'ransomware'))
         except KeyError:
-            # Unknown scenario_type falls back to APT espionage (legacy
-            # behavior); registry tests pin the supported names.
             from netforge_rl.scenarios.apt_espionage import AptEspionageScenario
 
             scenario_cls = AptEspionageScenario
@@ -67,26 +50,12 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
         self.global_state = self.network_generator.generate()
         self.resolution_engine = ConflictResolutionEngine()
 
-        # Sim2Real Bridge — defaults to 'sim' (mock) for training speed.
-        # Set sim2real_mode='real' in scenario_config for Docker evaluation.
-        sim2real_mode = (
-            scenario_config.get('sim2real_mode', 'sim') if scenario_config else 'sim'
-        )
-        self.sim2real_bridge = Sim2RealBridge(mode=sim2real_mode)
+        self.sim2real_bridge = Sim2RealBridge(mode=cfg.get('sim2real_mode', 'sim'))
         self.global_state.sim2real_bridge = self.sim2real_bridge
 
-        # NLP-SIEM Pipeline — stochastic event log generation + encoding.
-        # SIEMLogger converts action effects → Windows Event XML strings.
-        # LogEncoder converts those strings → 128-dim LSTM-compatible vectors.
-        nlp_backend = (
-            scenario_config.get('nlp_backend', 'tfidf') if scenario_config else 'tfidf'
-        )
         self.siem_logger = SIEMLogger()
-        self.log_encoder = LogEncoder(backend=nlp_backend)
+        self.log_encoder = LogEncoder(backend=cfg.get('nlp_backend', 'tfidf'))
 
-        # Native Gymnasium Spaces for PettingZoo API + RLlib Mapping
-        # Blue agents receive a 'siem_embedding' key with the encoded SIEM log vector.
-        # Red agents also get the key (zeroed) to keep obs space shapes uniform across agents.
         self.observation_spaces = {
             agent: gym.spaces.Dict(
                 {
@@ -115,31 +84,21 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
             )  # [Action Type (max 32), Target IP Index (max 100 padded)]
             for agent in self.possible_agents
         }
-        self.max_ticks = scenario_config.get('max_ticks', 1000)
+        self.max_ticks = cfg.get('max_ticks', 1000)
         self.current_tick = 0
         self.event_queue = []
 
     def reset(
         self, seed=None, options=None
     ) -> Tuple[Dict[str, np.ndarray], Dict[str, dict]]:
-        """Resets the network state to initial configuration natively
-
-        (Gymnasium style + PettingZoo).
-
-        When ``seed`` is provided we re-seed both the global ``random`` module
-        and ``numpy.random`` so the legacy backend is deterministic from a
-        single seed end-to-end. Action / SIEM / agent randomness across
-        ``netforge_rl.{actions,agents,siem,nlp,core}`` reads from those globals;
-        re-seeding here means an episode is byte-reproducible without
-        threading an RNG through every call site. The JAX backend is
-        unaffected.
+        """Reset the env. Reseeding ``seed`` makes the whole legacy backend
+        deterministic by reseeding the global random + numpy modules.
         """
         if seed is not None:
             import random as _random
 
             _random.seed(seed)
             np.random.seed(seed)
-        # Teardown any running containers from the previous episode
         self.sim2real_bridge.teardown_all()
         self.global_state = self.network_generator.generate(seed=seed)
         # Re-attach bridge to freshly generated state
@@ -185,21 +144,11 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
         return self.action_spaces[agent]
 
     def action_mask(self, agent: str) -> np.ndarray:
-        """Returns a binary mask denoting valid and distinct action integers for the agent,
-        pruning out computationally redundant modulo duplicates.
-        """
-        # RLlib explicitly requires MultiDiscrete action masks to be concatenated flat boolean layers.
-        # Action space: [max 32 types, 100 IPs]. Therefore Mask shape = (132,)
+        """Binary mask shaped (132,) — RLlib's flat-bool MultiDiscrete format."""
         mask = np.zeros(132, dtype=np.int8)
-
-        if 'red' in agent.lower():
-            valid_action_types = 17
-        else:
-            valid_action_types = 15
+        valid_action_types = 17 if 'red' in agent.lower() else 15
         mask[:valid_action_types] = 1
-
         mask[32 : 32 + 100] = 1
-
         return mask
 
     def step(
@@ -211,57 +160,40 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
         Dict[str, bool],
         Dict[str, dict],
     ]:
-        """
-        Simultaneous Step Execution Logic:
-
-        1. PROCESS NEW ACTIONS: Validate budgets and enqueue async events.
-        2. INTERRUPTION LOGIC: Immediate cancel operations for specific defensive tasks.
-        3. ADVANCE TIME: `current_tick` progresses by 1.
-        4. RESOLVE MATURE EVENTS: Apply ActionEffects that reach `completion_tick`.
-        5. OBSERVATION: Agents receive POMDP updates with normalized Delta T info.
-        """
-        intended_effects = {}
-
-        # 1. PROCESS NEW ACTIONS
+        """Process actions -> interrupt -> advance tick -> resolve mature events."""
         blue_active_actions_count = sum(
             1 for event in self.event_queue if 'blue' in event['agent'].lower()
         )
 
         for agent, action_int in agent_actions.items():
-            # Validate temporal locks
             if self.current_tick < self.global_state.agent_locked_until.get(agent, 0):
                 continue
 
             if isinstance(action_int, BaseAction):
                 action = action_int
             else:
-                target_ips = sorted(list(self.global_state.all_hosts.keys()))
+                target_ips = sorted(self.global_state.all_hosts.keys())
                 action = action_registry.instantiate_action(
                     agent, action_int, target_ips
                 )
                 if action is None:
-                    continue  # Invalid action/unmapped action bounds
+                    continue
 
-            # SOC Budget Check (Max 2 active defensive actions)
+            # SOC budget cap: max 2 in-flight defensive actions.
             if 'blue' in agent.lower():
                 if blue_active_actions_count >= 2:
-                    continue  # SOC is busy, silently ignore
+                    continue
                 blue_active_actions_count += 1
 
-            # Validate temporal energy constraints
             if self.global_state.agent_energy.get(agent, 0) < action.cost:
                 continue
-
-            # Expend energy and validate state
             self.global_state.agent_energy[agent] -= action.cost
 
             if action.validate(self.global_state):
                 eta = getattr(action, 'duration', 1)
                 completion_tick = self.current_tick + eta
-
-                # Generate intended effect (though state might shift by completion time)
                 effect = action.execute(self.global_state)
-                effect.action = action  # 🧬 Link for reward attribution
+                effect.action = action
 
                 self.global_state.agent_locked_until[agent] = completion_tick
                 self.event_queue.append(
@@ -275,13 +207,12 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
                     }
                 )
 
-        # 2. INTERRUPTION LOGIC (e.g., IsolateHost Immediately Cancels Ongoing Attacks)
+        # IsolateHost on a target interrupts in-flight Red actions on the same target.
         for event in list(self.event_queue):
             if (
                 type(event['action']).__name__ == 'IsolateHost'
                 and event['completion_tick'] > self.current_tick
             ):
-                # Isolate is queued or starting now; interrupt Red
                 target_to_isolate = event['target_ip']
                 for red_event in list(self.event_queue):
                     if (
@@ -290,21 +221,16 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
                     ):
                         if red_event in self.event_queue:
                             self.event_queue.remove(red_event)
-                        # Unlock Red agent since their attack was disrupted
                         self.global_state.agent_locked_until[red_event['agent']] = (
                             self.current_tick
                         )
 
-        # 3. ADVANCE TIME (EVENT-DRIVEN JUMP)
+        # Event-driven tick advance.
         prev_tick = self.current_tick
         if self.event_queue:
-            # Jump to the next event completion time
-            next_event_tick = min(
-                event['completion_tick'] for event in self.event_queue
-            )
+            next_event_tick = min(e['completion_tick'] for e in self.event_queue)
             self.current_tick = max(self.current_tick + 1, next_event_tick)
         else:
-            # No events queued; advance by 1
             self.current_tick += 1
 
         delta_t = float(self.current_tick - prev_tick)
@@ -313,18 +239,14 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
         self.global_state.current_tick = self.current_tick
         self.global_state.subnet_bandwidth.clear()
 
-        # GENERATE BACKGROUND NOISE & DELAYED ALERTS
         noise_data = self.green_agent.generate_noise(
             self.current_tick, self.global_state
         )
         for anomaly in noise_data.get('alerts', []):
-            # Arrival tick logic stays for delayed observation if needed,
-            # but for now we push raw strings + subnets to buffer
             self.siem_logger._push_to_buffer(
                 anomaly['data'], anomaly['subnet'], self.global_state
             )
 
-        # 4. RESOLVE MATURE EVENTS
         intended_effects = {}
         action_metadata = {}
         remaining_events = []
@@ -341,65 +263,50 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
         self.event_queue = remaining_events
 
         resolved_effects = self.resolution_engine.resolve(intended_effects)
-
         self._apply_state_deltas(resolved_effects)
 
-        # NLP-SIEM: generate structured event logs from resolved action effects
         for res_agent, res_effect in resolved_effects.items():
             meta = action_metadata.get(res_agent, {})
-            action_name = meta.get('name', 'UnknownAction')
-            target_ip = meta.get('target_ip') or res_effect.observation_data.get(
-                'exploit'
-            )
             self.siem_logger.log_action(
-                action_name=action_name,
+                action_name=meta.get('name', 'UnknownAction'),
                 effect=res_effect,
                 global_state=self.global_state,
                 agent_id=res_agent,
                 target_ip=res_effect.observation_data.get('exploit'),
             )
 
-        # Generate True Positive telemetry from attacks that hit SIEM
+        from netforge_rl.siem.event_templates import sysmon_1
+
         for res_agent, res_effect in resolved_effects.items():
-            if 'red' in res_agent and res_effect.success:
-                target_ip = res_effect.observation_data.get('exploit', 'unknown')
+            if 'red' not in res_agent or not res_effect.success:
+                continue
+            target_ip = res_effect.observation_data.get('exploit', 'unknown')
+            host = self.global_state.all_hosts.get(target_ip)
+            subnet = host.subnet_cidr if host else 'unknown'
 
-                # Active Deception intercept
-                host = self.global_state.all_hosts.get(target_ip)
-
-                # Use templates for TP to ensure high-fidelity raw logs
-                from netforge_rl.siem.event_templates import sysmon_1
-
-                log_string = sysmon_1(res_agent, process='exploit_payload')
-
+            self.siem_logger._push_to_buffer(
+                sysmon_1(res_agent, process='exploit_payload'),
+                subnet,
+                self.global_state,
+            )
+            if host and getattr(host, 'contains_honeytokens', False):
                 self.siem_logger._push_to_buffer(
-                    log_string,
-                    host.subnet_cidr if host else 'unknown',
-                    self.global_state,
-                )
-
-                # Honeytoken Triggered Logic
-                if host and getattr(host, 'contains_honeytokens', False):
-                    honey_alert = {
+                    {
                         'signature': 'HONEYTOKEN_TRIGGERED',
                         'severity': 10,
                         'target': target_ip,
                         'agent': res_agent,
-                    }
-                    self.siem_logger._push_to_buffer(
-                        honey_alert,  # We pass the dict directly; encoder will handle it via str()
-                        host.subnet_cidr,
-                        self.global_state,
-                    )
+                    },
+                    subnet,
+                    self.global_state,
+                )
 
-        # Generate background SIEM noise every tick
         self.siem_logger.log_background_noise(self.global_state)
 
         observations = {}
         rewards = {}
         terminate = self.scenario.check_termination(self.global_state)
 
-        # Trigger dynamic topology mutations mid-episode
         if self.current_tick % 40 == 0:
             self.global_state.reallocate_dhcp()
 
@@ -441,7 +348,7 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
                 'delta_t': np.array([delta_t_norm], dtype=np.float32),
             }
             agent_effect = resolved_effects.get(agent)
-            rewards[agent] = self._calculate_reward(
+            rewards[agent] = self.scenario.calculate_reward(
                 agent, self.global_state, agent_effect
             )
 
@@ -463,11 +370,7 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
         return observations, rewards, terminate, truncate, infos
 
     def render(self, mode: str = 'rgb_array'):
-        """Decoupled render. ``mode='rgb_array'`` returns a uint8 HxWx3 array.
-
-        Pulls a frozen snapshot off the legacy state, then delegates to
-        :mod:`netforge_rl.render`. Never mutates state.
-        """
+        """``mode='rgb_array'`` returns a uint8 HxWx3 frame; ``'ansi'`` is a no-op."""
         if mode == 'ansi':
             return None
         if mode != 'rgb_array':
@@ -477,58 +380,31 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
         return render_rgb(snapshot_from_envstate(self.to_envstate()))
 
     def to_envstate(self):
-        """Materialize a frozen :class:`EnvState` snapshot of the current state.
-
-        Bridge between the legacy mutable backend and the Phase 2 JAX core
-        (see netforge_rl/core/functional.py). The returned snapshot is a
-        struct-of-arrays PyTree suitable for JAX vectorization; mutating it
-        will raise. Calling this every step is cheap (O(N_HOSTS)) but the
-        env loop itself does NOT do so — consumers opt in.
-        """
+        """Frozen ``EnvState`` PyTree snapshot of the current backend state."""
         from netforge_rl.core.functional import from_global_state
 
         return from_global_state(self.global_state, tuple(self.possible_agents))
 
-    def _decode_action(self, agent_id: str, action_int: int) -> BaseAction:
-        target_ips = sorted(list(self.global_state.all_hosts.keys()))
-        return action_registry.instantiate_action(agent_id, action_int, target_ips)
-
     def _apply_state_deltas(self, effects: Dict[str, ActionEffect]):
-        """Applies validated deltas to the GlobalNetworkState.
-
-        Only called AFTER temporal collisions have been mathematically resolved.
-        """
+        """Apply resolved deltas to ``global_state`` (post-conflict-resolution)."""
         for agent_id, effect in effects.items():
-            if effect.success:
-                if isinstance(effect.state_deltas, dict):
-                    for delta_key, delta_val in effect.state_deltas.items():
-                        self.global_state.apply_delta(delta_key, delta_val)
-                elif isinstance(effect.state_deltas, list):
-                    for delta_cmd in effect.state_deltas:
-                        self.global_state.apply_delta(delta_cmd)
-
-    def _calculate_reward(
-        self, agent_id: str, state, effect: ActionEffect = None
-    ) -> float:
-        """Delegates reward logic directly to the localized Scenario module."""
-        return self.scenario.calculate_reward(agent_id, state, effect)
+            if not effect.success:
+                continue
+            if isinstance(effect.state_deltas, dict):
+                for delta_key, delta_val in effect.state_deltas.items():
+                    self.global_state.apply_delta(delta_key, delta_val)
+            elif isinstance(effect.state_deltas, list):
+                for delta_cmd in effect.state_deltas:
+                    self.global_state.apply_delta(delta_cmd)
 
     def _extract_agent_infos(self, observations: dict, resolved_effects: dict) -> dict:
-        """Extracts security metrics for TensorBoard and CSV logging callbacks.
-
-        Args:
-            observations: Dictionary of agent observations for this step.
-            resolved_effects: Dictionary of resolved action effects.
-
-        Returns:
-            Dictionary mapping agent_id to an info dictionary with security metrics.
-        """
+        """Per-agent metrics dict for TensorBoard / CSV callbacks."""
         infos = {}
-        for agent in list(observations.keys()):
+        ordered_hosts = sorted(self.global_state.all_hosts.keys())
+        for agent in observations:
             agent_effect = resolved_effects.get(agent)
             info: dict = {}
 
-            # Count security-relevant events from this step
             false_positives = 0
             successful_exploits = 0
             hosts_isolated = 0
@@ -542,13 +418,11 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
                 for delta_key, delta_val in agent_effect.state_deltas.items():
                     if 'status' in delta_key and delta_val == 'isolated':
                         hosts_isolated += 1
-                        # Check if the isolated host was actually compromised
                         parts = delta_key.split('/')
                         if len(parts) >= 2:
-                            ip = parts[1]
-                            host = self.global_state.all_hosts.get(ip)
+                            host = self.global_state.all_hosts.get(parts[1])
                             if host and host.compromised_by == 'None':
-                                false_positives += 1  # Isolated a clean host
+                                false_positives += 1
                     elif 'privilege' in delta_key and delta_val in ('User', 'Root'):
                         successful_exploits += 1
                     elif 'status' in delta_key and delta_val == 'online':
@@ -559,17 +433,16 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
             info['hosts_isolated'] = float(hosts_isolated)
             info['services_restored'] = float(services_restored)
 
-            if agent_effect:
-                target_ip = getattr(agent_effect.action, 'target_ip', None)
-                if target_ip and target_ip in self.global_state.all_hosts:
-                    ordered_hosts = sorted(list(self.global_state.all_hosts.keys()))
-                    info['target_ip_index'] = ordered_hosts.index(target_ip)
-                else:
-                    info['target_ip_index'] = None
-            else:
-                info['target_ip_index'] = None
+            target_ip = (
+                getattr(agent_effect.action, 'target_ip', None)
+                if agent_effect else None
+            )
+            info['target_ip_index'] = (
+                ordered_hosts.index(target_ip)
+                if target_ip and target_ip in self.global_state.all_hosts
+                else None
+            )
 
-            # Extra context for analysis
             info['agent_energy'] = float(self.global_state.agent_energy.get(agent, 0))
             info['compromised_hosts'] = float(
                 sum(
@@ -613,25 +486,20 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
         return infos
 
     def global_state_vector(self) -> np.ndarray:
-        """Returns a flattened 512-dim vector representing the true global network physics.
-        Used primarily for Centralized Critics (MAPPO, QMIX) during training.
-        """
+        """Flat 512-dim vector for centralized critics (MAPPO / QMIX)."""
+        priv_codes = {'None': 0.0, 'User': 0.5, 'Root': 1.0}
+        ordered_hosts = sorted(self.global_state.all_hosts.keys())
+
         vec = []
-        ordered_hosts = sorted(list(self.global_state.all_hosts.keys()))
-
-        for i in range(100):
-            if i < len(ordered_hosts):
-                host = self.global_state.all_hosts[ordered_hosts[i]]
-                priv = {'None': 0.0, 'User': 0.5, 'Root': 1.0}.get(host.privilege, 0.0)
-                status = 1.0 if host.status == 'online' else 0.0
-                decoy = 1.0 if host.decoy != 'inactive' else 0.0
-                vec.extend([priv, status, decoy])
-            else:
-                vec.extend([0.0, 0.0, 0.0])
-
+        for ip in ordered_hosts[:100]:
+            host = self.global_state.all_hosts[ip]
+            vec.extend([
+                priv_codes.get(host.privilege, 0.0),
+                1.0 if host.status == 'online' else 0.0,
+                1.0 if host.decoy != 'inactive' else 0.0,
+            ])
         vec.append(self.global_state.business_downtime_score / 100.0)
         vec.append(float(self.current_tick) / float(self.max_ticks))
-
         for agent in self.possible_agents:
             vec.append(float(self.global_state.agent_energy.get(agent, 0)) / 100.0)
 

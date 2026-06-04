@@ -1,15 +1,13 @@
 from abc import ABC, abstractmethod
-from typing import Dict, Any, Optional, TYPE_CHECKING, Union, List
+from typing import Any, Dict, List, Optional, TYPE_CHECKING, Union
 
 if TYPE_CHECKING:
-    from netforge_rl.core.state import GlobalNetworkState
     from netforge_rl.core.commands import IStateDeltaCommand
+    from netforge_rl.core.state import GlobalNetworkState
 
 
 class ActionEffect:
-    """Encapsulates the resulting state changes from an action for conflict
-    resolution.
-    """
+    """Result of executing an action — consumed by the conflict resolver."""
 
     def __init__(
         self,
@@ -28,8 +26,6 @@ class ActionEffect:
 
 
 class BaseAction(ABC):
-    """Modular Base Action for the MARL CybORG Environment."""
-
     def __init__(
         self,
         agent_id: str,
@@ -55,29 +51,23 @@ class BaseAction(ABC):
             return False
 
         if self.required_prior_state:
-            agent_history = global_state.action_history.get(self.agent_id, set())
-            expected_record = f'{self.required_prior_state}:{self.target_ip}'
-            if expected_record not in agent_history:
+            expected = f'{self.required_prior_state}:{self.target_ip}'
+            if expected not in global_state.action_history.get(self.agent_id, set()):
                 return False
 
         if self.target_ip:
             host = global_state.all_hosts[self.target_ip]
             if 'red' in self.agent_id.lower() and host.subnet_cidr == '10.0.1.0/24':
-                has_dmz = any(
-                    h.privilege in ['User', 'Root']
+                has_pivot = any(
+                    h.privilege in ('User', 'Root')
+                    and h.subnet_cidr in ('192.168.1.0/24', '10.0.0.0/24')
                     for h in global_state.all_hosts.values()
-                    if h.subnet_cidr == '192.168.1.0/24'
                 )
-                has_internal = any(
-                    h.privilege in ['User', 'Root']
-                    for h in global_state.all_hosts.values()
-                    if h.subnet_cidr == '10.0.0.0/24'
-                )
-                if not (has_dmz or has_internal):
+                if not has_pivot:
                     return False
 
         return True
 
     @abstractmethod
     def execute(self, global_state: 'GlobalNetworkState') -> ActionEffect:
-        pass
+        ...
