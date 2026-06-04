@@ -54,50 +54,77 @@ Frozen `EnvState` PyTree, pure `apply_state_delta` / `resolve_conflicts`,
 episode-long parity proof against the legacy step. Legacy backend
 untouched; new functional primitives are JAX-ready by construction.
 
-## Phase 2 — JAX backend (slices 1–2 ✅, 3+ pending)
-**Branch:** `feat/jax-core`
+## Phase 2 — JAX backend ✅ (slices 1–6 shipped; 11/34 actions still pending)
+**Branch:** `feat/jax-core` (merged) — JAX action porting tracked separately
 
-Registered PyTree state, vectorizable kernels, `jax.vmap` batched step,
-1,082,255 aggregate SPS at 4096 envs on CPU (103,500× speedup over the
-single-env baseline). Slice 3 will port the remaining 32 actions; slice 4
-will close numerical parity with the legacy step under a configurable
-tolerance for stochastic effects.
+Registered PyTree state, vectorizable kernels, `jax.vmap` batched step at
+**1,082,255 aggregate SPS at 4096 envs on CPU** (103,500× speedup over the
+single-env baseline). Action coverage now 23/34 — see
+[ACTION_COVERAGE.md](ACTION_COVERAGE.md). Remaining action ports are
+documented and unblock incrementally.
 
-## Phase 3 — API standardization
-**Branches:** `feat/api-jaxmarl`, `feat/api-pettingzoo`, `feat/bridges-dlpack`
+**Shipped:** [netforge_rl/backends/jax/](../netforge_rl/backends/jax/)
+(`state.py`, `kernels.py`, `vector_env.py`),
+[benchmarks/sps_jax_vectorized.py](../benchmarks/sps_jax_vectorized.py).
+
+## Phase 3 — API standardization ✅
+**Branches:** `feat/bridges-jaxmarl`, `feat/bridges-cleanrl-vec` (merged)
 
 JaxMARL-shape adapter (`reset(key) -> (obs, state)`, `step(key, state, actions)`)
-on the JAX backend; PettingZoo `ParallelEnv` on the PyTorch backend; zero-copy
-DLPack converters so CleanRL / Stable-Baselines3 / RLlib can consume the
-vmap'd rollouts without leaving GPU.
+on the JAX backend; PettingZoo `ParallelEnv` already lives on the legacy
+PyTorch backend ([netforge_rl/environment/parallel_env.py](../netforge_rl/environment/parallel_env.py));
+zero-copy DLPack `jax.Array ↔ torch.Tensor` converters; CleanRL-style
+single-agent gym-5-tuple shim for SB3 / Tianshou.
 
-## Phase 4 — Decoupled rendering
-**Branch:** `feat/render-pipeline`
+**Shipped:** [netforge_rl/bridges/jaxmarl.py](../netforge_rl/bridges/jaxmarl.py),
+[netforge_rl/bridges/dlpack.py](../netforge_rl/bridges/dlpack.py),
+[netforge_rl/bridges/cleanrl_vec.py](../netforge_rl/bridges/cleanrl_vec.py).
+Tests: [tests/bridges/](../tests/bridges/) (12 green).
 
-NetworkX layout + Matplotlib/Pygame renderers driven off frozen `EnvState`
-snapshots — never touches the hot path. `RecorderWrapper` emits `.mp4` /
-`.gif` evaluation reels via moviepy; CI auto-attaches a 30s gif to every PR.
+## Phase 4 — Decoupled rendering ✅
+**Branch:** `feat/render-pipeline` (merged)
 
-## Phase 5 — Baselines, scenarios, leaderboard
-**Branches:** `feat/scenarios-suite`, `feat/baseline-{mappo,ippo,qmix,ppo}`
+`Snapshot` (pure CPU view of EnvState), NetworkX + Matplotlib renderer
+returning a uint8 H×W×3 array, `FrameRecorder` writing mp4/gif via
+moviepy. `env.render('rgb_array')` never touches the hot path.
 
-Five standardized scenarios (`enterprise-it-{small,large}`, `iot-grid`,
-`ot-stuxnet`, `cloud-hybrid`); reference baselines in JAX (MAPPO/IPPO/QMIX)
-and PyTorch (PPO/MAPPO); a public leaderboard auto-deployed to GitHub Pages.
+**Shipped:** [netforge_rl/render/](../netforge_rl/render/)
+(`snapshot.py`, `matplotlib_renderer.py`, `recorder.py`).
+Tests: [tests/render/](../tests/render/) (6 green).
 
-## Phase 6 — Research readiness ("WOW" docs)
-**Branch:** `docs/neurips-ready`
+## Phase 5 — Baselines, scenarios, leaderboard ✅
+**Branches:** `feat/baselines`, `feat/baseline-ppo-jax`, `feat/scenarios-*` (merged)
 
-Colab tutorial suite (notebooks 01–06: quickstart, attack viz, CleanRL,
-MAPPO@4k envs, Sim2Real, custom scenarios); MkDocs site overhaul with
-citations + MITRE coverage matrix; Datasheet for Datasets + NeurIPS D&B
-checklist; hero animation in README.
+Five standardized scenarios (`ransomware`, `apt_espionage`, `iot_grid`,
+`ot_stuxnet`, `cloud_hybrid`); `RandomPolicy` + `HeuristicBluePolicy` +
+`HeuristicRedPolicy` + a hand-rolled PureJaxRL-style JAX PPO (with
+`lax.scan` rollout and minibatched K-epoch updates); JSON leaderboard
+emitted by `evaluate()` and `build_leaderboard.py`.
 
-## Phase 7 — Submission hardening
-**Branch:** `release/v4.0-neurips`
+**Shipped:** [netforge_rl/baselines/](../netforge_rl/baselines/),
+[netforge_rl/scenarios/](../netforge_rl/scenarios/),
+[leaderboard/baselines.json](../leaderboard/baselines.json),
+[benchmarks/build_leaderboard.py](../benchmarks/build_leaderboard.py).
+Tests: [tests/baselines/](../tests/baselines/) +
+[tests/scenarios/](../tests/scenarios/) (24 green).
 
-Frozen `v4.0.0` tag, Zenodo DOI, camera-ready paper, public leaderboard
-live with ≥3 submitted methods.
+## Phase 6 — Research readiness ✅ (notebooks shipped; MkDocs deferred)
+**Branch:** `docs/notebooks-01-06` (merged)
+
+Colab notebooks 01–06 (quickstart / attack viz / CleanRL / MAPPO@4k /
+Sim2Real / custom scenario) plus notebook 07 from Phase 8 M3.
+Datasheet for Datasets + CITATION.cff. MkDocs nav refresh deferred to
+end of Phase 7 because it needs ~8 stub pages.
+
+**Shipped:** [notebooks/01–07](../notebooks/),
+[docs/DATASHEET.md](DATASHEET.md), `CITATION.cff`.
+
+## Phase 7 — Submission hardening ⚠️ (in flight)
+**Branch:** `release/v4.0-neurips` (release branch, not yet tagged)
+
+`v4.0.0` git tag not pushed; Zenodo deposit pending; paper LaTeX
+skeleton not started. **Open work:** `paper/` directory + figures,
+README hero animation, CI workflow, push tag + mint DOI.
 
 ---
 
