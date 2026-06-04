@@ -24,6 +24,11 @@ CVE_CODES = (
 )
 N_CVE = len(CVE_CODES)
 
+# Identity tokens that can be looted (DumpLSASS) and spent (PassTheTicket /
+# PassTheHash). Index order is load-bearing.
+TOKEN_CODES = ('Enterprise_Admin_Token', 'Local_Admin_DMZ', 'Local_Admin_Corporate')
+N_TOKEN = len(TOKEN_CODES)
+
 
 def _encode(value, codebook):
     try:
@@ -53,6 +58,7 @@ class HostArrays:
     compromised_by_id: np.ndarray   # int8[N_HOSTS], -1 == not compromised
     system_integrity: np.ndarray
     vuln_mask: np.ndarray           # bool[N_HOSTS, N_CVE]
+    host_tokens: np.ndarray         # bool[N_HOSTS, N_TOKEN] — tokens leaked on LSASS
 
 
 @dataclass(frozen=True)
@@ -154,6 +160,15 @@ def from_global_state(legacy, agent_ids):
             if cve in CVE_CODES:
                 vuln_mask[i, CVE_CODES.index(cve)] = True
 
+    host_tokens = np.zeros((n, N_TOKEN), dtype=bool)
+    for i, h in enumerate(hosts_in_order):
+        for tok in getattr(h, 'cached_credentials', None) or ():
+            if tok in TOKEN_CODES:
+                host_tokens[i, TOKEN_CODES.index(tok)] = True
+        for tok in getattr(h, 'system_tokens', None) or ():
+            if tok in TOKEN_CODES:
+                host_tokens[i, TOKEN_CODES.index(tok)] = True
+
     hosts = HostArrays(
         status=status_arr,
         privilege=priv_arr,
@@ -166,6 +181,7 @@ def from_global_state(legacy, agent_ids):
         compromised_by_id=comp_arr,
         system_integrity=integrity_arr,
         vuln_mask=vuln_mask,
+        host_tokens=host_tokens,
     )
 
     meta = HostMeta(

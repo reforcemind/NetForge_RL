@@ -21,15 +21,19 @@ from netforge_rl.backends.jax.vector_env import (
     BLUE_MONITOR,
     BLUE_REMOVE,
     BLUE_RESTORE,
+    BLUE_ROTATE_KERBEROS,
     BLUE_SAT,
     EXFIL_PER_HOST,
     RED_COMPROMISE,
+    RED_DUMP_LSASS,
     RED_EXFILTRATE,
     RED_EXPLOIT_BLUEKEEP,
     RED_EXPLOIT_ETERNALBLUE,
     RED_EXPLOIT_HTTP_RFI,
     RED_IMPACT,
     RED_KINETIC,
+    RED_PASS_THE_HASH,
+    RED_PASS_THE_TICKET,
     RED_PRIVESC,
     RED_RECON,
     RED_SHARE_INTEL,
@@ -584,6 +588,99 @@ def test_share_intel_broadcasts_red_knowledge(global_state):
         blue_type=[[BLUE_ISOLATE]],
     ))
     assert bool(state.knowledge_mask[0, 1, 3])
+
+
+@pytest.mark.fast
+def test_lsass_loots_token_when_root(global_state):
+    """DumpLSASS on a Rooted host that carries an admin token loots it."""
+    spec = _spec()
+    state = _state(global_state, batch=1)
+    step = make_vector_step(spec)
+
+    # Find a host that has at least one token in host_tokens.
+    candidates = [i for i in range(100) if bool(state.hosts.host_tokens[0, i].any())]
+    if not candidates:
+        pytest.skip('no host with tokens in this seed')
+    idx = candidates[0]
+
+    state = _own_to_root(state, step, idx=idx)
+    before_creds = bool(state.agent_credentials[0, 0].any())
+    state, _ = step(state, _act(
+        red_t=[[idx]], blue_t=[[99]],
+        red_a=[[True]], blue_a=[[False]],
+        red_type=[[RED_DUMP_LSASS]], blue_type=[[BLUE_ISOLATE]],
+    ))
+    after_creds = bool(state.agent_credentials[0, 0].any())
+    assert after_creds and not before_creds
+
+
+@pytest.mark.fast
+def test_pass_the_hash_compromises_with_token(global_state):
+    spec = _spec()
+    state = _state(global_state, batch=1)
+    step = make_vector_step(spec)
+
+    candidates = [i for i in range(100) if bool(state.hosts.host_tokens[0, i].any())]
+    if not candidates:
+        pytest.skip('no host with tokens in this seed')
+
+    state = _own_to_root(state, step, idx=candidates[0])
+    state, _ = step(state, _act(
+        red_t=[[candidates[0]]], blue_t=[[99]],
+        red_a=[[True]], blue_a=[[False]],
+        red_type=[[RED_DUMP_LSASS]], blue_type=[[BLUE_ISOLATE]],
+    ))
+    clean_idx = next(
+        i for i in range(100)
+        if int(state.hosts.privilege[0, i]) == PRIVILEGE_CODES.index('None')
+    )
+    state, _ = step(state, _act(
+        red_t=[[clean_idx]], blue_t=[[99]],
+        red_a=[[True]], blue_a=[[False]],
+        red_type=[[RED_PASS_THE_HASH]], blue_type=[[BLUE_ISOLATE]],
+    ))
+    assert int(state.hosts.privilege[0, clean_idx]) == PRIVILEGE_CODES.index('User')
+
+
+@pytest.mark.fast
+def test_pass_the_hash_no_op_without_token(global_state):
+    spec = _spec()
+    state = _state(global_state, batch=1)
+    step = make_vector_step(spec)
+    clean_idx = next(
+        i for i in range(100)
+        if int(state.hosts.privilege[0, i]) == PRIVILEGE_CODES.index('None')
+    )
+    state, _ = step(state, _act(
+        red_t=[[clean_idx]], blue_t=[[99]],
+        red_a=[[True]], blue_a=[[False]],
+        red_type=[[RED_PASS_THE_HASH]], blue_type=[[BLUE_ISOLATE]],
+    ))
+    assert int(state.hosts.privilege[0, clean_idx]) == PRIVILEGE_CODES.index('None')
+
+
+@pytest.mark.fast
+def test_rotate_kerberos_clears_red_credentials(global_state):
+    spec = _spec()
+    state = _state(global_state, batch=1)
+    step = make_vector_step(spec)
+    candidates = [i for i in range(100) if bool(state.hosts.host_tokens[0, i].any())]
+    if not candidates:
+        pytest.skip('no host with tokens in this seed')
+    state = _own_to_root(state, step, idx=candidates[0])
+    state, _ = step(state, _act(
+        red_t=[[candidates[0]]], blue_t=[[99]],
+        red_a=[[True]], blue_a=[[False]],
+        red_type=[[RED_DUMP_LSASS]], blue_type=[[BLUE_ISOLATE]],
+    ))
+    assert bool(state.agent_credentials[0, 0].any())
+
+    state, _ = step(state, _act(
+        red_t=[[99]], blue_t=[[0]],
+        red_a=[[False]], blue_a=[[True]],
+        red_type=[[RED_COMPROMISE]], blue_type=[[BLUE_ROTATE_KERBEROS]],
+    ))
+    assert not bool(state.agent_credentials[0, 0].any())
 
 
 @pytest.mark.fast

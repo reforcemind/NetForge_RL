@@ -58,8 +58,12 @@ red's gid=2 ("DiscoverNetworkServices") and is unreachable via that path.
 | `BLUE_MISINFORM` (7) | Misinform | `decoy → Apache` (planted fake service) | +0.4 | ✅ |
 | `RED_SHARE_INTEL` (9) | ShareIntelligence | OR every Red row of `knowledge_mask` together | +0.4 per sharer | ✅ |
 | `BLUE_CONFIGURE_ACL` (8) | ConfigureACL | `edr_active → True` on target | +0.7 | ✅ |
+| `RED_DUMP_LSASS` (10) | DumpLSASS | Root-gated; OR `host_tokens[target]` into `agent_credentials[red]` | +2 per fresh loot | ✅ |
+| `RED_PASS_THE_HASH` (11) | PassTheHash | If agent holds any token, compromise target without normal gating | +1 (compromise) | ✅ |
+| `RED_PASS_THE_TICKET` (12) | PassTheTicket | If agent holds any token, privesc target to Root | +3 (privesc) | ✅ |
+| `BLUE_ROTATE_KERBEROS` (9) | RotateKerberos | Clear every Red row of `agent_credentials` | +4 | ✅ |
 
-**Coverage:** 10 red + 9 blue = 19 unique behaviours. Conflict resolution
+**Coverage:** 13 red + 10 blue = 23 unique behaviours. Conflict resolution
 between any same-target Red/Blue pair holds via `resolve_conflicts_mask`.
 
 ---

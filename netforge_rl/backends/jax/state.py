@@ -21,6 +21,7 @@ class JaxHostArrays:
     compromised_by_id: jax.Array   # int8[N_HOSTS], -1 == None
     system_integrity: jax.Array
     vuln_mask: jax.Array           # bool[N_HOSTS, N_CVE]
+    host_tokens: jax.Array         # bool[N_HOSTS, N_TOKEN]
 
 
 @jax.tree_util.register_dataclass
@@ -35,9 +36,12 @@ class JaxEnvState:
     business_downtime_score: jax.Array
     knowledge_mask: jax.Array      # bool[N_AGENTS, N_HOSTS]
     exfiltrated_bytes: jax.Array   # float32 scalar — cumulative Red exfil
+    agent_credentials: jax.Array   # bool[N_AGENTS, N_TOKEN] — looted tokens
 
 
 def to_jax(state: EnvState) -> JaxEnvState:
+    from netforge_rl.core.functional import N_TOKEN, TOKEN_CODES
+
     n_agents = len(state.agent_ids)
     n_hosts = state.hosts.status.shape[0]
     knowledge_mask = np.zeros((n_agents, n_hosts), dtype=bool)
@@ -46,6 +50,12 @@ def to_jax(state: EnvState) -> JaxEnvState:
         for ip in known_set:
             if ip in ip_to_idx:
                 knowledge_mask[j, ip_to_idx[ip]] = True
+
+    agent_credentials = np.zeros((n_agents, N_TOKEN), dtype=bool)
+    for j, inv in enumerate(state.inventory):
+        for tok in inv:
+            if tok in TOKEN_CODES:
+                agent_credentials[j, TOKEN_CODES.index(tok)] = True
 
     h = state.hosts
     jhosts = JaxHostArrays(
@@ -60,6 +70,7 @@ def to_jax(state: EnvState) -> JaxEnvState:
         compromised_by_id=jnp.asarray(h.compromised_by_id),
         system_integrity=jnp.asarray(h.system_integrity),
         vuln_mask=jnp.asarray(h.vuln_mask),
+        host_tokens=jnp.asarray(h.host_tokens),
     )
     return JaxEnvState(
         hosts=jhosts,
@@ -73,6 +84,7 @@ def to_jax(state: EnvState) -> JaxEnvState:
         ),
         knowledge_mask=jnp.asarray(knowledge_mask),
         exfiltrated_bytes=jnp.asarray(0.0, dtype=jnp.float32),
+        agent_credentials=jnp.asarray(agent_credentials),
     )
 
 
@@ -94,6 +106,7 @@ def to_numpy(jstate, meta: HostMeta, agent_ids, knowledge=(), inventory=()) -> E
         compromised_by_id=np.asarray(h.compromised_by_id),
         system_integrity=np.asarray(h.system_integrity),
         vuln_mask=np.asarray(h.vuln_mask),
+        host_tokens=np.asarray(h.host_tokens),
     )
     return EnvState(
         hosts=hosts,

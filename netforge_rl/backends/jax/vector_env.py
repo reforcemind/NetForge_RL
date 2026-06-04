@@ -40,6 +40,9 @@ RED_EXPLOIT_HTTP_RFI = 6
 RED_RECON = 7
 RED_EXFILTRATE = 8           # Root-gated; +exfiltrated_bytes per tick
 RED_SHARE_INTEL = 9          # OR every Red row of knowledge_mask together
+RED_DUMP_LSASS = 10          # Root-gated; OR host_tokens[target] -> agent_credentials
+RED_PASS_THE_HASH = 11       # if any token held, compromise target (None -> User)
+RED_PASS_THE_TICKET = 12     # if any token held, privesc target (User -> Root)
 
 BLUE_ISOLATE = 0
 BLUE_RESTORE = 1
@@ -50,6 +53,7 @@ BLUE_SAT = 5
 BLUE_MONITOR = 6
 BLUE_MISINFORM = 7           # decoy -> Apache (planted fake service)
 BLUE_CONFIGURE_ACL = 8       # edr_active -> True (endpoint monitoring on)
+BLUE_ROTATE_KERBEROS = 9     # clear every Red row of agent_credentials
 
 SAT_DROP = 0.1
 
@@ -104,6 +108,9 @@ def _single_env_step(
     red_is_recon = (red_action_type == RED_RECON) & red_success
     red_is_exfil = (red_action_type == RED_EXFILTRATE) & red_success
     red_is_share = (red_action_type == RED_SHARE_INTEL) & red_success
+    red_is_lsass = (red_action_type == RED_DUMP_LSASS) & red_success
+    red_is_pth = (red_action_type == RED_PASS_THE_HASH) & red_success
+    red_is_ptt = (red_action_type == RED_PASS_THE_TICKET) & red_success
 
     def _cve_compromise(action_code, cve_idx):
         is_attempt = (red_action_type == action_code) & red_success
@@ -126,6 +133,7 @@ def _single_env_step(
     blue_is_monitor = (blue_action_type == BLUE_MONITOR) & blue_attempt
     blue_is_misinform = (blue_action_type == BLUE_MISINFORM) & blue_attempt
     blue_is_acl = (blue_action_type == BLUE_CONFIGURE_ACL) & blue_attempt
+    blue_is_rotate = (blue_action_type == BLUE_ROTATE_KERBEROS) & blue_attempt
 
     blue_writes_isolate = jnp.any(blue_target_mask & blue_is_isolate[:, None], axis=0)
     blue_writes_restore = jnp.any(blue_target_mask & blue_is_restore[:, None], axis=0)
@@ -145,6 +153,40 @@ def _single_env_step(
     red_writes_impact = red_writes_impact & host_is_root
     red_writes_kinetic = red_writes_kinetic & host_is_root
 
+    # Credentials: DumpLSASS reads host_tokens; PassTheHash / PassTheTicket
+    # require the agent already holds at least one looted token.
+    agent_has_any_token = jnp.any(state.agent_credentials, axis=-1)  # bool[N_AGENTS]
+    red_token = agent_has_any_token[: spec.n_red]                    # bool[N_RED]
+
+    # LSASS: target host token row OR'd into the dumping Red agent's row,
+    # gated on Root on that host.
+    lsass_attempts = red_is_lsass & jnp.take(host_is_root, red_targets)
+    looted_per_agent = jnp.where(
+        lsass_attempts[:, None],
+        jnp.take(state.hosts.host_tokens, red_targets, axis=0),
+        jnp.zeros_like(state.agent_credentials[: spec.n_red]),
+    )
+    new_red_creds = state.agent_credentials[: spec.n_red] | looted_per_agent
+
+    # PassTheHash / PassTheTicket: same shape as compromise / privesc but
+    # gated on holding any token instead of host state.
+    red_writes_user_pth = jnp.any(
+        red_target_mask & (red_is_pth & red_token)[:, None], axis=0
+    )
+    red_writes_root_ptt = jnp.any(
+        red_target_mask & (red_is_ptt & red_token)[:, None], axis=0
+    )
+    red_writes_user = red_writes_user | red_writes_user_pth
+    red_writes_root = red_writes_root | red_writes_root_ptt
+
+    # RotateKerberos: any Blue rotate clears every Red row.
+    any_blue_rotate = jnp.any(blue_is_rotate)
+    new_blue_creds = state.agent_credentials[spec.n_red:]
+    new_red_creds = jnp.where(
+        any_blue_rotate, jnp.zeros_like(new_red_creds), new_red_creds
+    )
+    new_agent_credentials = jnp.concatenate([new_red_creds, new_blue_creds], axis=0)
+
     new_status = state.hosts.status
     new_status = jnp.where(blue_writes_restore, jnp.int8(_STATUS_ONLINE), new_status)
     new_status = jnp.where(blue_writes_isolate, jnp.int8(_STATUS_ISOLATED), new_status)
@@ -155,7 +197,9 @@ def _single_env_step(
     new_privilege = jnp.where(blue_writes_restore, jnp.int8(_PRIV_NONE), new_privilege)
     new_privilege = jnp.where(blue_writes_remove, jnp.int8(_PRIV_NONE), new_privilege)
 
-    red_owners = red_target_mask & red_is_compromise[:, None]
+    red_owners = (
+        red_target_mask & (red_is_compromise | (red_is_pth & red_token))[:, None]
+    )
     any_red_owns = jnp.any(red_owners, axis=0)
     chosen_red = jnp.argmax(red_owners.astype(jnp.int8), axis=0).astype(jnp.int8)
     new_compromised = jnp.where(any_red_owns, chosen_red, state.hosts.compromised_by_id)
@@ -242,6 +286,7 @@ def _single_env_step(
         + 0.2 * jnp.sum(blue_new_intel.astype(jnp.float32))
         + 0.4 * jnp.sum(blue_writes_misinform.astype(jnp.float32))
         + 0.7 * jnp.sum(blue_writes_acl.astype(jnp.float32))
+        + 4.0 * jnp.sum(blue_is_rotate.astype(jnp.float32))
     )
     red_team_reward = (
         jnp.sum(red_writes_user.astype(jnp.float32))
@@ -252,6 +297,7 @@ def _single_env_step(
         + 0.2 * jnp.sum(red_new_intel.astype(jnp.float32))
         + exfil_bytes_this_tick
         + 0.4 * jnp.sum(red_is_share.astype(jnp.float32))
+        + 2.0 * jnp.sum(jnp.any(looted_per_agent, axis=-1).astype(jnp.float32))
     )
     red_trap_penalty = -5.0 * red_trapped.astype(jnp.float32)
 
@@ -261,6 +307,7 @@ def _single_env_step(
         current_tick=state.current_tick + 1,
         knowledge_mask=new_knowledge,
         exfiltrated_bytes=state.exfiltrated_bytes + exfil_bytes_this_tick,
+        agent_credentials=new_agent_credentials,
     )
 
     red_rewards = jnp.broadcast_to(red_team_reward, (spec.n_red,)) + red_trap_penalty
@@ -318,10 +365,10 @@ def random_actions(spec: VectorEnvSpec, batch_size: int, key: jax.Array) -> Batc
         red_attempt=jax.random.bernoulli(k3, p=0.5, shape=(batch_size, spec.n_red)),
         blue_attempt=jax.random.bernoulli(k4, p=0.5, shape=(batch_size, spec.n_blue)),
         red_action_type=jax.random.randint(
-            k5, (batch_size, spec.n_red), 0, 10, dtype=jnp.int8
+            k5, (batch_size, spec.n_red), 0, 13, dtype=jnp.int8
         ),
         blue_action_type=jax.random.randint(
-            k6, (batch_size, spec.n_blue), 0, 9, dtype=jnp.int8
+            k6, (batch_size, spec.n_blue), 0, 10, dtype=jnp.int8
         ),
     )
 
