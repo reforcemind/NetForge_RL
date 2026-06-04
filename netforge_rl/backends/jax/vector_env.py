@@ -12,6 +12,8 @@ from netforge_rl.core.functional import (
     CVE_CODES,
     DECOY_CODES,
     INTEGRITY_CODES,
+    OS_LINUX,
+    OS_WINDOWS,
     PRIVILEGE_CODES,
     STATUS_CODES,
 )
@@ -19,6 +21,7 @@ from netforge_rl.core.functional import (
 
 _STATUS_ONLINE = STATUS_CODES.index('online')
 _STATUS_ISOLATED = STATUS_CODES.index('isolated')
+_STATUS_KERNEL_PANIC = STATUS_CODES.index('kernel_panic')
 _PRIV_NONE = PRIVILEGE_CODES.index('None')
 _PRIV_USER = PRIVILEGE_CODES.index('User')
 _PRIV_ROOT = PRIVILEGE_CODES.index('Root')
@@ -41,8 +44,11 @@ RED_RECON = 7
 RED_EXFILTRATE = 8           # Root-gated; +exfiltrated_bytes per tick
 RED_SHARE_INTEL = 9          # OR every Red row of knowledge_mask together
 RED_DUMP_LSASS = 10          # Root-gated; OR host_tokens[target] -> agent_credentials
-RED_PASS_THE_HASH = 11       # if any token held, compromise target (None -> User)
-RED_PASS_THE_TICKET = 12     # if any token held, privesc target (User -> Root)
+RED_PASS_THE_HASH = 11       # compromise gated on token-locality (target's required token)
+RED_PASS_THE_TICKET = 12     # privesc gated on token-locality
+RED_JUICY_POTATO = 13        # Windows-only privesc (os_family == WINDOWS)
+RED_V4L2 = 14                # Linux-only privesc (os_family == LINUX)
+RED_KILL_PROCESS = 15        # Root-gated; status -> kernel_panic
 
 BLUE_ISOLATE = 0
 BLUE_RESTORE = 1
@@ -111,6 +117,9 @@ def _single_env_step(
     red_is_lsass = (red_action_type == RED_DUMP_LSASS) & red_success
     red_is_pth = (red_action_type == RED_PASS_THE_HASH) & red_success
     red_is_ptt = (red_action_type == RED_PASS_THE_TICKET) & red_success
+    red_is_juicy = (red_action_type == RED_JUICY_POTATO) & red_success
+    red_is_v4l2 = (red_action_type == RED_V4L2) & red_success
+    red_is_kill = (red_action_type == RED_KILL_PROCESS) & red_success
 
     def _cve_compromise(action_code, cve_idx):
         is_attempt = (red_action_type == action_code) & red_success
@@ -153,11 +162,6 @@ def _single_env_step(
     red_writes_impact = red_writes_impact & host_is_root
     red_writes_kinetic = red_writes_kinetic & host_is_root
 
-    # Credentials: DumpLSASS reads host_tokens; PassTheHash / PassTheTicket
-    # require the agent already holds at least one looted token.
-    agent_has_any_token = jnp.any(state.agent_credentials, axis=-1)  # bool[N_AGENTS]
-    red_token = agent_has_any_token[: spec.n_red]                    # bool[N_RED]
-
     # LSASS: target host token row OR'd into the dumping Red agent's row,
     # gated on Root on that host.
     lsass_attempts = red_is_lsass & jnp.take(host_is_root, red_targets)
@@ -168,16 +172,41 @@ def _single_env_step(
     )
     new_red_creds = state.agent_credentials[: spec.n_red] | looted_per_agent
 
-    # PassTheHash / PassTheTicket: same shape as compromise / privesc but
-    # gated on holding any token instead of host state.
+    # PassTheHash / PassTheTicket: token-LOCALITY required — the agent must
+    # already hold every token the target host advertises. Fixes the audit
+    # bug where holding ANY looted token unlocked the entire network.
+    red_creds = state.agent_credentials[: spec.n_red]      # bool[N_RED, N_TOKEN]
+    target_tokens = jnp.take(state.hosts.host_tokens, red_targets, axis=0)
+    held = jnp.where(target_tokens, red_creds, True).all(axis=-1)
+    target_has_req = target_tokens.any(axis=-1)
+    red_token_ok = held & target_has_req                   # bool[N_RED]
+
     red_writes_user_pth = jnp.any(
-        red_target_mask & (red_is_pth & red_token)[:, None], axis=0
+        red_target_mask & (red_is_pth & red_token_ok)[:, None], axis=0
     )
     red_writes_root_ptt = jnp.any(
-        red_target_mask & (red_is_ptt & red_token)[:, None], axis=0
+        red_target_mask & (red_is_ptt & red_token_ok)[:, None], axis=0
     )
     red_writes_user = red_writes_user | red_writes_user_pth
     red_writes_root = red_writes_root | red_writes_root_ptt
+
+    # JuicyPotato / V4L2: OS-gated privesc. Same effect as PRIVESC (User->Root)
+    # but conditioned on host.os_family at the target.
+    target_os = jnp.take(state.hosts.os_family, red_targets)
+    juicy_ok = red_is_juicy & (target_os == OS_WINDOWS)
+    v4l2_ok = red_is_v4l2 & (target_os == OS_LINUX)
+    red_writes_root_juicy = jnp.any(
+        red_target_mask & juicy_ok[:, None], axis=0
+    )
+    red_writes_root_v4l2 = jnp.any(
+        red_target_mask & v4l2_ok[:, None], axis=0
+    )
+    red_writes_root = red_writes_root | red_writes_root_juicy | red_writes_root_v4l2
+
+    # KillProcess: Root-gated; flips status to kernel_panic.
+    red_writes_kill = jnp.any(
+        red_target_mask & red_is_kill[:, None], axis=0
+    ) & host_is_root
 
     # RotateKerberos: any Blue rotate clears every Red row.
     any_blue_rotate = jnp.any(blue_is_rotate)
@@ -187,9 +216,16 @@ def _single_env_step(
     )
     new_agent_credentials = jnp.concatenate([new_red_creds, new_blue_creds], axis=0)
 
+    # Audit fix: only count a Blue isolate as state-changing if the host
+    # wasn't already isolated. Same idea applied to Red impact + kinetic
+    # below — see the reward block.
+    already_isolated = state.hosts.status == jnp.int8(_STATUS_ISOLATED)
+    new_blue_isolations = blue_writes_isolate & ~already_isolated
+
     new_status = state.hosts.status
     new_status = jnp.where(blue_writes_restore, jnp.int8(_STATUS_ONLINE), new_status)
     new_status = jnp.where(blue_writes_isolate, jnp.int8(_STATUS_ISOLATED), new_status)
+    new_status = jnp.where(red_writes_kill, jnp.int8(_STATUS_KERNEL_PANIC), new_status)
 
     new_privilege = state.hosts.privilege
     new_privilege = jnp.where(red_writes_user, jnp.int8(_PRIV_USER), new_privilege)
@@ -198,7 +234,7 @@ def _single_env_step(
     new_privilege = jnp.where(blue_writes_remove, jnp.int8(_PRIV_NONE), new_privilege)
 
     red_owners = (
-        red_target_mask & (red_is_compromise | (red_is_pth & red_token))[:, None]
+        red_target_mask & (red_is_compromise | (red_is_pth & red_token_ok))[:, None]
     )
     any_red_owns = jnp.any(red_owners, axis=0)
     chosen_red = jnp.argmax(red_owners.astype(jnp.int8), axis=0).astype(jnp.int8)
@@ -213,6 +249,12 @@ def _single_env_step(
     new_decoy = jnp.where(blue_writes_misinform, jnp.int8(_DECOY_APACHE), new_decoy)
     new_edr = state.hosts.edr_active | blue_writes_acl
     new_honey = state.hosts.contains_honeytokens | blue_writes_honey
+
+    # Audit fix: count impact only on state-changing applications.
+    already_compromised = state.hosts.system_integrity == jnp.int8(_INTEGRITY_COMPROMISED)
+    already_kinetic = state.hosts.system_integrity == jnp.int8(_INTEGRITY_KINETIC)
+    new_red_impacts = red_writes_impact & ~already_compromised & ~already_kinetic
+    new_red_kinetics = red_writes_kinetic & ~already_kinetic
 
     new_integrity = state.hosts.system_integrity
     new_integrity = jnp.where(
@@ -276,8 +318,9 @@ def _single_env_step(
         EXFIL_PER_HOST * jnp.sum(jnp.any(exfil_targets, axis=0).astype(jnp.float32))
     )
 
+    # Audit fix 1.2: gate the farmable rewards on actual state transitions.
     blue_reward = (
-        jnp.sum(blue_writes_isolate.astype(jnp.float32))
+        jnp.sum(new_blue_isolations.astype(jnp.float32))
         + 2.0 * jnp.sum(blue_writes_restore.astype(jnp.float32))
         + 0.5 * jnp.sum(blue_writes_decoy.astype(jnp.float32))
         + 0.5 * jnp.sum(blue_writes_honey.astype(jnp.float32))
@@ -292,12 +335,13 @@ def _single_env_step(
         jnp.sum(red_writes_user.astype(jnp.float32))
         + 0.5 * n_cve_compromises.astype(jnp.float32)
         + 3.0 * jnp.sum(red_writes_root.astype(jnp.float32))
-        + 10.0 * jnp.sum(red_writes_impact.astype(jnp.float32))
-        + 10_000.0 * jnp.sum(red_writes_kinetic.astype(jnp.float32))
+        + 10.0 * jnp.sum(new_red_impacts.astype(jnp.float32))
+        + 10_000.0 * jnp.sum(new_red_kinetics.astype(jnp.float32))
         + 0.2 * jnp.sum(red_new_intel.astype(jnp.float32))
         + exfil_bytes_this_tick
         + 0.4 * jnp.sum(red_is_share.astype(jnp.float32))
         + 2.0 * jnp.sum(jnp.any(looted_per_agent, axis=-1).astype(jnp.float32))
+        + 5.0 * jnp.sum(red_writes_kill.astype(jnp.float32))
     )
     red_trap_penalty = -5.0 * red_trapped.astype(jnp.float32)
 
@@ -365,7 +409,7 @@ def random_actions(spec: VectorEnvSpec, batch_size: int, key: jax.Array) -> Batc
         red_attempt=jax.random.bernoulli(k3, p=0.5, shape=(batch_size, spec.n_red)),
         blue_attempt=jax.random.bernoulli(k4, p=0.5, shape=(batch_size, spec.n_blue)),
         red_action_type=jax.random.randint(
-            k5, (batch_size, spec.n_red), 0, 13, dtype=jnp.int8
+            k5, (batch_size, spec.n_red), 0, 16, dtype=jnp.int8
         ),
         blue_action_type=jax.random.randint(
             k6, (batch_size, spec.n_blue), 0, 10, dtype=jnp.int8

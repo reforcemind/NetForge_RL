@@ -59,12 +59,19 @@ red's gid=2 ("DiscoverNetworkServices") and is unreachable via that path.
 | `RED_SHARE_INTEL` (9) | ShareIntelligence | OR every Red row of `knowledge_mask` together | +0.4 per sharer | ✅ |
 | `BLUE_CONFIGURE_ACL` (8) | ConfigureACL | `edr_active → True` on target | +0.7 | ✅ |
 | `RED_DUMP_LSASS` (10) | DumpLSASS | Root-gated; OR `host_tokens[target]` into `agent_credentials[red]` | +2 per fresh loot | ✅ |
-| `RED_PASS_THE_HASH` (11) | PassTheHash | If agent holds any token, compromise target without normal gating | +1 (compromise) | ✅ |
-| `RED_PASS_THE_TICKET` (12) | PassTheTicket | If agent holds any token, privesc target to Root | +3 (privesc) | ✅ |
+| `RED_PASS_THE_HASH` (11) | PassTheHash | Token-locality gated (target's required tokens must be a subset of looted creds) — audit fix §1.1 | +1 (compromise) | ✅ |
+| `RED_PASS_THE_TICKET` (12) | PassTheTicket | Token-locality gated privesc to Root | +3 (privesc) | ✅ |
 | `BLUE_ROTATE_KERBEROS` (9) | RotateKerberos | Clear every Red row of `agent_credentials` | +4 | ✅ |
+| `RED_JUICY_POTATO` (13) | JuicyPotato | Privesc gated on `os_family == WINDOWS` | +3 | ✅ |
+| `RED_V4L2` (14) | V4L2KernelExploit | Privesc gated on `os_family == LINUX` | +3 | ✅ |
+| `RED_KILL_PROCESS` (15) | KillProcess | Root-gated; `status → kernel_panic` | +5 | ✅ |
 
-**Coverage:** 13 red + 10 blue = 23 unique behaviours. Conflict resolution
+**Coverage:** 16 red + 10 blue = 26 unique behaviours. Conflict resolution
 between any same-target Red/Blue pair holds via `resolve_conflicts_mask`.
+
+**Audit-driven reward fixes (§1.2):** Blue isolate and Red impact / kinetic
+rewards are now gated on actual state transitions — re-isolating an
+already-isolated host or re-impacting an already-compromised host pays 0.
 
 ---
 

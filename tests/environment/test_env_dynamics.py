@@ -26,40 +26,52 @@ class MagicMockAction:
 
 
 @pytest.mark.fast
-def test_soc_budget_limit(env):
-    """Verify that SOC (Blue) is limited to 2 active actions."""
+def test_soc_budget_per_agent_not_global(env):
+    """Audit fix 2.2: the SOC budget cap is per-Blue-agent, not global —
+    other Blue agents' in-flight actions don't block this agent.
+    """
     env.reset(seed=42)
     agent = 'blue_dmz'
     env.global_state.agent_energy[agent] = 50
 
-    # Manually fill the queue with 2 agents
-    env.event_queue.append(
-        {
-            'completion_tick': 10,
-            'agent': 'blue_internal',
-            'action': MagicMockAction(),
-            'effect': ActionEffect(success=True, state_deltas={}, observation_data={}),
-            'target_ip': None,
-        }
-    )
-    env.event_queue.append(
-        {
-            'completion_tick': 10,
-            'agent': 'blue_restricted',
-            'action': MagicMockAction(),
-            'effect': ActionEffect(success=True, state_deltas={}, observation_data={}),
-            'target_ip': None,
-        }
-    )
+    for other in ('blue_internal', 'blue_restricted'):
+        env.event_queue.append(
+            {
+                'completion_tick': 10,
+                'agent': other,
+                'action': MagicMockAction(),
+                'effect': ActionEffect(success=True, state_deltas={}, observation_data={}),
+                'target_ip': None,
+            }
+        )
 
-    # Attempt to add a 3rd action via step
     initial_energy = env.global_state.agent_energy[agent]
     env.step({agent: 0})
+    # blue_dmz had 0 in-flight, so it WAS allowed to act (energy decreased).
+    assert env.global_state.agent_energy[agent] < initial_energy
 
-    # Reward/Energy check: 3rd action should be ignored, so energy should not decrease
+
+@pytest.mark.fast
+def test_soc_per_agent_cap_blocks_third_self_action(env):
+    """A single Blue agent still can't queue more than 2 of its own actions."""
+    env.reset(seed=42)
+    agent = 'blue_dmz'
+    env.global_state.agent_energy[agent] = 50
+
+    for _ in range(2):
+        env.event_queue.append(
+            {
+                'completion_tick': 999,
+                'agent': agent,
+                'action': MagicMockAction(),
+                'effect': ActionEffect(success=True, state_deltas={}, observation_data={}),
+                'target_ip': None,
+            }
+        )
+
+    initial_energy = env.global_state.agent_energy[agent]
+    env.step({agent: 0})
     assert env.global_state.agent_energy[agent] == initial_energy
-    # Queue should be empty now because the 2 original resolved at tick 10
-    assert len(env.event_queue) == 0
 
 
 @pytest.mark.fast

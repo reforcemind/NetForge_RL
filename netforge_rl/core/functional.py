@@ -29,6 +29,20 @@ N_CVE = len(CVE_CODES)
 TOKEN_CODES = ('Enterprise_Admin_Token', 'Local_Admin_DMZ', 'Local_Admin_Corporate')
 N_TOKEN = len(TOKEN_CODES)
 
+# OS family codes for kernel-level exploit gating (JuicyPotato, V4L2...).
+OS_OTHER, OS_WINDOWS, OS_LINUX, OS_PLC = 0, 1, 2, 3
+
+
+def _os_family_code(os_str):
+    s = str(os_str or '')
+    if 'Windows' in s:
+        return OS_WINDOWS
+    if 'Linux' in s:
+        return OS_LINUX
+    if 'PLC' in s:
+        return OS_PLC
+    return OS_OTHER
+
 
 def _encode(value, codebook):
     try:
@@ -59,6 +73,7 @@ class HostArrays:
     system_integrity: np.ndarray
     vuln_mask: np.ndarray           # bool[N_HOSTS, N_CVE]
     host_tokens: np.ndarray         # bool[N_HOSTS, N_TOKEN] — tokens leaked on LSASS
+    os_family: np.ndarray           # int8[N_HOSTS] in {OS_OTHER, OS_WINDOWS, OS_LINUX, OS_PLC}
 
 
 @dataclass(frozen=True)
@@ -169,6 +184,10 @@ def from_global_state(legacy, agent_ids):
             if tok in TOKEN_CODES:
                 host_tokens[i, TOKEN_CODES.index(tok)] = True
 
+    os_family = np.array(
+        [_os_family_code(h.os) for h in hosts_in_order], dtype=np.int8
+    )
+
     hosts = HostArrays(
         status=status_arr,
         privilege=priv_arr,
@@ -182,6 +201,7 @@ def from_global_state(legacy, agent_ids):
         system_integrity=integrity_arr,
         vuln_mask=vuln_mask,
         host_tokens=host_tokens,
+        os_family=os_family,
     )
 
     meta = HostMeta(

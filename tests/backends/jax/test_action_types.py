@@ -31,10 +31,13 @@ from netforge_rl.backends.jax.vector_env import (
     RED_EXPLOIT_ETERNALBLUE,
     RED_EXPLOIT_HTTP_RFI,
     RED_IMPACT,
+    RED_JUICY_POTATO,
+    RED_KILL_PROCESS,
     RED_KINETIC,
     RED_PASS_THE_HASH,
     RED_PASS_THE_TICKET,
     RED_PRIVESC,
+    RED_V4L2,
     RED_RECON,
     RED_SHARE_INTEL,
     SAT_DROP,
@@ -616,30 +619,88 @@ def test_lsass_loots_token_when_root(global_state):
 
 @pytest.mark.fast
 def test_pass_the_hash_compromises_with_token(global_state):
+    """Audit fix 1.1: PTH requires the target's required tokens, not just any."""
     spec = _spec()
     state = _state(global_state, batch=1)
     step = make_vector_step(spec)
 
-    candidates = [i for i in range(100) if bool(state.hosts.host_tokens[0, i].any())]
-    if not candidates:
+    src = next(
+        (i for i in range(100) if bool(state.hosts.host_tokens[0, i].any())),
+        None,
+    )
+    if src is None:
         pytest.skip('no host with tokens in this seed')
 
-    state = _own_to_root(state, step, idx=candidates[0])
+    state = _own_to_root(state, step, idx=src)
     state, _ = step(state, _act(
-        red_t=[[candidates[0]]], blue_t=[[99]],
+        red_t=[[src]], blue_t=[[99]],
         red_a=[[True]], blue_a=[[False]],
         red_type=[[RED_DUMP_LSASS]], blue_type=[[BLUE_ISOLATE]],
     ))
-    clean_idx = next(
-        i for i in range(100)
-        if int(state.hosts.privilege[0, i]) == PRIVILEGE_CODES.index('None')
+    # Token locality: PTH only unlocks hosts whose required tokens are a
+    # subset of what Red looted.
+    src_tokens = state.hosts.host_tokens[0, src]
+    tgt = next(
+        (
+            i for i in range(100)
+            if i != src
+            and int(state.hosts.privilege[0, i]) == PRIVILEGE_CODES.index('None')
+            and bool(state.hosts.host_tokens[0, i].any())
+            and bool((state.hosts.host_tokens[0, i] & ~src_tokens).any()) is False
+        ),
+        None,
     )
+    if tgt is None:
+        pytest.skip('no PTH-reachable target on this seed')
     state, _ = step(state, _act(
-        red_t=[[clean_idx]], blue_t=[[99]],
+        red_t=[[tgt]], blue_t=[[99]],
         red_a=[[True]], blue_a=[[False]],
         red_type=[[RED_PASS_THE_HASH]], blue_type=[[BLUE_ISOLATE]],
     ))
-    assert int(state.hosts.privilege[0, clean_idx]) == PRIVILEGE_CODES.index('User')
+    assert int(state.hosts.privilege[0, tgt]) == PRIVILEGE_CODES.index('User')
+
+
+@pytest.mark.fast
+def test_pass_the_hash_rejected_on_wrong_token(global_state):
+    """Audit fix 1.1: PTH on a host requiring a different token must no-op."""
+    spec = _spec()
+    state = _state(global_state, batch=1)
+    step = make_vector_step(spec)
+
+    # Find a (src, tgt) pair where the target requires a token the source doesn't yield.
+    pair = None
+    for src in range(100):
+        if not bool(state.hosts.host_tokens[0, src].any()):
+            continue
+        src_tokens = state.hosts.host_tokens[0, src]
+        for tgt in range(100):
+            if tgt == src:
+                continue
+            tgt_tokens = state.hosts.host_tokens[0, tgt]
+            if not bool(tgt_tokens.any()):
+                continue
+            if bool((tgt_tokens & ~src_tokens).any()):
+                pair = (src, tgt)
+                break
+        if pair:
+            break
+    if pair is None:
+        pytest.skip('no token-mismatch pair on this seed')
+
+    src, tgt = pair
+    state = _own_to_root(state, step, idx=src)
+    state, _ = step(state, _act(
+        red_t=[[src]], blue_t=[[99]],
+        red_a=[[True]], blue_a=[[False]],
+        red_type=[[RED_DUMP_LSASS]], blue_type=[[BLUE_ISOLATE]],
+    ))
+    before = int(state.hosts.privilege[0, tgt])
+    state, _ = step(state, _act(
+        red_t=[[tgt]], blue_t=[[99]],
+        red_a=[[True]], blue_a=[[False]],
+        red_type=[[RED_PASS_THE_HASH]], blue_type=[[BLUE_ISOLATE]],
+    ))
+    assert int(state.hosts.privilege[0, tgt]) == before
 
 
 @pytest.mark.fast
@@ -698,3 +759,144 @@ def test_sat_clamps_at_zero(global_state) -> None:
             red_type=[[RED_COMPROMISE]], blue_type=[[BLUE_SAT]],
         ))
     assert float(state.hosts.human_vulnerability[0, idx]) == 0.0
+
+
+# ── OS-gated privesc + KillProcess + audit reward gates ─────────────────
+
+
+def _find_host_by_os(state, family_code):
+    for i in range(100):
+        if int(state.hosts.os_family[0, i]) == family_code:
+            return i
+    return None
+
+
+@pytest.mark.fast
+def test_juicy_potato_needs_windows(global_state):
+    from netforge_rl.core.functional import OS_LINUX, OS_WINDOWS
+
+    spec = _spec()
+    state = _state(global_state, batch=1)
+    step = make_vector_step(spec)
+
+    win_idx = _find_host_by_os(state, OS_WINDOWS)
+    linux_idx = _find_host_by_os(state, OS_LINUX)
+    if win_idx is None or linux_idx is None:
+        pytest.skip('no Windows or Linux host on this seed')
+
+    # First compromise both to User so privesc is meaningful.
+    for idx in (win_idx, linux_idx):
+        state, _ = step(state, _act(
+            red_t=[[idx]], blue_t=[[99]],
+            red_a=[[True]], blue_a=[[False]],
+            red_type=[[RED_COMPROMISE]], blue_type=[[BLUE_ISOLATE]],
+        ))
+
+    # JuicyPotato on Windows succeeds, on Linux it doesn't.
+    state, _ = step(state, _act(
+        red_t=[[win_idx]], blue_t=[[99]],
+        red_a=[[True]], blue_a=[[False]],
+        red_type=[[RED_JUICY_POTATO]], blue_type=[[BLUE_ISOLATE]],
+    ))
+    assert int(state.hosts.privilege[0, win_idx]) == PRIVILEGE_CODES.index('Root')
+
+    state, _ = step(state, _act(
+        red_t=[[linux_idx]], blue_t=[[99]],
+        red_a=[[True]], blue_a=[[False]],
+        red_type=[[RED_JUICY_POTATO]], blue_type=[[BLUE_ISOLATE]],
+    ))
+    assert int(state.hosts.privilege[0, linux_idx]) == PRIVILEGE_CODES.index('User')
+
+
+@pytest.mark.fast
+def test_v4l2_needs_linux(global_state):
+    from netforge_rl.core.functional import OS_LINUX, OS_WINDOWS
+
+    spec = _spec()
+    state = _state(global_state, batch=1)
+    step = make_vector_step(spec)
+
+    linux_idx = _find_host_by_os(state, OS_LINUX)
+    win_idx = _find_host_by_os(state, OS_WINDOWS)
+    if linux_idx is None or win_idx is None:
+        pytest.skip('no Linux or Windows host on this seed')
+
+    for idx in (linux_idx, win_idx):
+        state, _ = step(state, _act(
+            red_t=[[idx]], blue_t=[[99]],
+            red_a=[[True]], blue_a=[[False]],
+            red_type=[[RED_COMPROMISE]], blue_type=[[BLUE_ISOLATE]],
+        ))
+
+    state, _ = step(state, _act(
+        red_t=[[linux_idx]], blue_t=[[99]],
+        red_a=[[True]], blue_a=[[False]],
+        red_type=[[RED_V4L2]], blue_type=[[BLUE_ISOLATE]],
+    ))
+    assert int(state.hosts.privilege[0, linux_idx]) == PRIVILEGE_CODES.index('Root')
+
+    state, _ = step(state, _act(
+        red_t=[[win_idx]], blue_t=[[99]],
+        red_a=[[True]], blue_a=[[False]],
+        red_type=[[RED_V4L2]], blue_type=[[BLUE_ISOLATE]],
+    ))
+    assert int(state.hosts.privilege[0, win_idx]) == PRIVILEGE_CODES.index('User')
+
+
+@pytest.mark.fast
+def test_kill_process_panics_root_host(global_state):
+    spec = _spec()
+    state = _state(global_state, batch=1)
+    step = make_vector_step(spec)
+    state = _own_to_root(state, step, idx=25)
+
+    state, rewards = step(state, _act(
+        red_t=[[25]], blue_t=[[99]],
+        red_a=[[True]], blue_a=[[False]],
+        red_type=[[RED_KILL_PROCESS]], blue_type=[[BLUE_ISOLATE]],
+    ))
+    assert int(state.hosts.status[0, 25]) == STATUS_CODES.index('kernel_panic')
+    # KillProcess pays 5.0 + the Red team's intel base; just check >=5.
+    assert float(rewards[0, 0]) >= 5.0
+
+
+@pytest.mark.fast
+def test_audit_no_reward_for_reisolating_already_isolated(global_state):
+    """Audit fix 1.2: re-isolating an isolated host should not pay Blue again."""
+    spec = _spec()
+    state = _state(global_state, batch=1)
+    step = make_vector_step(spec)
+
+    state, _ = step(state, _act(
+        red_t=[[99]], blue_t=[[18]],
+        red_a=[[False]], blue_a=[[True]],
+        red_type=[[RED_COMPROMISE]], blue_type=[[BLUE_ISOLATE]],
+    ))
+    state, rewards = step(state, _act(
+        red_t=[[99]], blue_t=[[18]],
+        red_a=[[False]], blue_a=[[True]],
+        red_type=[[RED_COMPROMISE]], blue_type=[[BLUE_ISOLATE]],
+    ))
+    assert float(rewards[0, spec.n_red]) == pytest.approx(0.0)
+
+
+@pytest.mark.fast
+def test_audit_no_reward_for_reimpacting_compromised_host(global_state):
+    """Audit fix 1.2: re-impacting a compromised host should not pay Red again."""
+    spec = _spec()
+    state = _state(global_state, batch=1)
+    step = make_vector_step(spec)
+    state = _own_to_root(state, step, idx=33)
+
+    state, r_first = step(state, _act(
+        red_t=[[33]], blue_t=[[99]],
+        red_a=[[True]], blue_a=[[False]],
+        red_type=[[RED_IMPACT]], blue_type=[[BLUE_ISOLATE]],
+    ))
+    state, r_second = step(state, _act(
+        red_t=[[33]], blue_t=[[99]],
+        red_a=[[True]], blue_a=[[False]],
+        red_type=[[RED_IMPACT]], blue_type=[[BLUE_ISOLATE]],
+    ))
+    assert float(r_first[0, 0]) > 0.0
+    assert float(r_second[0, 0]) == pytest.approx(0.0)

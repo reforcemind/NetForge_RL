@@ -161,9 +161,13 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
         Dict[str, dict],
     ]:
         """Process actions -> interrupt -> advance tick -> resolve mature events."""
-        blue_active_actions_count = sum(
-            1 for event in self.event_queue if 'blue' in event['agent'].lower()
-        )
+        # Audit fix 2.2: per-agent budget instead of one global blue counter,
+        # so decentralised Blue operators don't starve each other.
+        per_agent_inflight: Dict[str, int] = {}
+        for event in self.event_queue:
+            per_agent_inflight[event['agent']] = (
+                per_agent_inflight.get(event['agent'], 0) + 1
+            )
 
         for agent, action_int in agent_actions.items():
             if self.current_tick < self.global_state.agent_locked_until.get(agent, 0):
@@ -179,11 +183,11 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
                 if action is None:
                     continue
 
-            # SOC budget cap: max 2 in-flight defensive actions.
+            # Per-agent SOC budget: each Blue agent caps at 2 in-flight actions.
             if 'blue' in agent.lower():
-                if blue_active_actions_count >= 2:
+                if per_agent_inflight.get(agent, 0) >= 2:
                     continue
-                blue_active_actions_count += 1
+                per_agent_inflight[agent] = per_agent_inflight.get(agent, 0) + 1
 
             if self.global_state.agent_energy.get(agent, 0) < action.cost:
                 continue
@@ -207,11 +211,13 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
                     }
                 )
 
-        # IsolateHost on a target interrupts in-flight Red actions on the same target.
+        # Audit fix 1.3: IsolateHost only interrupts Red AT COMPLETION TICK
+        # (i.e. once the isolation has actually fired). Pre-completion
+        # interruption let Blue zero-latency-stun Red the moment they queued.
         for event in list(self.event_queue):
             if (
                 type(event['action']).__name__ == 'IsolateHost'
-                and event['completion_tick'] > self.current_tick
+                and event['completion_tick'] <= self.current_tick
             ):
                 target_to_isolate = event['target_ip']
                 for red_event in list(self.event_queue):
@@ -264,6 +270,10 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
 
         resolved_effects = self.resolution_engine.resolve(intended_effects)
         self._apply_state_deltas(resolved_effects)
+
+        # Audit fix 2.1: actually populate episode_metrics so SLA / MTTC report
+        # something meaningful (was always 0/1 before).
+        self._update_episode_metrics(resolved_effects)
 
         for res_agent, res_effect in resolved_effects.items():
             meta = action_metadata.get(res_agent, {})
@@ -384,6 +394,33 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
         from netforge_rl.core.functional import from_global_state
 
         return from_global_state(self.global_state, tuple(self.possible_agents))
+
+    def _update_episode_metrics(self, resolved_effects):
+        """Populate infection_times / isolation_times / SLA running sum."""
+        for agent, effect in resolved_effects.items():
+            if not effect.success or not isinstance(effect.state_deltas, dict):
+                continue
+            for delta_key, delta_val in effect.state_deltas.items():
+                parts = delta_key.split('/')
+                if len(parts) != 3 or parts[0] != 'hosts':
+                    continue
+                ip, attribute = parts[1], parts[2]
+                if attribute == 'privilege' and delta_val in ('User', 'Root'):
+                    self.episode_metrics['infection_times'].setdefault(
+                        ip, self.current_tick
+                    )
+                elif attribute == 'status' and delta_val == 'isolated':
+                    self.episode_metrics['isolation_times'].setdefault(
+                        ip, self.current_tick
+                    )
+
+        total = max(len(self.global_state.all_hosts), 1)
+        healthy = sum(
+            1 for h in self.global_state.all_hosts.values()
+            if h.compromised_by == 'None' and h.status == 'online'
+        )
+        self.episode_metrics['sla_uptime_sum'] += healthy / total
+        self.episode_metrics['steps_count'] += 1
 
     def _apply_state_deltas(self, effects: Dict[str, ActionEffect]):
         """Apply resolved deltas to ``global_state`` (post-conflict-resolution)."""

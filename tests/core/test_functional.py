@@ -85,6 +85,7 @@ def test_envstate_is_frozen(global_state) -> None:
             system_integrity=np.zeros(N_HOSTS, dtype=np.int8),
             vuln_mask=np.zeros((N_HOSTS, N_CVE), dtype=bool),
             host_tokens=np.zeros((N_HOSTS, N_TOKEN), dtype=bool),
+            os_family=np.zeros(N_HOSTS, dtype=np.int8),
         )
 
 

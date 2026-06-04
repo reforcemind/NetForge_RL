@@ -22,6 +22,7 @@ class JaxHostArrays:
     system_integrity: jax.Array
     vuln_mask: jax.Array           # bool[N_HOSTS, N_CVE]
     host_tokens: jax.Array         # bool[N_HOSTS, N_TOKEN]
+    os_family: jax.Array           # int8[N_HOSTS]
 
 
 @jax.tree_util.register_dataclass
@@ -71,6 +72,7 @@ def to_jax(state: EnvState) -> JaxEnvState:
         system_integrity=jnp.asarray(h.system_integrity),
         vuln_mask=jnp.asarray(h.vuln_mask),
         host_tokens=jnp.asarray(h.host_tokens),
+        os_family=jnp.asarray(h.os_family),
     )
     return JaxEnvState(
         hosts=jhosts,
@@ -107,6 +109,7 @@ def to_numpy(jstate, meta: HostMeta, agent_ids, knowledge=(), inventory=()) -> E
         system_integrity=np.asarray(h.system_integrity),
         vuln_mask=np.asarray(h.vuln_mask),
         host_tokens=np.asarray(h.host_tokens),
+        os_family=np.asarray(h.os_family),
     )
     return EnvState(
         hosts=hosts,
