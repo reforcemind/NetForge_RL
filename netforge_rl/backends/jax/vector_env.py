@@ -39,6 +39,7 @@ RED_EXPLOIT_ETERNALBLUE = 5
 RED_EXPLOIT_HTTP_RFI = 6
 RED_RECON = 7
 RED_EXFILTRATE = 8           # Root-gated; +exfiltrated_bytes per tick
+RED_SHARE_INTEL = 9          # OR every Red row of knowledge_mask together
 
 BLUE_ISOLATE = 0
 BLUE_RESTORE = 1
@@ -48,6 +49,7 @@ BLUE_REMOVE = 4
 BLUE_SAT = 5
 BLUE_MONITOR = 6
 BLUE_MISINFORM = 7           # decoy -> Apache (planted fake service)
+BLUE_CONFIGURE_ACL = 8       # edr_active -> True (endpoint monitoring on)
 
 SAT_DROP = 0.1
 
@@ -101,6 +103,7 @@ def _single_env_step(
     red_is_kinetic = (red_action_type == RED_KINETIC) & red_success
     red_is_recon = (red_action_type == RED_RECON) & red_success
     red_is_exfil = (red_action_type == RED_EXFILTRATE) & red_success
+    red_is_share = (red_action_type == RED_SHARE_INTEL) & red_success
 
     def _cve_compromise(action_code, cve_idx):
         is_attempt = (red_action_type == action_code) & red_success
@@ -122,6 +125,7 @@ def _single_env_step(
     blue_is_sat = (blue_action_type == BLUE_SAT) & blue_attempt
     blue_is_monitor = (blue_action_type == BLUE_MONITOR) & blue_attempt
     blue_is_misinform = (blue_action_type == BLUE_MISINFORM) & blue_attempt
+    blue_is_acl = (blue_action_type == BLUE_CONFIGURE_ACL) & blue_attempt
 
     blue_writes_isolate = jnp.any(blue_target_mask & blue_is_isolate[:, None], axis=0)
     blue_writes_restore = jnp.any(blue_target_mask & blue_is_restore[:, None], axis=0)
@@ -160,8 +164,10 @@ def _single_env_step(
     blue_writes_misinform = jnp.any(
         blue_target_mask & blue_is_misinform[:, None], axis=0
     )
+    blue_writes_acl = jnp.any(blue_target_mask & blue_is_acl[:, None], axis=0)
     new_decoy = jnp.where(blue_writes_decoy, jnp.int8(_DECOY_ACTIVE), state.hosts.decoy)
     new_decoy = jnp.where(blue_writes_misinform, jnp.int8(_DECOY_APACHE), new_decoy)
+    new_edr = state.hosts.edr_active | blue_writes_acl
     new_honey = state.hosts.contains_honeytokens | blue_writes_honey
 
     new_integrity = state.hosts.system_integrity
@@ -183,13 +189,17 @@ def _single_env_step(
 
     red_knowledge_writes = red_target_mask & red_is_recon[:, None]
     blue_knowledge_writes = blue_target_mask & blue_is_monitor[:, None]
-    new_knowledge = jnp.concatenate(
-        [
-            state.knowledge_mask[: spec.n_red] | red_knowledge_writes,
-            state.knowledge_mask[spec.n_red:] | blue_knowledge_writes,
-        ],
-        axis=0,
-    )
+    new_red_knowledge = state.knowledge_mask[: spec.n_red] | red_knowledge_writes
+    new_blue_knowledge = state.knowledge_mask[spec.n_red:] | blue_knowledge_writes
+
+    # ShareIntel: if any Red agent shares, broadcast the OR of every Red
+    # row to every Red row.
+    any_red_shared = jnp.any(red_is_share)
+    red_union = jnp.any(new_red_knowledge, axis=0)
+    shared_rows = jnp.broadcast_to(red_union[None, :], new_red_knowledge.shape)
+    new_red_knowledge = jnp.where(any_red_shared, shared_rows, new_red_knowledge)
+
+    new_knowledge = jnp.concatenate([new_red_knowledge, new_blue_knowledge], axis=0)
 
     new_hosts = replace(
         state.hosts,
@@ -200,6 +210,7 @@ def _single_env_step(
         contains_honeytokens=new_honey,
         system_integrity=new_integrity,
         human_vulnerability=new_human_vuln,
+        edr_active=new_edr,
     )
 
     red_trapped = jnp.any(
@@ -230,6 +241,7 @@ def _single_env_step(
         + 0.3 * jnp.sum(blue_writes_sat.astype(jnp.float32))
         + 0.2 * jnp.sum(blue_new_intel.astype(jnp.float32))
         + 0.4 * jnp.sum(blue_writes_misinform.astype(jnp.float32))
+        + 0.7 * jnp.sum(blue_writes_acl.astype(jnp.float32))
     )
     red_team_reward = (
         jnp.sum(red_writes_user.astype(jnp.float32))
@@ -239,6 +251,7 @@ def _single_env_step(
         + 10_000.0 * jnp.sum(red_writes_kinetic.astype(jnp.float32))
         + 0.2 * jnp.sum(red_new_intel.astype(jnp.float32))
         + exfil_bytes_this_tick
+        + 0.4 * jnp.sum(red_is_share.astype(jnp.float32))
     )
     red_trap_penalty = -5.0 * red_trapped.astype(jnp.float32)
 
@@ -305,10 +318,10 @@ def random_actions(spec: VectorEnvSpec, batch_size: int, key: jax.Array) -> Batc
         red_attempt=jax.random.bernoulli(k3, p=0.5, shape=(batch_size, spec.n_red)),
         blue_attempt=jax.random.bernoulli(k4, p=0.5, shape=(batch_size, spec.n_blue)),
         red_action_type=jax.random.randint(
-            k5, (batch_size, spec.n_red), 0, 9, dtype=jnp.int8
+            k5, (batch_size, spec.n_red), 0, 10, dtype=jnp.int8
         ),
         blue_action_type=jax.random.randint(
-            k6, (batch_size, spec.n_blue), 0, 8, dtype=jnp.int8
+            k6, (batch_size, spec.n_blue), 0, 9, dtype=jnp.int8
         ),
     )
 

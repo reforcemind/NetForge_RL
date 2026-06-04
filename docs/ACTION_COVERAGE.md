@@ -56,8 +56,10 @@ red's gid=2 ("DiscoverNetworkServices") and is unreachable via that path.
 | `BLUE_MONITOR` (6) | Monitor / Analyze | `knowledge_mask[blue_agent, target] = True` | +0.2 on new intel | ✅ |
 | `RED_EXFILTRATE` (8) | ExfiltrateData | `exfiltrated_bytes += EXFIL_PER_HOST` per Rooted target | +EXFIL_PER_HOST | ✅ |
 | `BLUE_MISINFORM` (7) | Misinform | `decoy → Apache` (planted fake service) | +0.4 | ✅ |
+| `RED_SHARE_INTEL` (9) | ShareIntelligence | OR every Red row of `knowledge_mask` together | +0.4 per sharer | ✅ |
+| `BLUE_CONFIGURE_ACL` (8) | ConfigureACL | `edr_active → True` on target | +0.7 | ✅ |
 
-**Coverage:** 9 red + 8 blue = 17 unique behaviours. Conflict resolution
+**Coverage:** 10 red + 9 blue = 19 unique behaviours. Conflict resolution
 between any same-target Red/Blue pair holds via `resolve_conflicts_mask`.
 
 ---

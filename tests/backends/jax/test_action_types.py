@@ -13,6 +13,7 @@ from netforge_rl.backends.jax import (
     to_jax,
 )
 from netforge_rl.backends.jax.vector_env import (
+    BLUE_CONFIGURE_ACL,
     BLUE_DEPLOY_DECOY,
     BLUE_DEPLOY_HONEYTOKEN,
     BLUE_ISOLATE,
@@ -31,6 +32,7 @@ from netforge_rl.backends.jax.vector_env import (
     RED_KINETIC,
     RED_PRIVESC,
     RED_RECON,
+    RED_SHARE_INTEL,
     SAT_DROP,
 )
 from netforge_rl.core.functional import CVE_CODES
@@ -541,6 +543,47 @@ def test_exfiltrate_accumulates_when_root(global_state):
     after = float(state.exfiltrated_bytes[0])
     assert after == pytest.approx(before + EXFIL_PER_HOST)
     assert float(rewards[0, 0]) == pytest.approx(EXFIL_PER_HOST)
+
+
+@pytest.mark.fast
+def test_configure_acl_flips_edr_active(global_state):
+    spec = _spec()
+    state = _state(global_state, batch=1)
+    step = make_vector_step(spec)
+    assert not bool(state.hosts.edr_active[0, 22])
+    state, rewards = step(state, _act(
+        red_t=[[99]], blue_t=[[22]],
+        red_a=[[False]], blue_a=[[True]],
+        red_type=[[RED_COMPROMISE]], blue_type=[[BLUE_CONFIGURE_ACL]],
+    ))
+    assert bool(state.hosts.edr_active[0, 22])
+    assert float(rewards[0, spec.n_red]) == pytest.approx(0.7)
+
+
+@pytest.mark.fast
+def test_share_intel_broadcasts_red_knowledge(global_state):
+    spec = _spec(n_red=2, n_blue=1)
+    state = _state(global_state, batch=1)
+    step = make_vector_step(spec)
+
+    # Red 0 recons host 3; Red 1 does nothing.
+    state, _ = step(state, _act(
+        red_t=[[3, 0]], blue_t=[[99]],
+        red_a=[[True, False]], blue_a=[[False]],
+        red_type=[[RED_RECON, RED_COMPROMISE]],
+        blue_type=[[BLUE_ISOLATE]],
+    ))
+    assert bool(state.knowledge_mask[0, 0, 3])
+    assert not bool(state.knowledge_mask[0, 1, 3])
+
+    # Red 1 shares -> Red 0's bit propagates to Red 1.
+    state, _ = step(state, _act(
+        red_t=[[0, 0]], blue_t=[[99]],
+        red_a=[[False, True]], blue_a=[[False]],
+        red_type=[[RED_COMPROMISE, RED_SHARE_INTEL]],
+        blue_type=[[BLUE_ISOLATE]],
+    ))
+    assert bool(state.knowledge_mask[0, 1, 3])
 
 
 @pytest.mark.fast
