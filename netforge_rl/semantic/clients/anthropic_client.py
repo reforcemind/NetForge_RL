@@ -1,5 +1,14 @@
 import os
 
+try:
+    import anthropic
+    if 'anthropic' == 'google.generativeai':
+        import google.generativeai as genai
+    HAS_ANTHROPIC = True
+except ImportError:
+    HAS_ANTHROPIC = False
+
+
 
 class AnthropicClient:
     """LLMClient implementation against the Anthropic Messages API."""
@@ -12,12 +21,8 @@ class AnthropicClient:
         max_tokens=256,
         system=None,
     ):
-        try:
-            import anthropic  # noqa: F401
-        except ImportError as e:
-            raise ImportError(
-                'anthropic SDK required. Install with `pip install anthropic`.'
-            ) from e
+        if not HAS_ANTHROPIC:
+            raise ImportError('anthropic SDK required.')
         self.model_id = model
         self._key = api_key or os.environ.get('ANTHROPIC_API_KEY')
         if not self._key:
@@ -31,8 +36,6 @@ class AnthropicClient:
 
     def _ensure(self):
         if self._client is None:
-            import anthropic
-
             self._client = anthropic.Anthropic(api_key=self._key)
         return self._client
 

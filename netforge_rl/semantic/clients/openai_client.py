@@ -1,5 +1,14 @@
 import os
 
+try:
+    import openai
+    if 'openai' == 'google.generativeai':
+        import google.generativeai as genai
+    HAS_OPENAI = True
+except ImportError:
+    HAS_OPENAI = False
+
+
 
 class OpenAIClient:
     """LLMClient implementation against the OpenAI Chat Completions API."""
@@ -12,12 +21,8 @@ class OpenAIClient:
         max_tokens=256,
         system=None,
     ):
-        try:
-            import openai  # noqa: F401
-        except ImportError as e:
-            raise ImportError(
-                'openai SDK required. Install with `pip install openai`.'
-            ) from e
+        if not HAS_OPENAI:
+            raise ImportError('openai SDK required.')
         self.model_id = model
         self._key = api_key or os.environ.get('OPENAI_API_KEY')
         if not self._key:
@@ -31,8 +36,6 @@ class OpenAIClient:
 
     def _ensure(self):
         if self._client is None:
-            import openai
-
             self._client = openai.OpenAI(api_key=self._key)
         return self._client
 

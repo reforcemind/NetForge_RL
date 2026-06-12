@@ -1,5 +1,14 @@
 import os
 
+try:
+    import google.generativeai
+    if 'google.generativeai' == 'google.generativeai':
+        import google.generativeai as genai
+    HAS_GOOGLE = True
+except ImportError:
+    HAS_GOOGLE = False
+
+
 
 class GoogleClient:
     """LLMClient implementation against the google-generativeai SDK (Gemini)."""
@@ -12,13 +21,8 @@ class GoogleClient:
         max_tokens=256,
         system=None,
     ):
-        try:
-            import google.generativeai  # noqa: F401
-        except ImportError as e:
-            raise ImportError(
-                'google-generativeai SDK required. '
-                'Install with `pip install google-generativeai`.'
-            ) from e
+        if not HAS_GOOGLE:
+            raise ImportError('google.generativeai SDK required.')
         self.model_id = model
         self._key = api_key or os.environ.get('GOOGLE_API_KEY')
         if not self._key:

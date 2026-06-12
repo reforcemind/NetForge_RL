@@ -2,35 +2,17 @@
 
 import argparse
 from pathlib import Path
-
+import torch
 import yaml
+from peft import LoraConfig
+from transformers import AutoModelForCausalLM, AutoTokenizer
+from trl import AutoModelForCausalLMWithValueHead, PPOConfig, PPOTrainer
 
 from netforge_rl.environment.parallel_env import NetForgeRLEnv
 from netforge_rl.semantic.finetune.adapter import LMPolicyAdapter
 
-
-def _require(modname):
-    try:
-        return __import__(modname)
-    except ImportError as e:
-        raise ImportError(
-            f'{modname} is required for fine-tuning. '
-            f"Install with `pip install 'netforge_rl[finetune]'`."
-        ) from e
-
-
 def main(config_path):
     cfg = yaml.safe_load(Path(config_path).read_text())
-
-    _require('torch')
-    _require('trl')
-    _require('transformers')
-    _require('peft')
-
-    from peft import LoraConfig
-    from transformers import AutoTokenizer
-    from trl import AutoModelForCausalLMWithValueHead, PPOConfig, PPOTrainer
-
     tok = AutoTokenizer.from_pretrained(cfg['model']['name'])
     if tok.pad_token is None:
         tok.pad_token = tok.eos_token

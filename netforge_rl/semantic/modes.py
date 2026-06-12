@@ -6,6 +6,7 @@
 """
 
 import numpy as np
+from netforge_rl.baselines.policies import HeuristicRedPolicy, HeuristicBluePolicy
 
 from netforge_rl.semantic.la_wrapper import state_to_text
 from netforge_rl.semantic.parser import parse_action
@@ -71,8 +72,6 @@ def _drive(env, role_clients, role_fallback, *, max_steps, seed):
 
 def zero_shot_defender(env, blue_client, *, max_steps=None, seed=0):
     """LLM controls all Blue agents; Red follows the heuristic-red baseline."""
-    from netforge_rl.baselines.policies import HeuristicRedPolicy
-
     blue_clients = {a: blue_client for a in BLUE_AGENTS if a in env.possible_agents}
     red_baseline = HeuristicRedPolicy(seed=seed).act
     cum_reward, invalid, steps = _drive(
@@ -91,8 +90,6 @@ def zero_shot_defender(env, blue_client, *, max_steps=None, seed=0):
 
 def zero_shot_attacker(env, red_client, *, max_steps=None, seed=0):
     """LLM controls Red; Blue follows the heuristic-blue baseline."""
-    from netforge_rl.baselines.policies import HeuristicBluePolicy
-
     red_clients = {a: red_client for a in RED_AGENTS if a in env.possible_agents}
     blue_baseline = HeuristicBluePolicy(seed=seed).act
     cum_reward, invalid, steps = _drive(

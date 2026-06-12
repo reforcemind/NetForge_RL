@@ -1,12 +1,11 @@
 import base64
 from io import BytesIO
+from PIL import Image
 
 import numpy as np
 
 
 def _png_b64(rgb):
-    from PIL import Image
-
     buf = BytesIO()
     Image.fromarray(rgb).save(buf, format='PNG')
     return base64.b64encode(buf.getvalue()).decode('ascii')
