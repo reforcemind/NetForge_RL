@@ -29,13 +29,11 @@ from netforge_rl.backends.jax.vector_env import (
     RED_EXFILTRATE,
     RED_EXPLOIT_BLUEKEEP,
     RED_EXPLOIT_ETERNALBLUE,
-    RED_EXPLOIT_HTTP_RFI,
     RED_IMPACT,
     RED_JUICY_POTATO,
     RED_KILL_PROCESS,
     RED_KINETIC,
     RED_PASS_THE_HASH,
-    RED_PASS_THE_TICKET,
     RED_PRIVESC,
     RED_V4L2,
     RED_RECON,
@@ -75,24 +73,17 @@ def _act(*, red_t, blue_t, red_a, blue_a, red_type, blue_type) -> BatchedActions
     )
 
 
-# ── Red privesc ──────────────────────────────────────────────────────────
-
-
 @pytest.mark.fast
 def test_privesc_promotes_user_to_root(global_state) -> None:
     spec = _spec()
     state = _state(global_state, batch=1)
     step = make_vector_step(spec)
-
-    # 1. Compromise host 0 (User).
     state, _ = step(state, _act(
         red_t=[[0]], blue_t=[[99]],
         red_a=[[True]], blue_a=[[False]],
         red_type=[[RED_COMPROMISE]], blue_type=[[BLUE_ISOLATE]],
     ))
     assert int(state.hosts.privilege[0, 0]) == PRIVILEGE_CODES.index('User')
-
-    # 2. Privesc on host 0 (User -> Root).
     state, _ = step(state, _act(
         red_t=[[0]], blue_t=[[99]],
         red_a=[[True]], blue_a=[[False]],
@@ -115,9 +106,6 @@ def test_privesc_noop_on_uncompromised_host(global_state) -> None:
         red_type=[[RED_PRIVESC]], blue_type=[[BLUE_ISOLATE]],
     ))
     assert int(state.hosts.privilege[0, 5]) == before
-
-
-# ── Blue restore ────────────────────────────────────────────────────────
 
 
 @pytest.mark.fast
@@ -164,9 +152,6 @@ def test_restore_beats_simultaneous_red_compromise(global_state) -> None:
     assert int(state.hosts.privilege[0, 7]) == pre_priv
 
 
-# ── Reward shaping ──────────────────────────────────────────────────────
-
-
 @pytest.mark.fast
 def test_privesc_reward_is_higher_than_compromise(global_state) -> None:
     spec = _spec()
@@ -185,9 +170,6 @@ def test_privesc_reward_is_higher_than_compromise(global_state) -> None:
     ))
     # Red reward column 0 should be 3.0 (privesc bonus) > 1.0 (compromise).
     assert float(r_privesc[0, 0]) == pytest.approx(3.0)
-
-
-# ── Blue deploy decoy ────────────────────────────────────────────────────
 
 
 @pytest.mark.fast
@@ -213,24 +195,17 @@ def test_deploy_decoy_flips_decoy_field(global_state) -> None:
     assert float(rewards[0, spec.n_red]) == pytest.approx(0.5)
 
 
-# ── Blue honeytoken + Red trap penalty ───────────────────────────────────
-
-
 @pytest.mark.fast
 def test_honeytoken_traps_red_compromise(global_state) -> None:
     spec = _spec()
     state = _state(global_state, batch=1)
     step = make_vector_step(spec)
-
-    # 1. Blue deploys honeytoken on host 12.
     state, _ = step(state, _act(
         red_t=[[99]], blue_t=[[12]],
         red_a=[[False]], blue_a=[[True]],
         red_type=[[RED_COMPROMISE]], blue_type=[[BLUE_DEPLOY_HONEYTOKEN]],
     ))
     assert bool(state.hosts.contains_honeytokens[0, 12])
-
-    # 2. Red tries to compromise host 12 -> -5 trap penalty.
     _, rewards = step(state, _act(
         red_t=[[12]], blue_t=[[99]],
         red_a=[[True]], blue_a=[[False]],
@@ -238,9 +213,6 @@ def test_honeytoken_traps_red_compromise(global_state) -> None:
     ))
     # Red 0's reward = +1 (compromise) - 5 (trap) = -4.
     assert float(rewards[0, 0]) == pytest.approx(-4.0)
-
-
-# ── Red impact + kinetic ────────────────────────────────────────────────
 
 
 def _own_to_root(state, step, idx: int):
@@ -324,9 +296,6 @@ def test_restore_clears_integrity(global_state) -> None:
     assert int(state.hosts.system_integrity[0, 10]) == INTEGRITY_CODES.index('clean')
 
 
-# ── Blue extras: REMOVE + SAT ───────────────────────────────────────────
-
-
 @pytest.mark.fast
 def test_remove_clears_priv_but_keeps_status(global_state) -> None:
     """REMOVE wipes privilege; unlike RESTORE it does NOT flip status."""
@@ -381,9 +350,6 @@ def test_sat_decrements_human_vulnerability(global_state) -> None:
     assert float(rewards[0, spec.n_red]) == pytest.approx(0.3)
 
 
-# ── CVE-gated exploits ──────────────────────────────────────────────────
-
-
 def _find_vulnerable_host(state, cve_name: str) -> int | None:
     """Return a host index whose vuln_mask has the named CVE bit set, or None."""
     col = CVE_CODES.index(cve_name)
@@ -426,7 +392,6 @@ def test_cve_exploit_compromises_when_bit_set(global_state) -> None:
 
     # Pick any host and force a known CVE bit on for it (mutate the
     # batched state — safe inside a test).
-    import jax.numpy as jnp
     col = CVE_CODES.index('MS17-010')
     new_vm = state.hosts.vuln_mask.at[0, 13, col].set(True)
     state = state.__class__(
@@ -442,9 +407,6 @@ def test_cve_exploit_compromises_when_bit_set(global_state) -> None:
     assert int(state.hosts.privilege[0, 13]) == PRIVILEGE_CODES.index('User')
     # Compromise (+1) + CVE bonus (+0.5) = 1.5.
     assert float(rewards[0, 0]) == pytest.approx(1.5)
-
-
-# ── Knowledge mask + recon ──────────────────────────────────────────────
 
 
 @pytest.mark.fast
@@ -759,9 +721,6 @@ def test_sat_clamps_at_zero(global_state) -> None:
             red_type=[[RED_COMPROMISE]], blue_type=[[BLUE_SAT]],
         ))
     assert float(state.hosts.human_vulnerability[0, idx]) == 0.0
-
-
-# ── OS-gated privesc + KillProcess + audit reward gates ─────────────────
 
 
 def _find_host_by_os(state, family_code):

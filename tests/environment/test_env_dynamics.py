@@ -103,8 +103,6 @@ def test_honeytoken_trap_alert(env):
     """Verify that hitting a honeytoken generates high-severity alert."""
     env.reset(seed=42)
     agent = 'red_operator'
-
-    # 1. Setup a honeytoken host
     # Choose a valid host from the DMZ (192.168.1.0/24)
     target_ip = next(
         ip
@@ -118,15 +116,11 @@ def test_honeytoken_trap_alert(env):
     # Ensure the red agent has some foothold to allow routing
     env.global_state.agent_knowledge[agent] = {target_ip}
     env.global_state.action_history[agent] = {f'DiscoverNetworkServices:{target_ip}'}
-
-    # 2. Mock a successful EternalBlue execution
     expected_effect = ActionEffect(
         success=True,
         state_deltas={f'hosts/{target_ip}/privilege': 'User'},
         observation_data={'exploit': target_ip},
     )
-
-    # 3. Trigger it at tick 0. Duration 6 -> matures at tick 6.
     with patch.object(ExploitEternalBlue, 'execute', return_value=expected_effect):
         # We manually queue it to ensure 100% control over the event queue state
         action = ExploitEternalBlue(agent, target_ip)
@@ -143,8 +137,6 @@ def test_honeytoken_trap_alert(env):
         # Advance 6 pseudo-ticks
         for _ in range(6):
             env.step({})
-
-        # 4. Final verification
         all_logs = env.global_state.siem_log_buffer
         honey_alerts = [
             log[0]

@@ -26,12 +26,9 @@ def test_snapshot_filters_padding_hosts(global_state) -> None:
 @pytest.mark.fast
 def test_snapshot_color_classifications() -> None:
     """Status / privilege / honeytoken should map to the documented palette."""
-    from dataclasses import replace
     import numpy as np
     from netforge_rl.core.functional import (
         from_global_state,
-        STATUS_CODES,
-        PRIVILEGE_CODES,
     )
 
     # Build a synthetic 3-host state and check the classifier directly.

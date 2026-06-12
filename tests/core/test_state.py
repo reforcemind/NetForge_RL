@@ -47,12 +47,8 @@ def test_ztna_routing_pivot_requirements(global_state):
     secure_ip = next(
         ip for ip, h in global_state.all_hosts.items() if h.subnet_cidr == '10.0.1.0/24'
     )
-
-    # 1. No pivots: cannot reach Corp or Secure
     assert global_state.can_route_to(corp_ip, agent_id='red_operator') is False
     assert global_state.can_route_to(secure_ip, agent_id='red_operator') is False
-
-    # 2. DMZ pivot: can reach Corp, still cannot reach Secure
     dmz_ip = next(
         ip
         for ip, h in global_state.all_hosts.items()
@@ -61,8 +57,6 @@ def test_ztna_routing_pivot_requirements(global_state):
     global_state.all_hosts[dmz_ip].privilege = 'Root'
     assert global_state.can_route_to(corp_ip, agent_id='red_operator') is True
     assert global_state.can_route_to(secure_ip, agent_id='red_operator') is False
-
-    # 3. Corp pivot: can reach Secure (if auth exists)
     global_state.all_hosts[corp_ip].privilege = 'Root'
     global_state.agent_inventory['red_operator'] = {'Enterprise_Admin_Token'}
     assert global_state.can_route_to(secure_ip, agent_id='red_operator') is True
@@ -77,11 +71,7 @@ def test_firewall_blocking(global_state):
         if h.subnet_cidr == '192.168.1.0/24'
     )
     port = 80
-
-    # 1. Open by default (for DMZ)
     assert global_state.can_route_to(dmz_ip, port=port) is True
-
-    # 2. Explicitly block
     global_state.firewalls['global'] = Firewall('global')
     global_state.firewalls['global'].block_port('192.168.1.0/24', port)
     assert global_state.can_route_to(dmz_ip, port=port) is False

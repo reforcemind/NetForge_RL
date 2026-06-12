@@ -48,10 +48,7 @@ def test_observation_siem_alerts(blue_agent_id):
     obs = BaseObservation(blue_agent_id)
     state = GlobalNetworkState()
     state.current_tick = 5
-
-    # 1. Alert that has arrived
     state.siem_log_buffer.append({'arrival_tick': 2, 'msg': 'Detection A'})
-    # 2. Alert that has NOT arrived yet (future)
     state.siem_log_buffer.append({'arrival_tick': 10, 'msg': 'Detection B'})
 
     obs.update_from_state(state, [])

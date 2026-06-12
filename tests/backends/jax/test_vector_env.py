@@ -36,9 +36,6 @@ def _spec(n_hosts: int = 100, n_red: int = 1, n_blue: int = 3) -> VectorEnvSpec:
     return VectorEnvSpec(n_hosts=n_hosts, n_red=n_red, n_blue=n_blue)
 
 
-# ── Shape contracts ───────────────────────────────────────────────────────
-
-
 @pytest.mark.fast
 def test_batched_state_has_leading_batch_axis(global_state) -> None:
     snap = from_global_state(global_state, agent_ids=AGENTS)
@@ -62,9 +59,6 @@ def test_step_preserves_shape(global_state) -> None:
     assert new_state.hosts.privilege.shape == (8, 100)
     assert rewards.shape == (8, spec.n_red + spec.n_blue)
     np.testing.assert_array_equal(new_state.current_tick, jnp.ones(8, dtype=jnp.int32))
-
-
-# ── Semantics ────────────────────────────────────────────────────────────
 
 
 @pytest.mark.fast
@@ -106,9 +100,6 @@ def test_blue_isolates_then_red_blocked_on_same_target(global_state) -> None:
     # Red got no reward; Blue got +1.
     assert float(rewards[0, 0]) == 0.0  # Red
     assert float(rewards[0, 1]) == 1.0  # Blue 0
-
-
-# ── Independence across batch dim ────────────────────────────────────────
 
 
 @pytest.mark.fast

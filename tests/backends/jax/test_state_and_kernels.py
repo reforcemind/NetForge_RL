@@ -38,9 +38,6 @@ AGENTS = (
 )
 
 
-# ── PyTree registration ───────────────────────────────────────────────────
-
-
 @pytest.mark.fast
 def test_jax_envstate_is_a_registered_pytree(global_state) -> None:
     snap = from_global_state(global_state, agent_ids=AGENTS)
@@ -75,9 +72,6 @@ def test_jax_envstate_works_under_vmap(global_state) -> None:
     assert out.hosts.status.shape[0] == 3
 
 
-# ── Round-trip ────────────────────────────────────────────────────────────
-
-
 @pytest.mark.fast
 def test_to_jax_to_numpy_round_trip(global_state) -> None:
     snap = from_global_state(global_state, agent_ids=AGENTS)
@@ -91,9 +85,6 @@ def test_to_jax_to_numpy_round_trip(global_state) -> None:
     )
     np.testing.assert_allclose(back.hosts.cvss_score, snap.hosts.cvss_score)
     assert back.current_tick == snap.current_tick
-
-
-# ── Kernel correctness vs functional core ────────────────────────────────
 
 
 @pytest.mark.fast
@@ -151,9 +142,6 @@ def test_compromised_by_kernel_matches_functional_core(global_state) -> None:
     )
 
 
-# ── jit safety ────────────────────────────────────────────────────────────
-
-
 @pytest.mark.fast
 def test_status_kernel_is_jit_safe(global_state) -> None:
     snap = from_global_state(global_state, agent_ids=AGENTS)
@@ -165,9 +153,6 @@ def test_status_kernel_is_jit_safe(global_state) -> None:
         jnp.asarray(STATUS_CODES.index('isolated'), dtype=jnp.int8),
     )
     assert int(out.hosts.status[0]) == STATUS_CODES.index('isolated')
-
-
-# ── Conflict resolution ──────────────────────────────────────────────────
 
 
 @pytest.mark.fast

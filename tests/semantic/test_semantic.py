@@ -17,9 +17,6 @@ from netforge_rl.semantic import (
 AGENTS = ('red_operator', 'blue_dmz', 'blue_internal', 'blue_restricted')
 
 
-# ── action menu ──────────────────────────────────────────────────────────
-
-
 @pytest.mark.fast
 def test_action_menu_contains_team_actions() -> None:
     blue_menu = action_menu('blue_dmz')
@@ -30,9 +27,6 @@ def test_action_menu_contains_team_actions() -> None:
     # red_operator-specific extras (action IDs that don't collide with the
     # shared red team registry) bubble through the fallback path.
     assert 'ExfiltrateData' in red_menu.values()
-
-
-# ── LA wrapper ───────────────────────────────────────────────────────────
 
 
 @pytest.mark.fast
@@ -62,9 +56,6 @@ def test_state_to_text_includes_budgets(env_sim) -> None:
     assert 'energy=' in report and 'funds=' in report
 
 
-# ── Parser ───────────────────────────────────────────────────────────────
-
-
 @pytest.mark.fast
 def test_parser_happy_path() -> None:
     ips = ['10.0.0.1', '10.0.0.2', '192.168.1.5']
@@ -90,9 +81,6 @@ def test_parser_returns_none_on_garbage() -> None:
     assert parse_action('I will think about it.', 'blue_dmz', ['10.0.0.1']) is None
 
 
-# ── VLA ──────────────────────────────────────────────────────────────────
-
-
 @pytest.mark.fast
 def test_build_vla_prompt_round_trip() -> None:
     rgb = (np.random.rand(8, 8, 3) * 255).astype(np.uint8)
@@ -109,9 +97,6 @@ def test_build_vla_prompt_validates_input() -> None:
         build_vla_prompt(np.zeros((8, 8), dtype=np.uint8), 'x')
     with pytest.raises(ValueError):
         build_vla_prompt(np.zeros((8, 8, 3), dtype=np.float32), 'x')
-
-
-# ── End-to-end: env -> LA -> parse -> step ──────────────────────────────
 
 
 @pytest.mark.integration

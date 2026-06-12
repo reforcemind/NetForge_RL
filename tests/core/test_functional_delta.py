@@ -29,9 +29,6 @@ def _first_ip(state) -> str:
     return sorted(state.all_hosts.keys())[0]
 
 
-# ── Host attribute deltas ──────────────────────────────────────────────────
-
-
 @pytest.mark.fast
 def test_host_status_delta_parity(global_state) -> None:
     ip = _first_ip(global_state)
@@ -105,9 +102,6 @@ def test_host_os_meta_delta(global_state) -> None:
     assert rebuilt.all_hosts[ip].os == 'Linux_Arch'
 
 
-# ── Knowledge deltas ───────────────────────────────────────────────────────
-
-
 @pytest.mark.fast
 def test_knowledge_delta_parity(global_state) -> None:
     snap = from_global_state(global_state, agent_ids=AGENTS)
@@ -127,9 +121,6 @@ def test_knowledge_delta_unknown_agent_ignored(global_state) -> None:
     snap = from_global_state(global_state, agent_ids=AGENTS)
     out = apply_state_delta(snap, 'knowledge/ghost_agent/1.2.3.4')
     assert out is snap or out.knowledge == snap.knowledge
-
-
-# ── Robustness ─────────────────────────────────────────────────────────────
 
 
 @pytest.mark.fast
@@ -166,9 +157,6 @@ def test_original_state_is_not_mutated(global_state) -> None:
     original_status = snap.hosts.status[snap.host_index(ip)]
     _ = apply_state_delta(snap, f'hosts/{ip}/status', 'isolated')
     assert snap.hosts.status[snap.host_index(ip)] == original_status
-
-
-# ── Bulk apply ─────────────────────────────────────────────────────────────
 
 
 @pytest.mark.fast

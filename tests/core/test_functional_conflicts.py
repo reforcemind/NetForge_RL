@@ -22,9 +22,6 @@ def _eff(success: bool, deltas, obs=None) -> ActionEffect:
     )
 
 
-# ── Parity ─────────────────────────────────────────────────────────────────
-
-
 @pytest.mark.fast
 def test_no_collision_passes_red_unchanged() -> None:
     effects = {
@@ -112,9 +109,6 @@ def test_none_effect_passes_through() -> None:
     }
     out = resolve_conflicts(effects)
     assert out['red_operator'] is None
-
-
-# ── Purity ────────────────────────────────────────────────────────────────
 
 
 @pytest.mark.fast

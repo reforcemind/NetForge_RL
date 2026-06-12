@@ -13,9 +13,6 @@ from netforge_rl.baselines import (
 )
 
 
-# ── policies ─────────────────────────────────────────────────────────────
-
-
 @pytest.mark.fast
 def test_random_policy_shape(env_sim) -> None:
     a = RandomPolicy(seed=0).act(env_sim, 'blue_dmz')
@@ -40,9 +37,6 @@ def test_heuristic_red_picks_uncompromised_real_host(env_sim) -> None:
     chosen = target_ips[int(a[1])]
     assert not chosen.startswith('169.254.')
     assert env_sim.global_state.all_hosts[chosen].compromised_by == 'None'
-
-
-# ── eval harness ─────────────────────────────────────────────────────────
 
 
 @pytest.mark.integration

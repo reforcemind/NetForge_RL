@@ -23,8 +23,6 @@ def global_state():
 def test_scenario_blue_rewards(scenario, global_state):
     """Test all bonus branches in Blue reward logic."""
     agent = 'blue_operator'
-
-    # 1. Successful Isolation of compromised host
     global_state.all_hosts['10.0.0.5'].compromised_by = 'red_operator'
     effect = ActionEffect(
         success=True,
@@ -33,8 +31,6 @@ def test_scenario_blue_rewards(scenario, global_state):
     )
     r1 = scenario.calculate_reward(agent, global_state, effect)
     assert r1 > 0  # Should get bonus for correct isolation
-
-    # 2. False Positive Isolation
     global_state.all_hosts['10.0.0.10'].compromised_by = 'None'
     effect = ActionEffect(
         success=True,
@@ -43,8 +39,6 @@ def test_scenario_blue_rewards(scenario, global_state):
     )
     r2 = scenario.calculate_reward(agent, global_state, effect)
     assert r2 < 0  # Should get penalty for isolating clean host
-
-    # 3. Restoration bonus
     effect = ActionEffect(
         success=True,
         state_deltas={'hosts/10.0.0.5/status': 'online'},

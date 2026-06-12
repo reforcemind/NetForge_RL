@@ -6,8 +6,6 @@ def test_asynchronous_step_delta_t():
     """Verify that step() correctly jumps over idle time and returns normalized delta_t."""
     env = NetForgeRLEnv(scenario_config={'scenario_type': 'apt_espionage'})
     obs, infos = env.reset()
-
-    # 1. Start an asynchronous action (e.g. Exploit) that takes 5 ticks
     # We need an action that has duration > 1.
     # Let's mock a Blue action like 'IsolateHost' if it has a duration.
     # Or just use the red operator's exploit if duration is defined.

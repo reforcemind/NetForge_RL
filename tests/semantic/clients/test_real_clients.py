@@ -8,9 +8,6 @@ import types
 import pytest
 
 
-# ── Anthropic ──────────────────────────────────────────────────────────
-
-
 @pytest.fixture
 def fake_anthropic(monkeypatch):
     """Inject a fake ``anthropic`` module with a recording client."""
@@ -62,9 +59,6 @@ def test_anthropic_act_with_image(fake_anthropic, monkeypatch):
     assert types_ == ['image', 'text']
 
 
-# ── OpenAI ─────────────────────────────────────────────────────────────
-
-
 @pytest.fixture
 def fake_openai(monkeypatch):
     mod = types.ModuleType('openai')
@@ -108,9 +102,6 @@ def test_openai_act_with_image(fake_openai, monkeypatch):
     user_content = kw['messages'][1]['content']
     assert any(b['type'] == 'image_url' for b in user_content)
     assert 'data:image/png;base64,AAA' in user_content[-1]['image_url']['url']
-
-
-# ── Google (Gemini) ─────────────────────────────────────────────────────
 
 
 @pytest.fixture
