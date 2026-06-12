@@ -20,29 +20,9 @@ class NetworkScan(BaseAction):
         super().__init__(agent_id, target_ip=target_subnet, cost=5)
 
     def validate(self, global_state) -> bool:
-        """Validates whether the agent has physical or logical routing to the
-
-        target subnet.
-
-        Args:
-            global_state (GlobalNetworkState): The current state of the architecture.
-
-        Returns:
-            bool: True if the subnet is reachable, False otherwise.
-        """
         return True
 
     def execute(self, global_state) -> ActionEffect:
-        """Processes the scan without mutating the state, returning
-
-        observations.
-
-        Args:
-            global_state (GlobalNetworkState): The current state of the architecture.
-
-        Returns:
-            ActionEffect: The computational result updating the agent's observation space.
-        """
         return ActionEffect(
             success=True,
             state_deltas={},
@@ -69,27 +49,9 @@ class DiscoverRemoteSystems(BaseAction):
         super().__init__(agent_id, target_ip=target_subnet, cost=3)
 
     def validate(self, global_state) -> bool:
-        """Validates routing path availability to the target broadcast address.
-
-        Args:
-            global_state (GlobalNetworkState): The current state of the architecture.
-
-        Returns:
-            bool: True if reachable, False otherwise.
-        """
         return True
 
     def execute(self, global_state) -> ActionEffect:
-        """Identifies active hosts in the subnet. Accounts for misinformation
-
-        campaigns where Blue agents supply fake decoy arrays.
-
-        Args:
-            global_state (GlobalNetworkState): The current network state.
-
-        Returns:
-            ActionEffect: Contains the parsed array of active (or spoofed) hosts.
-        """
         fake_data = False
         active_hosts = []
         for host in global_state.all_hosts.values():
@@ -129,29 +91,9 @@ class DiscoverNetworkServices(BaseAction):
         super().__init__(agent_id, target_ip=target_ip, cost=2, duration=3)
 
     def validate(self, global_state) -> bool:
-        """Confirms target host is active and packet routing is unblocked by
-
-        firewalls.
-
-        Args:
-            global_state (GlobalNetworkState): The current network state.
-
-        Returns:
-            bool: True if the specified host is reachable.
-        """
         return True
 
     def execute(self, global_state) -> ActionEffect:
-        """Returns the exposed service ports on the target. Interacts heavily
-
-        with decoy and honeypot configurations deployed by the Blue Agent.
-
-        Args:
-            global_state (GlobalNetworkState): The current architecture state.
-
-        Returns:
-            ActionEffect: A list of discovered service banners corresponding to the IP.
-        """
         obs_data = {'port_scan': self.target_ip}
         if self.target_ip in global_state.all_hosts:
             host = global_state.all_hosts[self.target_ip]

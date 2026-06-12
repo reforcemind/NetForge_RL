@@ -20,28 +20,12 @@ class PrivilegeEscalate(BaseAction):
         super().__init__(agent_id, target_ip=target_ip)
 
     def validate(self, global_state) -> bool:
-        """Validates the pre-conditions for privilege escalation.
-
-        Requires:
-        - Valid routing to the target host.
-        - Prior User-level access on the target (must exploit first).
-        """
         host = global_state.all_hosts.get(self.target_ip)
         if not host or host.privilege != 'User':
             return False
         return global_state.can_route_to(self.target_ip, agent_id=self.agent_id)
 
     def execute(self, global_state) -> ActionEffect:
-        """Applies the mathematical delta to elevate the agent's privilege
-
-        level.
-
-        Args:
-            global_state (GlobalNetworkState): Current network blueprint.
-
-        Returns:
-            ActionEffect: A delta upgrading the specific host's privilege to 'Root'.
-        """
         return ActionEffect(
             success=True,
             state_deltas={
@@ -69,7 +53,6 @@ class JuicyPotato(BaseAction):
         super().__init__(agent_id, target_ip=target_ip)
 
     def validate(self, global_state) -> bool:
-        """Validates target compatibility: requires User access + Windows OS."""
         host = global_state.all_hosts.get(self.target_ip)
         if not host or host.privilege != 'User':
             return False
@@ -78,16 +61,6 @@ class JuicyPotato(BaseAction):
         return global_state.can_route_to(self.target_ip, agent_id=self.agent_id)
 
     def execute(self, global_state) -> ActionEffect:
-        """Processes the DCOM impersonation attack delta. Fails if target OS is
-
-        not Windows.
-
-        Args:
-            global_state: Network state.
-
-        Returns:
-            ActionEffect: State vector replacing access rights with 'Root'.
-        """
         host = global_state.all_hosts.get(self.target_ip)
         if host and 'Windows' not in host.os:
             return ActionEffect(
@@ -123,7 +96,6 @@ class V4L2KernelExploit(BaseAction):
         super().__init__(agent_id, target_ip=target_ip)
 
     def validate(self, global_state) -> bool:
-        """Validates: requires User access + Linux OS + V4L2 vulnerability."""
         host = global_state.all_hosts.get(self.target_ip)
         if not host or host.privilege != 'User':
             return False
@@ -132,16 +104,6 @@ class V4L2KernelExploit(BaseAction):
         return global_state.can_route_to(self.target_ip, agent_id=self.agent_id)
 
     def execute(self, global_state) -> ActionEffect:
-        """Resolves the exploit outcome altering the target's privilege table.
-
-        Fails if target is patched or not a Linux host.
-
-        Args:
-            global_state: Network state.
-
-        Returns:
-            ActionEffect: Physics engine state modifications.
-        """
         host = global_state.all_hosts.get(self.target_ip)
         if host and ('Linux' not in host.os or 'V4L2' not in host.vulnerabilities):
             return ActionEffect(
@@ -176,7 +138,6 @@ class PassTheHash(BaseAction):
         super().__init__(agent_id, target_ip=target_ip, cost=1)
 
     def validate(self, global_state) -> bool:
-        """Validates if the agent has previously Rooted ANY Domain Controller."""
         has_dc_hash = False
         for host in global_state.all_hosts.values():
             if host.is_domain_controller and host.privilege in ['Root', 'SYSTEM']:
@@ -190,12 +151,6 @@ class PassTheHash(BaseAction):
         return global_state.can_route_to(self.target_ip, agent_id=self.agent_id)
 
     def execute(self, global_state) -> ActionEffect:
-        """Applies instantaneous SYSTEM access based on Golden Ticket leverage.
-
-        Returns:
-            ActionEffect: Elevated root control unconditionally on target node.
-        """
-        from netforge_rl.core.commands import UpdateHostPrivilegeCommand
 
         deltas = [
             UpdateHostPrivilegeCommand(

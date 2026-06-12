@@ -1,18 +1,11 @@
+import random
 from netforge_rl.core.action import BaseAction, ActionEffect
 from netforge_rl.core.registry import action_registry
 
 
 @action_registry.register('red_operator', 20)
 class OverloadPLC(BaseAction):
-    """Initiates a devastating Kinetic Impact on a compromised Cyber-Physical OT Node.
-
-    If the target PLC is compromised to Root level and belongs to the Operational Technology
-    infrastructure, this action radically forces hardware temperatures past catastrophic thresholds.
-
-    Args:
-        agent_id (str): Reference string for the agent executing the attack.
-        target_ip (str): IP address belonging to a PLC_Firmware host inside the OT_Subnet.
-    """
+    """Initiates a kinetic impact on a compromised Cyber-Physical OT Node to increase hardware temperatures."""
 
     def __init__(self, agent_id: str, target_ip: str):
         super().__init__(
@@ -25,7 +18,6 @@ class OverloadPLC(BaseAction):
         )
 
     def validate(self, global_state) -> bool:
-        """Ensures the target exists, is routeable, and is ACTUALLY an OT device."""
         if not super().validate(global_state):
             return False
 
@@ -44,8 +36,7 @@ class OverloadPLC(BaseAction):
         return global_state.can_route_to(self.target_ip, agent_id=self.agent_id)
 
     def execute(self, global_state) -> ActionEffect:
-        import random
-
+    
         host = global_state.all_hosts.get(self.target_ip)
         if not host:
             return ActionEffect(success=False, state_deltas={}, observation_data={})
@@ -60,8 +51,6 @@ class OverloadPLC(BaseAction):
             f'hosts/{self.target_ip}/temperature': new_temp,
             f'hosts/{self.target_ip}/system_integrity': 'kinetic_destruction',
         }
-
-        # Stuxnet-level alert severity for the Blue Team SIEM
         obs_data = {
             'action': 'overload_plc',
             'status': 'kinetic_impact_achieved',

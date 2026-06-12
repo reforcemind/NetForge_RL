@@ -32,7 +32,6 @@ class SpearPhishing(BaseAction):
         )
 
     def validate(self, global_state) -> bool:
-        """Overrides parent zone constraints to simulate out-of-band email protocol delivery."""
         if not self.target_ip or self.target_ip not in global_state.all_hosts:
             return False
 
