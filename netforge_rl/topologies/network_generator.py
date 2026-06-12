@@ -2,6 +2,7 @@ import random
 import yaml
 from pathlib import Path
 from typing import Optional
+import networkx as nx
 from netforge_rl.core.state import GlobalNetworkState, Subnet, Host
 
 
@@ -40,8 +41,6 @@ class NetworkGenerator:
         Enforces a constant size of 100 hosts for Neural Network dimension consistency.
         Active topology spans 15-30 nodes; the rest are instantiated as inactive padding.
         """
-        import networkx as nx
-
         state = GlobalNetworkState()
         G = nx.DiGraph()
 

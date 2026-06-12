@@ -1,6 +1,8 @@
 from typing import Dict, Tuple
 import numpy as np
 import gymnasium as gym
+from netforge_rl.scenarios import get_scenario_class
+from netforge_rl.scenarios.apt_espionage import AptEspionageScenario
 
 from netforge_rl.core.action import BaseAction, ActionEffect
 from netforge_rl.core.observation import BaseObservation
@@ -36,14 +38,9 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
             'blue_restricted',
         ]
         self.agents = self.possible_agents[:]
-
-        from netforge_rl.scenarios import get_scenario_class
-
         try:
             scenario_cls = get_scenario_class(cfg.get('scenario_type', 'ransomware'))
         except KeyError:
-            from netforge_rl.scenarios.apt_espionage import AptEspionageScenario
-
             scenario_cls = AptEspionageScenario
         self.scenario = scenario_cls(self.agents)
 

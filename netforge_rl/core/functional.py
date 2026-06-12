@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 if TYPE_CHECKING:
-    from netforge_rl.core.state import GlobalNetworkState
+    pass
 
 
 N_HOSTS = 100  # NetworkGenerator always pads to this for tensor-shape stability.

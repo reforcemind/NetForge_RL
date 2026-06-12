@@ -1,6 +1,10 @@
 from pathlib import Path
 
 import numpy as np
+try:
+    from moviepy import ImageSequenceClip
+except ImportError:
+    pass
 
 
 class FrameRecorder:
@@ -23,8 +27,6 @@ class FrameRecorder:
     def save(self, path):
         if not self._frames:
             raise ValueError('FrameRecorder has no frames to save.')
-        from moviepy import ImageSequenceClip
-
         path = Path(path)
         path.parent.mkdir(parents=True, exist_ok=True)
         clip = ImageSequenceClip([f for f in self._frames], fps=self.fps)

@@ -46,18 +46,10 @@ class PCAPSynthesizer:
         target_file = filename if filename is not None else self.default_filename
         # scapy's wrpcap supports appending directly
         wrpcap(target_file, packets, append=True)
-
-    # ==========================================
-    # 1. Reconnaissance
-    # ==========================================
     def craft_syn_scan(
         self, src_mac: str, dst_mac: str, src_ip: str, dst_ip: str, dst_port: int
     ) -> Packet:
         """Models a TCP SYN scan (Half-open scan).
-
-        IDS ML Features:
-          - High frequency of small packets with ONLY the SYN flag set.
-          - Directed across a range of ports in a short time window.
         """
         sport = random.randint(1024, 65535)
         # S flag = SYN
@@ -74,10 +66,6 @@ class PCAPSynthesizer:
         self, src_mac: str, dst_mac: str, src_ip: str, dst_ip: str, dst_port: int
     ) -> Packet:
         """Models a UDP port scan.
-
-        IDS ML Features:
-          - Small, empty UDP datagrams targeting various ports.
-          - Expects an ICMP Port Unreachable if closed, or no response if open/filtered.
         """
         sport = random.randint(1024, 65535)
         pkt = (
@@ -86,36 +74,21 @@ class PCAPSynthesizer:
             / UDP(sport=sport, dport=dst_port)
         )
         return pkt
-
-    # ==========================================
-    # 2. ARP Layer
-    # ==========================================
     def craft_arp_spoof(
         self, attacker_mac: str, target_ip: str, spoofed_ip: str
     ) -> Packet:
         """Models ARP Spoofing (Cache Poisoning) signature.
-
-        IDS ML Features:
-          - Unsolicited ARP Replies (is-at) without corresponding Requests.
-          - ARP headers mapping a known gateway IP to a differing/unrecognized MAC address.
         """
         # op=2 signifies an ARP Reply (is-at)
         pkt = Ether(dst='ff:ff:ff:ff:ff:ff', src=attacker_mac) / ARP(
             op=2, pdst=target_ip, psrc=spoofed_ip, hwsrc=attacker_mac
         )
         return pkt
-
-    # ==========================================
     # 3. 802.11 Layer
-    # ==========================================
     def craft_deauthentication(
         self, target_mac: str, bssid: str, reason_code: int = 7
     ) -> Packet:
         """Models a Wi-Fi Deauthentication frame.
-
-        IDS ML Features:
-          - Flood of management frames (Type 0, Subtype 12).
-          - Source MAC often spoofed to the AP BSSID or broadcast.
         """
         # reason 7 = Class 3 frame received from nonassociated STA
         pkt = (
@@ -129,10 +102,6 @@ class PCAPSynthesizer:
         self, target_mac: str, bssid: str, reason_code: int = 8
     ) -> Packet:
         """Models a Wi-Fi Disassociation frame.
-
-        IDS ML Features:
-          - Management frames (Type 0, Subtype 10).
-          - Unusually high volume forces devices off the network.
         """
         # reason 8 = Disassociated because sending STA is leaving
         pkt = (
@@ -141,23 +110,14 @@ class PCAPSynthesizer:
             / Dot11Disas(reason=reason_code)
         )
         return pkt
-
-    # ==========================================
-    # 4. IP Fragmentation
-    # ==========================================
     def craft_ip_fragmentation(
         self, src_mac: str, dst_mac: str, src_ip: str, dst_ip: str, payload: bytes
     ) -> List[Packet]:
         """Models NIDS Evasion via IP Fragmentation.
-
-        IDS ML Features:
-          - Small IP headers with the More Fragments (MF) flag set.
-          - Overlapping fragment offsets.
-          - Evasion: breaks known signatures across multiple packets.
         """
         ip_layer = IP(src=src_ip, dst=dst_ip)
-        udp_layer = UDP(sport=12345, dport=80)
-        full_packet = ip_layer / udp_layer / payload
+        tcp_layer = TCP(sport=random.randint(1024, 65535), dport=80, flags='PA')
+        full_packet = ip_layer / tcp_layer / payload
 
         # scapy's built-in fragment generator cuts IP layer up based on fragsize
         fragments = fragment(full_packet, fragsize=8)
@@ -165,10 +125,6 @@ class PCAPSynthesizer:
         # We must wrap each IP fragment in an Ethernet frame for the pcap
         eth_fragments = [Ether(src=src_mac, dst=dst_mac) / frag for frag in fragments]
         return eth_fragments
-
-    # ==========================================
-    # 5. Covert Tunneling
-    # ==========================================
     def craft_dns_tunnel(
         self,
         src_mac: str,
@@ -179,16 +135,14 @@ class PCAPSynthesizer:
         secret_data: str,
     ) -> Packet:
         """Models Data Exfiltration via DNS tunneling.
-
-        IDS ML Features:
-          - High Shannon entropy in DNS subdomains.
-          - Unusually lengthy QNAMEs in DNS Queries containing Base64 encoded blobs.
         """
-        # Base64 encode the dummy secret string
-        encoded_payload = base64.b64encode(secret_data.encode()).decode('utf-8')
-        # Remove padding for better stealth emulation, append base domain
+        # Base32 encode the dummy secret string (RFC compliant for DNS labels)
+        encoded_payload = base64.b32encode(secret_data.encode()).decode('utf-8')
         encoded_payload = encoded_payload.rstrip('=')
-        query_name = f'{encoded_payload}.{exfil_domain}'
+        
+        # DNS labels max 63 chars. Chunk the payload.
+        chunks = [encoded_payload[i:i+63] for i in range(0, len(encoded_payload), 63)]
+        query_name = f'{".".join(chunks)}.{exfil_domain}'
 
         # rd=1 (Recursion Desired), DNSQR encodes the query
         pkt = (
@@ -208,10 +162,6 @@ class PCAPSynthesizer:
         hidden_payload: bytes,
     ) -> Packet:
         """Models Covert C2 or Data Exfil via ICMP payload.
-
-        IDS ML Features:
-          - Standard pings typically have small, predictable payloads (e.g., repeating chars).
-          - Tunneling creates abnormally large ICMP Echo Requests (Type=8) with encrypted/high-entropy data.
         """
         pkt = (
             Ether(src=src_mac, dst=dst_mac)
@@ -220,10 +170,6 @@ class PCAPSynthesizer:
             / hidden_payload
         )
         return pkt
-
-    # ==========================================
-    # 6. TCP Anomalies
-    # ==========================================
     def craft_incomplete_tcp_handshake(
         self,
         src_mac: str,
@@ -236,14 +182,8 @@ class PCAPSynthesizer:
         """Models incomplete TCP handshakes (e.g., SYN-ACK received, but no ACK
 
         sent).
-
-        IDS ML Features:
-          - Asymmetric traffic flows.
-          - State table exhaustion attempts (SYN Floods).
         """
         sport = random.randint(1024, 65535)
-
-        # 1. Attacker sends SYN
         syn_pkt = (
             Ether(src=src_mac, dst=dst_mac)
             / IP(src=src_ip, dst=dst_ip)
@@ -270,10 +210,6 @@ class PCAPSynthesizer:
         self, src_mac: str, dst_mac: str, src_ip: str, dst_ip: str, dst_port: int
     ) -> Packet:
         """Models anomalous TCP RST (Reset) packets.
-
-        IDS ML Features:
-          - Used heavily in session hijacking, port scanning teardowns, or aggressive evasions.
-          - High volume of RST flags observed in normal flows indicates interference.
         """
         sport = random.randint(1024, 65535)
         pkt = (
@@ -284,10 +220,7 @@ class PCAPSynthesizer:
             )
         )
         return pkt
-
-    # ==========================================
     # 7. Green Team (Benign Traffic)
-    # ==========================================
     def craft_benign_http_traffic(
         self, src_mac: str, dst_mac: str, src_ip: str, dst_ip: str
     ) -> List[Packet]:
@@ -363,10 +296,7 @@ class PCAPSynthesizer:
             op=1, pdst=target_ip, psrc=src_ip, hwsrc=src_mac
         )
         return pkt
-
-    # ==========================================
     # 8. Blue Team (Defensive Footprints)
-    # ==========================================
     def craft_icmp_host_unreachable(
         self,
         router_mac: str,

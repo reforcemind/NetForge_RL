@@ -9,6 +9,30 @@ import numpy as np
 
 logger = logging.getLogger(__name__)
 
+from sklearn.decomposition import TruncatedSVD
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import Normalizer
+from netforge_rl.siem.event_templates import (
+    evid_4624,
+    evid_4625,
+    evid_4648,
+    evid_4688,
+    evid_4768,
+    evid_4776,
+    sysmon_1,
+    sysmon_3,
+    sysmon_10,
+    sysmon_22,
+)
+
+try:
+    import torch
+    from sentence_transformers import SentenceTransformer
+    HAS_TRANSFORMERS = True
+except ImportError:
+    HAS_TRANSFORMERS = False
+
 EMBEDDING_DIM = 128
 
 
@@ -60,10 +84,6 @@ class LogEncoder:
         return vecs.mean(axis=0).astype(np.float32)
 
     def _build_tfidf(self):
-        from sklearn.decomposition import TruncatedSVD
-        from sklearn.feature_extraction.text import TfidfVectorizer
-        from sklearn.pipeline import Pipeline
-        from sklearn.preprocessing import Normalizer
 
         corpus = self._build_training_corpus()
         pipeline = Pipeline(
@@ -98,10 +118,7 @@ class LogEncoder:
         return encode_fn
 
     def _build_transformer(self):
-        try:
-            import torch
-            from sentence_transformers import SentenceTransformer
-        except ImportError:
+        if not HAS_TRANSFORMERS:
             logger.warning(
                 'sentence-transformers not installed; falling back to tfidf.'
             )
@@ -131,19 +148,6 @@ class LogEncoder:
             for action_data in lib.values():
                 for outcomes in action_data.values():
                     corpus.extend(outcomes)
-
-        from netforge_rl.siem.event_templates import (
-            evid_4624,
-            evid_4625,
-            evid_4648,
-            evid_4688,
-            evid_4768,
-            evid_4776,
-            sysmon_1,
-            sysmon_3,
-            sysmon_10,
-            sysmon_22,
-        )
 
         sample_ips = ['10.0.0.1', '10.0.1.2', '192.168.1.5', '10.0.0.7', '10.0.1.9']
         for src, tgt in zip(sample_ips, reversed(sample_ips)):
