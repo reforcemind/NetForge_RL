@@ -1,12 +1,10 @@
 from dataclasses import dataclass
-from typing import Mapping
 
 import jax
 import jax.numpy as jnp
 
 from netforge_rl.backends.jax import (
     BatchedActions,
-    JaxEnvState,
     VectorEnvSpec,
     initial_batched_state,
     make_vector_step,

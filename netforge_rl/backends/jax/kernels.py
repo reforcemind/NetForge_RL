@@ -1,6 +1,5 @@
 from dataclasses import replace
 
-import jax
 import jax.numpy as jnp
 
 from netforge_rl.backends.jax.state import JaxEnvState

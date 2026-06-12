@@ -4,7 +4,6 @@ LLM leaderboard so both can be summarized together."""
 import argparse
 from pathlib import Path
 
-import numpy as np
 
 from netforge_rl.baselines.policies import (
     BasePolicy,
