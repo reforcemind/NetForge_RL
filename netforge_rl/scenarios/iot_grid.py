@@ -14,8 +14,7 @@ from typing import TYPE_CHECKING, Dict
 from netforge_rl.scenarios.base_scenario import BaseScenario
 
 if TYPE_CHECKING:
-    from netforge_rl.core.action import ActionEffect
-    from netforge_rl.core.state import GlobalNetworkState
+    pass
 
 
 class IoTGridScenario(BaseScenario):

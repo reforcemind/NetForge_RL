@@ -7,16 +7,7 @@ if TYPE_CHECKING:
 
 
 class RansomwareScenario(BaseScenario):
-    """
-    Scenario: Red Team aggressively deploys ransomware.
-
-    Reward Design Principles:
-    ─────────────────────────
-    • Action-level rewards are given ONCE on the step the action succeeds.
-    • NO per-step state compounding (avoids runaway accumulation).
-    • Episode-end bonus/penalty based on final network state.
-    • Red and Blue reward magnitudes are balanced (~±5 per action).
-    """
+    """Scenario: Red Team aggressively deploys ransomware."""
 
     def __init__(self, agents):
         self.agents = agents
@@ -40,8 +31,6 @@ class RansomwareScenario(BaseScenario):
 
         return reward
 
-    # ── Red Team Rewards ──────────────────────────────────────
-
     def _red_reward(
         self,
         agent_id: str,
@@ -52,8 +41,6 @@ class RansomwareScenario(BaseScenario):
 
         if not effect:
             return reward
-
-        # ── ONE-TIME action bonuses (only on success) ─────────
         if effect.success and effect.state_deltas:
             deltas = (
                 effect.state_deltas.items()
@@ -61,30 +48,15 @@ class RansomwareScenario(BaseScenario):
                 else []
             )
             for delta_key, delta_val in deltas:
-                # Initial compromise (None → User)
-                if 'privilege' in delta_key and delta_val == 'User':
-                    reward += 3.0
-
-                # Privilege escalation (User → Root)
-                elif 'privilege' in delta_key and delta_val == 'Root':
-                    reward += 5.0
-
-                # Ransomware impact (system_integrity → compromised)
-                elif 'system_integrity' in delta_key and delta_val == 'compromised':
-                    reward += 10.0
-
-                # Setting compromised_by (confirms exploitation)
+                if 'privilege' in delta_key:
+                    reward += 3.0 if delta_val == 'User' else 5.0
+                elif 'system_integrity' in delta_key:
+                    if delta_val == 'compromised':
+                        reward += 10.0
+                    elif delta_val == 'kinetic_destruction':
+                        reward += 10000.0
                 elif 'compromised_by' in delta_key and delta_val != 'None':
                     reward += 2.0
-
-                # OT / SCADA Catastrophic Win
-                elif (
-                    'system_integrity' in delta_key
-                    and delta_val == 'kinetic_destruction'
-                ):
-                    reward += 10000.0
-
-        # ── Observation-based rewards ─────────────────────────
         if effect.observation_data:
             obs = effect.observation_data
 
@@ -106,14 +78,10 @@ class RansomwareScenario(BaseScenario):
                 reward -= 3.0
             elif 'kernel panic' in str(obs.values()):
                 reward -= 5.0
-
-        # ── Failed action penalty ─────────────────────────────
         if not effect.success:
             reward -= 0.1  # Small penalty for wasted turn
 
         return reward
-
-    # ── Blue Team Rewards ─────────────────────────────────────
 
     def _blue_reward(
         self,
@@ -163,8 +131,6 @@ class RansomwareScenario(BaseScenario):
                     and delta_val == 'kinetic_destruction'
                 ):
                     reward -= 10000.0
-
-        # ── Per-step network health (small, bounded) ──────────
         # Only count the RATIO of healthy hosts to avoid scale issues
         total_hosts = max(len(global_state.all_hosts), 1)
         healthy = sum(
@@ -183,8 +149,6 @@ class RansomwareScenario(BaseScenario):
         )
         if compromised > 0:
             reward -= (compromised / total_hosts) * 2.0  # 0.0 to -2.0
-
-        # ── Business Downtime Penalty (Economics) ─────────────
         total_isolated = sum(
             1
             for h in global_state.all_hosts.values()
@@ -194,8 +158,6 @@ class RansomwareScenario(BaseScenario):
             business_loss = (total_isolated / total_hosts) * 5.0
             global_state.business_downtime_score += business_loss
             reward -= business_loss
-
-        # ── Failed action penalty ─────────────────────────────
         if effect and not effect.success:
             reward -= 0.1
 

@@ -11,8 +11,7 @@ from typing import TYPE_CHECKING, Dict
 from netforge_rl.scenarios.base_scenario import BaseScenario
 
 if TYPE_CHECKING:
-    from netforge_rl.core.action import ActionEffect
-    from netforge_rl.core.state import GlobalNetworkState
+    pass
 
 
 _OT_CIDR = '10.0.99.0/24'

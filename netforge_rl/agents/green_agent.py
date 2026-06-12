@@ -1,5 +1,6 @@
 import random
 from typing import Any, Dict
+from netforge_rl.siem.event_templates import evid_4624, evid_4625, sysmon_3, evid_4688
 
 
 class GreenAgent:
@@ -7,7 +8,6 @@ class GreenAgent:
 
     def __init__(self, agent_id: str = 'green_agent_0'):
         self.agent_id = agent_id
-        from netforge_rl.siem.event_templates import evid_4624, evid_4688, sysmon_3
 
         self._benign_templates = [evid_4624, sysmon_3, evid_4688]
 
@@ -39,7 +39,6 @@ class GreenAgent:
                 )
 
         if random.random() < p_fp:
-            from netforge_rl.siem.event_templates import evid_4625
 
             target = random.choice(hosts)
             log = evid_4625('unknown_external', target.ip, username='Administrator')
