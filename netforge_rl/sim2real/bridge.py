@@ -9,6 +9,8 @@ Responsibilities:
 """
 
 from __future__ import annotations
+from netforge_rl.sim2real.docker_hypervisor import DockerHypervisor
+from netforge_rl.sim2real.mock_hypervisor import MockHypervisor
 
 import logging
 from typing import Literal
@@ -85,20 +87,14 @@ class Sim2RealBridge:
 
     def _init_driver(self, mode: str) -> BaseHypervisor:
         if mode == 'real':
-            from netforge_rl.sim2real.docker_hypervisor import DockerHypervisor
-
             driver = DockerHypervisor()
             if not driver.is_available():
                 logger.warning(
                     'Sim2RealBridge: real mode requested but Docker unavailable. '
                     'Falling back to mock hypervisor.'
                 )
-                from netforge_rl.sim2real.mock_hypervisor import MockHypervisor
-
                 return MockHypervisor()
             return driver
 
         # Default: sim / mock
-        from netforge_rl.sim2real.mock_hypervisor import MockHypervisor
-
         return MockHypervisor()

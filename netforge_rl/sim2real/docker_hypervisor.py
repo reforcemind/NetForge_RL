@@ -15,12 +15,8 @@ from __future__ import annotations
 
 import logging
 import time
-from typing import TYPE_CHECKING
 
 from netforge_rl.sim2real.hypervisor_base import BaseHypervisor, HypervisorResult
-
-if TYPE_CHECKING:
-    pass  # type hints only
 
 logger = logging.getLogger(__name__)
 
@@ -101,11 +97,6 @@ class DockerHypervisor(BaseHypervisor):
         target_ip: str,
         target_os: str,
     ) -> HypervisorResult:
-        if not self._available or self._client is None:
-            logger.warning(
-                'DockerHypervisor: daemon unreachable — falling back to mock output.'
-            )
-            return self._mock_fallback(action_name, target_ip, target_os)
 
         image = _IMAGE_REGISTRY.get(action_name, _FALLBACK_IMAGE)
         script = _PAYLOAD_SCRIPTS.get(action_name, _FALLBACK_SCRIPT)
@@ -176,8 +167,7 @@ class DockerHypervisor(BaseHypervisor):
 
     def _connect(self) -> bool:
         try:
-            import docker  # type: ignore[import]
-
+            import docker
             self._client = docker.from_env()
             self._client.ping()
             self._ensure_network()
@@ -207,11 +197,3 @@ class DockerHypervisor(BaseHypervisor):
             logger.info(
                 'DockerHypervisor: created isolated network %s.', self.NETWORK_NAME
             )
-
-    def _mock_fallback(
-        self, action_name: str, target_ip: str, target_os: str
-    ) -> HypervisorResult:
-        """Return a minimal synthetic result when Docker is unavailable."""
-        from netforge_rl.sim2real.mock_hypervisor import MockHypervisor
-
-        return MockHypervisor().dispatch(action_name, target_ip, target_os)
