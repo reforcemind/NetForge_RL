@@ -17,7 +17,7 @@ class HypervisorResult:
     Encapsulates the raw outcome of a payload dispatched against a target.
 
     Both mock and real Docker drivers return this object so that the
-    Sim2RealBridge can translate the outcome into environment reward deltas
+    DockerBridge can translate the outcome into environment reward deltas
     and SIEM telemetry strings in a uniform way.
     """
 

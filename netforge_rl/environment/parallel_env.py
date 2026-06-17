@@ -12,7 +12,7 @@ from netforge_rl.core.physics import ConflictResolutionEngine
 from netforge_rl.environment.base_env import BaseNetForgeRLEnv
 from netforge_rl.topologies.network_generator import NetworkGenerator
 from netforge_rl.agents.green_agent import GreenAgent
-from netforge_rl.sim2real.bridge import Sim2RealBridge
+from netforge_rl.docker_bridge.bridge import DockerBridge
 from netforge_rl.siem.siem_logger import SIEMLogger
 from netforge_rl.nlp.log_encoder import LogEncoder, EMBEDDING_DIM
 
@@ -47,8 +47,8 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
         self.global_state = self.network_generator.generate()
         self.resolution_engine = ConflictResolutionEngine()
 
-        self.sim2real_bridge = Sim2RealBridge(mode=cfg.get('sim2real_mode', 'sim'))
-        self.global_state.sim2real_bridge = self.sim2real_bridge
+        self.docker_bridge = DockerBridge(mode=cfg.get('docker_mode', 'sim'))
+        self.global_state.docker_bridge = self.docker_bridge
 
         self.siem_logger = SIEMLogger()
         self.log_encoder = LogEncoder(backend=cfg.get('nlp_backend', 'tfidf'))
@@ -96,11 +96,12 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
 
             _random.seed(seed)
             np.random.seed(seed)
-        self.sim2real_bridge.teardown_all()
+        self.docker_bridge.teardown_all()
         self.global_state = self.network_generator.generate(seed=seed)
-        # Re-attach bridge to freshly generated state
-        self.global_state.sim2real_bridge = self.sim2real_bridge
+        self.global_state.docker_bridge = self.docker_bridge
         self.agents = self.possible_agents[:]
+        self.ordered_hosts = sorted(self.global_state.all_hosts.keys())
+        self._cached_action_masks = {agent: self.action_mask(agent) for agent in self.agents}
         self.global_state.agent_energy = {agent: 50 for agent in self.agents}
         self.global_state.agent_funds = {
             agent: 10000 if 'blue' in agent else 5000 for agent in self.agents
@@ -124,7 +125,7 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
             obs.update_from_state(self.global_state, [])
             observations[agent_id] = {
                 'obs': obs.to_numpy(max_size=256),
-                'action_mask': self.action_mask(agent_id),
+                'action_mask': self._cached_action_masks[agent_id],
                 'siem_embedding': np.zeros(EMBEDDING_DIM, dtype=np.float32),
                 'adj_matrix': self.global_state.get_adjacency_matrix().flatten(),
                 'delta_t': np.zeros(1, dtype=np.float32),
@@ -349,7 +350,7 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
 
             observations[agent] = {
                 'obs': obs_array,
-                'action_mask': self.action_mask(agent),
+                'action_mask': self._cached_action_masks[agent],
                 'siem_embedding': agent_siem_vec,
                 'adj_matrix': self.global_state.get_adjacency_matrix().flatten(),
                 'delta_t': np.array([delta_t_norm], dtype=np.float32),
@@ -434,7 +435,6 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
     def _extract_agent_infos(self, observations: dict, resolved_effects: dict) -> dict:
         """Per-agent metrics dict for TensorBoard / CSV callbacks."""
         infos = {}
-        ordered_hosts = sorted(self.global_state.all_hosts.keys())
         for agent in observations:
             agent_effect = resolved_effects.get(agent)
             info: dict = {}
@@ -472,7 +472,7 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
                 if agent_effect else None
             )
             info['target_ip_index'] = (
-                ordered_hosts.index(target_ip)
+                self.ordered_hosts.index(target_ip)
                 if target_ip and target_ip in self.global_state.all_hosts
                 else None
             )
@@ -522,10 +522,9 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
     def global_state_vector(self) -> np.ndarray:
         """Flat 512-dim vector for centralized critics (MAPPO / QMIX)."""
         priv_codes = {'None': 0.0, 'User': 0.5, 'Root': 1.0}
-        ordered_hosts = sorted(self.global_state.all_hosts.keys())
 
         vec = []
-        for ip in ordered_hosts[:100]:
+        for ip in self.ordered_hosts[:100]:
             host = self.global_state.all_hosts[ip]
             vec.extend([
                 priv_codes.get(host.privilege, 0.0),

@@ -16,7 +16,7 @@ from __future__ import annotations
 import logging
 import time
 
-from netforge_rl.sim2real.hypervisor_base import BaseHypervisor, HypervisorResult
+from netforge_rl.docker_bridge.hypervisor_base import BaseHypervisor, HypervisorResult
 
 logger = logging.getLogger(__name__)
 

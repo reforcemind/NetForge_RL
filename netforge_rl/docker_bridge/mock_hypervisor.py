@@ -13,7 +13,7 @@ import random
 import time
 from pathlib import Path
 
-from netforge_rl.sim2real.hypervisor_base import BaseHypervisor, HypervisorResult
+from netforge_rl.docker_bridge.hypervisor_base import BaseHypervisor, HypervisorResult
 
 # CVE → approximate real-world base success probability.
 # Tuned so that an unpatched target with the right service has ~65-80% chance,

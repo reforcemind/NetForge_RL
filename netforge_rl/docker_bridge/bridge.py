@@ -1,5 +1,5 @@
 """
-Sim2RealBridge — single integration point between the action system and hypervisors.
+DockerBridge — single integration point between the action system and hypervisors.
 
 Responsibilities:
   1. Instantiate the correct driver based on mode ('sim' / 'real').
@@ -9,13 +9,13 @@ Responsibilities:
 """
 
 from __future__ import annotations
-from netforge_rl.sim2real.docker_hypervisor import DockerHypervisor
-from netforge_rl.sim2real.mock_hypervisor import MockHypervisor
+from netforge_rl.docker_bridge.docker_hypervisor import DockerHypervisor
+from netforge_rl.docker_bridge.mock_hypervisor import MockHypervisor
 
 import logging
 from typing import Literal
 
-from netforge_rl.sim2real.hypervisor_base import BaseHypervisor, HypervisorResult
+from netforge_rl.docker_bridge.hypervisor_base import BaseHypervisor, HypervisorResult
 
 logger = logging.getLogger(__name__)
 
@@ -34,13 +34,13 @@ _REWARD_DELTA: dict[str, float] = {
 _NOISY_LATENCY_THRESHOLD_MS = 5000.0  # Longer than this = "noisy" failure
 
 
-class Sim2RealBridge:
+class DockerBridge:
     """
     Dual-mode bridge connecting MARL actions to the hypervisor backend.
 
     Usage:
-        bridge = Sim2RealBridge(mode='sim')   # training default
-        bridge = Sim2RealBridge(mode='real')  # evaluation with Docker
+        bridge = DockerBridge(mode='sim')   # training default
+        bridge = DockerBridge(mode='real')  # evaluation with Docker
 
         result = bridge.dispatch('ExploitEternalBlue', '10.0.1.3', 'Windows_Server_2016')
         reward_delta = bridge.reward_delta(result)
@@ -58,7 +58,7 @@ class Sim2RealBridge:
     ) -> HypervisorResult:
         """Execute payload; auto-fallback to mock if real driver is down."""
         result = self._driver.dispatch(action_name, target_ip, target_os)
-        logger.debug('Sim2RealBridge: %s', result)
+        logger.debug('DockerBridge: %s', result)
         return result
 
     def reward_delta(self, result: HypervisorResult) -> float:
@@ -90,7 +90,7 @@ class Sim2RealBridge:
             driver = DockerHypervisor()
             if not driver.is_available():
                 logger.warning(
-                    'Sim2RealBridge: real mode requested but Docker unavailable. '
+                    'DockerBridge: real mode requested but Docker unavailable. '
                     'Falling back to mock hypervisor.'
                 )
                 return MockHypervisor()
