@@ -9,7 +9,6 @@
 <h1 align="center">NetForge RL</h1>
 
 <p align="center">
-  <b>A research-grade multi-agent cybersecurity environment for Sim2Real reinforcement learning.</b><br><br>
   <a href="ROADMAP.md">Roadmap</a> · <a href="AUDIT.md">Audit</a> · <a href="changelog.md">Changelog</a> · <a href="notebooks/">Notebooks</a>
 </p>
 

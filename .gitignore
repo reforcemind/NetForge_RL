@@ -33,3 +33,5 @@ CybORG/Emulator/AWS/Config/awsconfig.ini
 
 .ipynb_checkpoints/
 docs/
+
+.ruff_cache/

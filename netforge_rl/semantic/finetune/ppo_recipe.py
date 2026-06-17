@@ -5,7 +5,7 @@ from pathlib import Path
 import torch
 import yaml
 from peft import LoraConfig
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import AutoTokenizer
 from trl import AutoModelForCausalLMWithValueHead, PPOConfig, PPOTrainer
 
 from netforge_rl.environment.parallel_env import NetForgeRLEnv
@@ -59,7 +59,6 @@ def main(config_path):
     out_dir = Path(cfg['run']['output_dir'])
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    import torch
 
     for step in range(cfg['run']['total_steps']):
         queries = adapter.queries()
