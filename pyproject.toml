@@ -10,7 +10,7 @@ authors = [
     { name = "marl-Cyborg", email = "igorjankowwski@gmail.com" }
 ]
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.14"
 dependencies = [
     "numpy>=2.0.0",
     "gymnasium>=0.29.1",
@@ -34,19 +34,14 @@ docs = [
     "mkdocstrings[python]>=0.25.0",
 ]
 jax = [
-    # CPU build only — install jax[cuda12] or jax[tpu] explicitly for
-    # accelerator support. Backends.jax is import-guarded so the legacy
-    # PyTorch path keeps working without this extra.
     "jax[cpu]>=0.4.30",
 ]
 render = [
     "matplotlib>=3.8.0",
     "networkx>=3.2.1",
-    "moviepy>=2.0.0",  # optional; only required by FrameRecorder.save
+    "moviepy>=2.0.0",
 ]
 finetune = [
-    # LoRA + PPO fine-tuning of open-weights LLMs. GPU only; the adapter
-    # itself is testable without these.
     "torch>=2.3.0",
     "transformers>=4.44.0",
     "trl>=0.9.0",
@@ -55,23 +50,15 @@ finetune = [
     "accelerate>=0.33.0",
 ]
 pcap = [
-    # netforge_rl/environment/pcap_synthesizer.py imports scapy at module
-    # top-level. Without this extra, importing the pcap_synthesizer fails.
     "scapy>=2.5.0",
 ]
 sim2real = [
-    # netforge_rl/sim2real/docker_hypervisor.py — lazy-imports docker
-    # when toggled to 'real' mode against Vulhub containers.
     "docker>=7.0.0",
 ]
 nlp = [
-    # Optional dense embedding backend for SIEM log encoding (BERT-style).
-    # The default TF-IDF backend (sklearn) requires no extra.
     "sentence-transformers>=2.7.0",
 ]
 llm_clients = [
-    # Closed-source API clients for the zero-shot leaderboard
-    # (Phase 8 M2). Lazy-imported by the respective client adapters.
     "anthropic>=0.34.0",
     "openai>=1.40.0",
     "google-generativeai>=0.7.0",
@@ -88,7 +75,7 @@ markers = [
 [tool.ruff]
 line-length = 88
 
-target-version = "py312"
+target-version = "py313"
 
 [tool.ruff.format]
 quote-style = "single"
@@ -99,3 +86,9 @@ skip-magic-trailing-comma = false
 
 docstring-code-format = true
 docstring-code-line-length = "dynamic"
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["E402"]
+"netforge_rl/semantic/clients/*.py" = ["F401"]
+[tool.ruff.lint]
+ignore = ["E701", "E402", "E702"]
