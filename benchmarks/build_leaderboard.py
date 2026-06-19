@@ -1,5 +1,3 @@
-"""Run baselines × scenarios and dump leaderboard JSON + summary."""
-
 import argparse
 import json
 import time

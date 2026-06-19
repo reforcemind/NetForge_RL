@@ -1,5 +1,3 @@
-"""Measure rollout throughput of the JAX PPO baseline (steps/sec)."""
-
 import argparse
 import json
 import platform

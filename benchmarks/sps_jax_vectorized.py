@@ -1,5 +1,3 @@
-"""JAX vectorized backend SPS sweep across batch sizes."""
-
 import argparse
 import json
 import platform

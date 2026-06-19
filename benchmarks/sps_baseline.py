@@ -1,5 +1,3 @@
-"""Legacy single-env SPS baseline. Locks the pre-refactor throughput."""
-
 import argparse
 import json
 import platform
