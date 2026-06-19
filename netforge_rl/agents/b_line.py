@@ -12,7 +12,6 @@ class BLineAgent:
 
     def __init__(self, agent_id: str):
         self.agent_id = agent_id
-        self.known_subnets = ['10.0.0.0/24', '192.168.1.0/24', '10.0.1.0/24']
         self.known_hosts = []
         self.exploited_hosts = []
         self.root_hosts = []
@@ -39,9 +38,10 @@ class BLineAgent:
         self.step_count += 1
 
         if not self.known_hosts or self.step_count < 3:
-            target_subnet = self.known_subnets[
-                self.step_count % len(self.known_subnets)
-            ]
+            available_subnets = list(global_state.subnets.keys())
+            target_subnet = available_subnets[
+                self.step_count % len(available_subnets)
+            ] if available_subnets else '10.0.0.0/24'
             for host in global_state.all_hosts.values():
                 if (
                     host.subnet_cidr == target_subnet
