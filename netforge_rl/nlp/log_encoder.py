@@ -37,13 +37,7 @@ EMBEDDING_DIM = 128
 
 
 class LogEncoder:
-    """Encode SIEM log strings to fixed-dim float32 vectors.
-
-    Backends:
-      * ``tfidf``       (default) — sklearn char-ngram TF-IDF + truncated SVD.
-      * ``transformer`` — all-MiniLM-L6-v2 + random projection to ``EMBEDDING_DIM``.
-        Falls back to TF-IDF when sentence-transformers isn't installed.
-    """
+    """Encode SIEM log strings to fixed-dim float32 vectors."""
 
     def __init__(
         self,
@@ -59,7 +53,7 @@ class LogEncoder:
         )
 
     def encode(self, text: str) -> np.ndarray:
-        """Encode one log string. Returns zeros on empty input."""
+        """Encode one log string."""
         if not text or not text.strip():
             return np.zeros(EMBEDDING_DIM, dtype=np.float32)
 
@@ -74,7 +68,7 @@ class LogEncoder:
         return vec
 
     def encode_buffer(self, log_lines: list, agg: str = 'mean') -> np.ndarray:
-        """Encode a batch of log lines and aggregate via ``mean`` or ``max``."""
+        """Encode a batch of log lines."""
         if not log_lines:
             return np.zeros(EMBEDDING_DIM, dtype=np.float32)
         str_lines = [s if isinstance(s, str) else str(s) for s in log_lines]
@@ -142,7 +136,7 @@ class LogEncoder:
     def _build_training_corpus(self) -> list:
         corpus: list = []
 
-        lib_path = Path(__file__).parent.parent / 'sim2real' / 'payload_library.json'
+        lib_path = Path(__file__).parent.parent / 'docker_bridge' / 'payload_library.json'
         if lib_path.exists():
             lib = json.loads(lib_path.read_text())
             for action_data in lib.values():
