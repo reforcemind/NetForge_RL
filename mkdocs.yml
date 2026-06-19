@@ -40,6 +40,9 @@ theme:
     repo: fontawesome/brands/github
     logo: material/shield-lock
 
+extra_css:
+  - stylesheets/custom.css
+
 extra:
   social:
     - icon: fontawesome/brands/github
