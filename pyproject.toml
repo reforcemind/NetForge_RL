@@ -42,7 +42,7 @@ render = [
     "moviepy>=2.0.0",
 ]
 finetune = [
-    "torch>=2.13.0",
+    "torch>=2.12.0",
     "transformers>=5.12.0",
     "trl>=0.9.0",
     "peft>=0.12.0",
@@ -92,3 +92,6 @@ docstring-code-line-length = "dynamic"
 "netforge_rl/semantic/clients/*.py" = ["F401"]
 [tool.ruff.lint]
 ignore = ["E701", "E402", "E702"]
+
+[tool.setuptools.packages.find]
+include = ["netforge_rl*"]

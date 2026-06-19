@@ -17,6 +17,8 @@ CybORG\.egg-info/
 _pycache_/
 *.pyc
 
+uv.lock
+
 CybORG/Logs/
 CybORG/Emulator/Logs/
 CybORG/Emulator/logs/
