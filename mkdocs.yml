@@ -109,3 +109,10 @@ nav:
     - RLlib + LSTM: training/rllib.md
     - Scenarios: training/scenarios.md
   - Changelog: changelog.md
+  - Project Documents:
+    - Action Coverage: ACTION_COVERAGE.md
+    - Audit: AUDIT.md
+    - Datasheet: DATASHEET.md
+    - External Audit: NetForge_Audit.md
+    - Novelty Analysis: NetForge_Novelty_Analysis.md
+    - Roadmap: ROADMAP.md
