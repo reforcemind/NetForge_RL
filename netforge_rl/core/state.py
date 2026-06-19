@@ -1,6 +1,5 @@
 import random
 from typing import Any, Dict, Set
-
 import numpy as np
 
 
@@ -9,10 +8,10 @@ class Host:
         self.ip = ip
         self.hostname = hostname
         self.subnet_cidr = subnet_cidr
-        self.status = 'online'              # 'online' | 'isolated' | 'kernel_panic'
-        self.privilege = 'None'             # 'None' | 'User' | 'Root'
+        self.status = 'online'
+        self.privilege = 'None'
         self.decoy = 'inactive'
-        self.compromised_by = 'None'        # agent_id of breach owner
+        self.compromised_by = 'None'
         self.edr_active = False
         self.os = 'Unknown'
         self.services: list = []
@@ -20,8 +19,8 @@ class Host:
         self.is_domain_controller = False
         self.human_vulnerability_score = 0.5
         self.contains_honeytokens = False
-        self.cached_credentials: list = []  # leaked via LSASS
-        self.system_tokens: list = []       # required for ZTNA-gated routes
+        self.cached_credentials: list = []
+        self.system_tokens: list = []
 
     def __repr__(self):
         return (
@@ -45,7 +44,7 @@ class Firewall:
         self.rules: Dict[tuple[str, int], str] = {}
 
     def block_port(self, target_subnet: str, port: int):
-        self.rules[(target_subnet, port)] = 'block'
+        self.rules[target_subnet, port] = 'block'
 
     def is_blocked(self, target_subnet: str, port: int) -> bool:
         return self.rules.get((target_subnet, port)) == 'block'
@@ -58,15 +57,12 @@ class GlobalNetworkState:
         self.subnets: Dict[str, Subnet] = {}
         self.all_hosts: Dict[str, Host] = {}
         self.firewalls: Dict[str, Firewall] = {}
-
         self.agent_knowledge: Dict[str, Set[str]] = {}
         self.agent_inventory: Dict[str, set] = {}
-
         self.agent_energy: Dict[str, int] = {}
         self.agent_funds: Dict[str, int] = {}
         self.agent_compute: Dict[str, int] = {}
         self.business_downtime_score = 0.0
-
         self.agent_locked_until: Dict[str, int] = {}
         self.action_history: Dict[str, set] = {}
         self.pending_effects: list = []
@@ -87,59 +83,70 @@ class GlobalNetworkState:
             self.subnets[host.subnet_cidr].add_host(host)
 
     def apply_delta(self, delta_key: Any, delta_value: Any = None):
-        """Apply a state delta — either a Command object or a ``<scope>/<...>`` string."""
+        """Apply a state delta — either a Command object or a string."""
         if hasattr(delta_key, 'execute') and callable(delta_key.execute):
             delta_key.execute(self)
             return
         if not isinstance(delta_key, str):
             return
-
         parts = delta_key.split('/')
         if parts[0] == 'hosts' and len(parts) == 3:
-            ip, attribute = parts[1], parts[2]
+            ip, attribute = (parts[1], parts[2])
             host = self.all_hosts.get(ip)
             if host is not None and hasattr(host, attribute):
                 setattr(host, attribute, delta_value)
-
         elif parts[0] == 'knowledge' and len(parts) == 3:
             self.update_knowledge(parts[1], parts[2])
-
-        elif parts[0] == 'firewall' and parts[1] == 'block' and len(parts) == 4:
+        elif parts[0] == 'firewall' and parts[1] == 'block' and (len(parts) == 4):
             subnet = parts[2].replace('_slash_', '/')
             self.firewalls.setdefault('global', Firewall('global')).block_port(
                 subnet, int(parts[3])
             )
-
         elif parts[0] == 'history' and len(parts) == 3:
             self.action_history.setdefault(parts[1], set()).add(parts[2])
 
-    def can_route_to(self, target_ip: str, port: int = None, agent_id: str = None) -> bool:
+    def copy(self) -> 'GlobalNetworkState':
+        """Deep copy for MCTS/AlphaZero planning."""
+        from copy import deepcopy
+
+        return deepcopy(self)
+
+    def apply_delta_pure(
+        self, delta_key: Any, delta_value: Any = None
+    ) -> 'GlobalNetworkState':
+        """Return a new GlobalNetworkState with the delta applied, preserving the original."""
+        new_state = self.copy()
+        new_state.apply_delta(delta_key, delta_value)
+        return new_state
+
+    def can_route_to(
+        self, target_ip: str, port: int = None, agent_id: str = None
+    ) -> bool:
         """Evaluate subnet routing + firewall blocks + ZTNA gate."""
         host = self.all_hosts.get(target_ip)
         if host is None or host.status == 'isolated':
             return False
-
         target_subnet = host.subnet_cidr
-
         if port is not None and any(
-            fw.is_blocked(target_subnet, port) for fw in self.firewalls.values()
+            (fw.is_blocked(target_subnet, port) for fw in self.firewalls.values())
         ):
             return False
-
-        if target_subnet == '192.168.1.0/24':  # DMZ — always routable.
+        if target_subnet == '192.168.1.0/24':
             return True
-
         has_dmz_pivot = any(
-            h.privilege in ('User', 'Root') and h.subnet_cidr == '192.168.1.0/24'
-            for h in self.all_hosts.values()
-        )
-        if target_subnet == '10.0.0.0/24':  # Corporate
-            return has_dmz_pivot
-
-        if target_subnet == '10.0.1.0/24':  # Secure — ZTNA-gated.
-            has_corp_pivot = any(
-                h.privilege in ('User', 'Root') and h.subnet_cidr == '10.0.0.0/24'
+            (
+                h.privilege in ('User', 'Root') and h.subnet_cidr == '192.168.1.0/24'
                 for h in self.all_hosts.values()
+            )
+        )
+        if target_subnet == '10.0.0.0/24':
+            return has_dmz_pivot
+        if target_subnet == '10.0.1.0/24':
+            has_corp_pivot = any(
+                (
+                    h.privilege in ('User', 'Root') and h.subnet_cidr == '10.0.0.0/24'
+                    for h in self.all_hosts.values()
+                )
             )
             if not (has_dmz_pivot or has_corp_pivot):
                 return False
@@ -148,20 +155,16 @@ class GlobalNetworkState:
                 if 'Enterprise_Admin_Token' not in inv:
                     return False
             return True
-
         return False
 
     def get_adjacency_matrix(self) -> np.ndarray:
-        """100x100 adjacency matrix; ``can_route_to`` is destination-only so rows
-        currently broadcast the same routing decision."""
+        """100x100 adjacency matrix; ``can_route_to`` is destination-only so rows broadcast the same decision."""
         adj = np.zeros((100, 100), dtype=np.float32)
         sorted_ips = sorted(self.all_hosts.keys())
-
         for i, _src_ip in enumerate(sorted_ips):
             for j, dst_ip in enumerate(sorted_ips):
                 if i == j or self.can_route_to(dst_ip):
                     adj[i, j] = 1.0
-
         return adj
 
     def reallocate_dhcp(self):
@@ -172,15 +175,12 @@ class GlobalNetworkState:
             hosts = list(subnet.hosts.values())
             if not hosts:
                 continue
-
             base_ip = subnet.cidr.split('.0/')[0]
             new_ips = random.sample(range(1, 250), len(hosts))
-
             new_subnet_hosts = {}
             for i, host in enumerate(hosts):
                 self.all_hosts.pop(host.ip, None)
                 host.ip = f'{base_ip}.{new_ips[i]}'
                 self.all_hosts[host.ip] = host
                 new_subnet_hosts[host.ip] = host
-
             subnet.hosts = new_subnet_hosts

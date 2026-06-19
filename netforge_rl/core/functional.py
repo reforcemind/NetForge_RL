@@ -1,36 +1,24 @@
 from dataclasses import dataclass, field, replace
 from typing import TYPE_CHECKING
-
 import numpy as np
 
-if TYPE_CHECKING:
-    pass
-
-
-N_HOSTS = 100  # NetworkGenerator always pads to this for tensor-shape stability.
-
-# Codebook order is load-bearing — appends only, no reorders.
+N_HOSTS = 100
 STATUS_CODES = ('online', 'isolated', 'kernel_panic')
 PRIVILEGE_CODES = ('None', 'User', 'Root')
 DECOY_CODES = ('inactive', 'active', 'Apache', 'SSHD', 'Tomcat')
 INTEGRITY_CODES = ('clean', 'compromised', 'kinetic_destruction')
 CVE_CODES = (
-    'MS17-010',          # EternalBlue
-    'CVE-2019-0708',     # BlueKeep
-    'CVE-2021-44228',    # Log4Shell / HTTP_RFI proxy
+    'MS17-010',
+    'CVE-2019-0708',
+    'CVE-2021-44228',
     'V4L2',
     'CVE-2010-2772',
     'Stuxnet_0day',
 )
 N_CVE = len(CVE_CODES)
-
-# Identity tokens that can be looted (DumpLSASS) and spent (PassTheTicket /
-# PassTheHash). Index order is load-bearing.
 TOKEN_CODES = ('Enterprise_Admin_Token', 'Local_Admin_DMZ', 'Local_Admin_Corporate')
 N_TOKEN = len(TOKEN_CODES)
-
-# OS family codes for kernel-level exploit gating (JuicyPotato, V4L2...).
-OS_OTHER, OS_WINDOWS, OS_LINUX, OS_PLC = 0, 1, 2, 3
+OS_OTHER, OS_WINDOWS, OS_LINUX, OS_PLC = (0, 1, 2, 3)
 
 
 def _os_family_code(os_str):
@@ -61,6 +49,7 @@ def _decode(code, codebook):
 @dataclass(frozen=True)
 class HostArrays:
     """Vectorizable per-host SoA — JAX PyTree leaves."""
+
     status: np.ndarray
     privilege: np.ndarray
     decoy: np.ndarray
@@ -69,16 +58,17 @@ class HostArrays:
     contains_honeytokens: np.ndarray
     human_vulnerability: np.ndarray
     cvss_score: np.ndarray
-    compromised_by_id: np.ndarray   # int8[N_HOSTS], -1 == not compromised
+    compromised_by_id: np.ndarray
     system_integrity: np.ndarray
-    vuln_mask: np.ndarray           # bool[N_HOSTS, N_CVE]
-    host_tokens: np.ndarray         # bool[N_HOSTS, N_TOKEN] — tokens leaked on LSASS
-    os_family: np.ndarray           # int8[N_HOSTS] in {OS_OTHER, OS_WINDOWS, OS_LINUX, OS_PLC}
+    vuln_mask: np.ndarray
+    host_tokens: np.ndarray
+    os_family: np.ndarray
 
 
 @dataclass(frozen=True)
 class HostMeta:
     """Static / variable-length host metadata. Not a PyTree leaf."""
+
     ip: tuple
     hostname: tuple
     subnet_cidr: tuple
@@ -92,6 +82,7 @@ class HostMeta:
 @dataclass(frozen=True)
 class EnvState:
     """Immutable snapshot of the MARL environment."""
+
     hosts: HostArrays
     meta: HostMeta
     agent_ids: tuple
@@ -119,17 +110,12 @@ class EnvState:
 
 
 def from_global_state(legacy, agent_ids):
-    """Build a frozen EnvState from a legacy GlobalNetworkState.
-
-    Hosts are ordered by sorted IP (same canonical order the legacy env uses).
-    """
+    """Build a frozen EnvState from a legacy GlobalNetworkState."""
     sorted_ips = tuple(sorted(legacy.all_hosts.keys()))
     n = len(sorted_ips)
     if n != N_HOSTS:
         raise ValueError(f'Expected exactly {N_HOSTS} hosts; got {n}.')
-
     hosts_in_order = [legacy.all_hosts[ip] for ip in sorted_ips]
-
     status_arr = np.array(
         [_encode(h.status, STATUS_CODES) for h in hosts_in_order], dtype=np.int8
     )
@@ -151,8 +137,7 @@ def from_global_state(legacy, agent_ids):
         [float(h.human_vulnerability_score) for h in hosts_in_order], dtype=np.float32
     )
     cvss_arr = np.array(
-        [float(getattr(h, 'cvss_score', 0.0)) for h in hosts_in_order],
-        dtype=np.float32,
+        [float(getattr(h, 'cvss_score', 0.0)) for h in hosts_in_order], dtype=np.float32
     )
     comp_arr = np.array(
         [
@@ -168,13 +153,11 @@ def from_global_state(legacy, agent_ids):
         ],
         dtype=np.int8,
     )
-
     vuln_mask = np.zeros((n, N_CVE), dtype=bool)
     for i, h in enumerate(hosts_in_order):
         for cve in getattr(h, 'vulnerabilities', None) or ():
             if cve in CVE_CODES:
                 vuln_mask[i, CVE_CODES.index(cve)] = True
-
     host_tokens = np.zeros((n, N_TOKEN), dtype=bool)
     for i, h in enumerate(hosts_in_order):
         for tok in getattr(h, 'cached_credentials', None) or ():
@@ -183,11 +166,7 @@ def from_global_state(legacy, agent_ids):
         for tok in getattr(h, 'system_tokens', None) or ():
             if tok in TOKEN_CODES:
                 host_tokens[i, TOKEN_CODES.index(tok)] = True
-
-    os_family = np.array(
-        [_os_family_code(h.os) for h in hosts_in_order], dtype=np.int8
-    )
-
+    os_family = np.array([_os_family_code(h.os) for h in hosts_in_order], dtype=np.int8)
     hosts = HostArrays(
         status=status_arr,
         privilege=priv_arr,
@@ -203,18 +182,16 @@ def from_global_state(legacy, agent_ids):
         host_tokens=host_tokens,
         os_family=os_family,
     )
-
     meta = HostMeta(
         ip=sorted_ips,
-        hostname=tuple(h.hostname for h in hosts_in_order),
-        subnet_cidr=tuple(h.subnet_cidr for h in hosts_in_order),
-        os=tuple(h.os for h in hosts_in_order),
-        services=tuple(tuple(h.services) for h in hosts_in_order),
-        vulnerabilities=tuple(tuple(h.vulnerabilities) for h in hosts_in_order),
-        cached_credentials=tuple(tuple(h.cached_credentials) for h in hosts_in_order),
-        system_tokens=tuple(tuple(h.system_tokens) for h in hosts_in_order),
+        hostname=tuple((h.hostname for h in hosts_in_order)),
+        subnet_cidr=tuple((h.subnet_cidr for h in hosts_in_order)),
+        os=tuple((h.os for h in hosts_in_order)),
+        services=tuple((tuple(h.services) for h in hosts_in_order)),
+        vulnerabilities=tuple((tuple(h.vulnerabilities) for h in hosts_in_order)),
+        cached_credentials=tuple((tuple(h.cached_credentials) for h in hosts_in_order)),
+        system_tokens=tuple((tuple(h.system_tokens) for h in hosts_in_order)),
     )
-
     return EnvState(
         hosts=hosts,
         meta=meta,
@@ -235,18 +212,16 @@ def from_global_state(legacy, agent_ids):
         current_tick=int(legacy.current_tick),
         business_downtime_score=float(legacy.business_downtime_score),
         knowledge=tuple(
-            frozenset(legacy.agent_knowledge.get(a, set())) for a in agent_ids
+            (frozenset(legacy.agent_knowledge.get(a, set())) for a in agent_ids)
         ),
         inventory=tuple(
-            frozenset(legacy.agent_inventory.get(a, set())) for a in agent_ids
+            (frozenset(legacy.agent_inventory.get(a, set())) for a in agent_ids)
         ),
     )
 
 
 def to_global_state(snap: EnvState):
-    """Inverse of from_global_state. Discards action_history / SIEM buffer
-    fields not yet modelled on EnvState.
-    """
+    """Inverse of from_global_state. Discards action_history / SIEM buffer fields."""
     from netforge_rl.core.state import GlobalNetworkState, Subnet, Host
 
     legacy = GlobalNetworkState()
@@ -257,12 +232,9 @@ def to_global_state(snap: EnvState):
         sn = Subnet(cidr=cidr, name=cidr)
         seen[cidr] = sn
         legacy.add_subnet(sn)
-
     for i, ip in enumerate(snap.meta.ip):
         host = Host(
-            ip=ip,
-            hostname=snap.meta.hostname[i],
-            subnet_cidr=snap.meta.subnet_cidr[i],
+            ip=ip, hostname=snap.meta.hostname[i], subnet_cidr=snap.meta.subnet_cidr[i]
         )
         host.status = _decode(snap.hosts.status[i], STATUS_CODES)
         host.privilege = _decode(snap.hosts.privilege[i], PRIVILEGE_CODES)
@@ -281,7 +253,6 @@ def to_global_state(snap: EnvState):
         host.compromised_by = snap.agent_ids[cid] if cid >= 0 else 'None'
         host.system_integrity = _decode(snap.hosts.system_integrity[i], INTEGRITY_CODES)
         legacy.register_host(host)
-
     for j, agent in enumerate(snap.agent_ids):
         legacy.agent_energy[agent] = int(snap.agent_energy[j])
         legacy.agent_funds[agent] = int(snap.agent_funds[j])
@@ -289,7 +260,6 @@ def to_global_state(snap: EnvState):
         legacy.agent_locked_until[agent] = int(snap.agent_locked_until[j])
         legacy.agent_knowledge[agent] = set(snap.knowledge[j])
         legacy.agent_inventory[agent] = set(snap.inventory[j])
-
     legacy.current_tick = int(snap.current_tick)
     legacy.business_downtime_score = float(snap.business_downtime_score)
     return legacy
@@ -305,7 +275,6 @@ _ARRAY_FIELD = {
     'human_vulnerability_score': ('human_vulnerability', float),
     'cvss_score': ('cvss_score', float),
 }
-
 _META_FIELD = {
     'os': 'os',
     'services': 'services',
@@ -324,7 +293,12 @@ def _set_host_array(state, idx, field_name, encoded_value):
 
 def _set_host_meta(state, idx, field_name, value):
     current = list(getattr(state.meta, field_name))
-    if field_name in ('services', 'vulnerabilities', 'cached_credentials', 'system_tokens'):
+    if field_name in (
+        'services',
+        'vulnerabilities',
+        'cached_credentials',
+        'system_tokens',
+    ):
         current[idx] = tuple(value) if not isinstance(value, str) else (value,)
     else:
         current[idx] = value
@@ -346,18 +320,15 @@ def _set_compromised_by(state, idx, agent_id):
 
 
 def apply_state_delta(state, delta_key, delta_value=None):
-    """Pure interpreter for legacy ``state_deltas`` entries. Unknown keys no-op."""
+    """Pure interpreter for legacy ``state_deltas`` entries."""
     if not isinstance(delta_key, str):
         return state
-
     parts = delta_key.split('/')
-
     if parts[0] == 'hosts' and len(parts) == 3:
-        ip, attribute = parts[1], parts[2]
+        ip, attribute = (parts[1], parts[2])
         if ip not in state.meta.ip:
             return state
         idx = state.meta.ip.index(ip)
-
         if attribute == 'compromised_by':
             return _set_compromised_by(state, idx, delta_value)
         if attribute in _ARRAY_FIELD:
@@ -366,18 +337,16 @@ def apply_state_delta(state, delta_key, delta_value=None):
         if attribute in _META_FIELD:
             return _set_host_meta(state, idx, _META_FIELD[attribute], delta_value)
         return state
-
     if parts[0] == 'knowledge' and len(parts) == 3:
-        agent_id, ip = parts[1], parts[2]
+        agent_id, ip = (parts[1], parts[2])
         if agent_id not in state.agent_ids:
             return state
         j = state.agent_ids.index(agent_id)
         new_set = state.knowledge[j] | {ip}
         new_knowledge = tuple(
-            new_set if k == j else s for k, s in enumerate(state.knowledge)
+            (new_set if k == j else s for k, s in enumerate(state.knowledge))
         )
         return replace(state, knowledge=new_knowledge)
-
     return state
 
 
@@ -410,11 +379,7 @@ def _extract_targeted_ips(state_deltas):
 
 
 def resolve_conflicts(effects):
-    """Pure variant of ConflictResolutionEngine.resolve — does NOT mutate input.
-
-    Returns a NEW dict mapping agent_id → ActionEffect with Red nullified on
-    same-target collision with a successful Blue.
-    """
+    """Pure variant of ConflictResolutionEngine.resolve — does NOT mutate input."""
     from netforge_rl.core.action import ActionEffect
 
     blue_defended = set()
@@ -423,13 +388,11 @@ def resolve_conflicts(effects):
             continue
         if 'blue' in agent_id.lower():
             blue_defended |= _extract_targeted_ips(eff.state_deltas)
-
     resolved = {}
     for agent_id, eff in effects.items():
         if eff is None or not eff.success or 'red' not in agent_id.lower():
             resolved[agent_id] = eff
             continue
-
         red_targets = _extract_targeted_ips(eff.state_deltas)
         if red_targets & blue_defended:
             empty_deltas = [] if isinstance(eff.state_deltas, list) else {}
@@ -444,5 +407,4 @@ def resolve_conflicts(effects):
             )
         else:
             resolved[agent_id] = eff
-
     return resolved

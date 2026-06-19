@@ -1,5 +1,4 @@
 from typing import Dict
-
 from netforge_rl.core.action import ActionEffect
 
 
@@ -14,11 +13,7 @@ def _targets(eff: ActionEffect) -> set:
             if isinstance(k, str) and 'hosts/' in k
         }
     if isinstance(eff.state_deltas, list):
-        return {
-            d.target_ip
-            for d in eff.state_deltas
-            if getattr(d, 'target_ip', None)
-        }
+        return {d.target_ip for d in eff.state_deltas if getattr(d, 'target_ip', None)}
     return set()
 
 
@@ -31,13 +26,22 @@ class ConflictResolutionEngine:
         for agent_id, eff in effects.items():
             if 'blue' in agent_id.lower():
                 defended |= _targets(eff)
-
+        resolved = {}
         for agent_id, eff in effects.items():
-            if 'red' not in agent_id.lower() or eff is None or not eff.success:
+            if 'red' not in agent_id.lower() or eff is None or (not eff.success):
+                resolved[agent_id] = eff
                 continue
             if _targets(eff) & defended:
-                eff.success = False
-                eff.state_deltas = [] if isinstance(eff.state_deltas, list) else {}
-                eff.observation_data['alert'] = 'TEMPORAL_COLLISION_DEFENSE_SUPREMACY'
-
-        return effects
+                empty_deltas = [] if isinstance(eff.state_deltas, list) else {}
+                new_obs = dict(eff.observation_data)
+                new_obs['alert'] = 'TEMPORAL_COLLISION_DEFENSE_SUPREMACY'
+                resolved[agent_id] = ActionEffect(
+                    success=False,
+                    state_deltas=empty_deltas,
+                    observation_data=new_obs,
+                    eta=eff.eta,
+                    action=eff.action,
+                )
+            else:
+                resolved[agent_id] = eff
+        return resolved

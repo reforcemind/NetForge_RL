@@ -3,8 +3,7 @@ from typing import Any, Optional
 
 
 class IStateDeltaCommand(ABC):
-    """Object-oriented state mutation; the resolver reads ``target_ip`` to
-    detect same-target collisions."""
+    """Object-oriented state mutation; the resolver reads target_ip."""
 
     @abstractmethod
     def execute(self, global_state: Any): ...
@@ -94,9 +93,9 @@ class BlockPortCommand(IStateDeltaCommand):
     def execute(self, global_state):
         from netforge_rl.core.state import Firewall
 
-        global_state.firewalls.setdefault(
-            'global', Firewall('global')
-        ).block_port(self.subnet, self.port)
+        global_state.firewalls.setdefault('global', Firewall('global')).block_port(
+            self.subnet, self.port
+        )
 
 
 class AddHistoryCommand(IStateDeltaCommand):

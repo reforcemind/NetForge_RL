@@ -3,7 +3,7 @@ from typing import Callable, Dict, Optional, Type
 
 
 class ActionRegistry:
-    """Factory registry mapping ``(team, group_id) -> BaseAction subclass``."""
+    """Factory registry mapping ``(team, group_id) -> BaseAction subclass."""
 
     def __init__(self):
         self._actions: Dict[str, Dict[int, Type]] = {
@@ -14,6 +14,7 @@ class ActionRegistry:
         }
 
     def register(self, team: str, group_id: int) -> Callable:
+
         def decorator(cls):
             self._actions.setdefault(team, {})[group_id] = cls
             return cls
@@ -27,11 +28,9 @@ class ActionRegistry:
             primary = 'red_commander' if 'commander' in lower else 'red'
         else:
             primary = 'blue_commander' if 'commander' in lower else 'blue'
-
-        return (
-            self._actions.get(primary, {}).get(group_id)
-            or self._actions.get(lower, {}).get(group_id)
-        )
+        return self._actions.get(primary, {}).get(group_id) or self._actions.get(
+            lower, {}
+        ).get(group_id)
 
     def instantiate_action(
         self, agent_id: str, action_data: object, target_ips: list
@@ -39,7 +38,6 @@ class ActionRegistry:
         """Resolve an action payload to a BaseAction instance."""
         if not target_ips:
             target_ips = ['127.0.0.1']
-
         if (
             isinstance(action_data, (list, tuple))
             or type(action_data).__name__ == 'ndarray'
@@ -49,12 +47,10 @@ class ActionRegistry:
         else:
             action_int = int(action_data)
             target_ip = target_ips[action_int % len(target_ips)]
-            action_type_id = (action_int // len(target_ips)) % 12
-
+            action_type_id = action_int // len(target_ips) % 12
         ActionCls = self.get_action_class(agent_id, action_type_id)
         if not ActionCls:
             return None
-
         params = inspect.signature(ActionCls.__init__).parameters
         kwargs = {'agent_id': agent_id}
         if 'target_ip' in params:
@@ -66,7 +62,6 @@ class ActionRegistry:
             kwargs['target_agent_id'] = (
                 'red_operator' if agent_id == 'red_commander' else 'red_commander'
             )
-
         return ActionCls(**kwargs)
 
 
