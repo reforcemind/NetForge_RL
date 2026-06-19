@@ -1,15 +1,12 @@
-from typing import TYPE_CHECKING, Dict
+from typing import Dict
 from netforge_rl.scenarios.base_scenario import BaseScenario
 
-if TYPE_CHECKING:
-    from netforge_rl.core.state import GlobalNetworkState
-    from netforge_rl.core.action import ActionEffect
+from netforge_rl.core.state import GlobalNetworkState
+from netforge_rl.core.action import ActionEffect
 
 
 class AptEspionageScenario(BaseScenario):
-    """
-    Scenario: Red Team acts as an Advanced Persistent Threat.
-    """
+    """APT espionage scenario."""
 
     def __init__(self, agents):
         self.agents = agents

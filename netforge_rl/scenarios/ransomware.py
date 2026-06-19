@@ -1,13 +1,12 @@
-from typing import TYPE_CHECKING, Dict
+from typing import Dict
 from netforge_rl.scenarios.base_scenario import BaseScenario
 
-if TYPE_CHECKING:
-    from netforge_rl.core.state import GlobalNetworkState
-    from netforge_rl.core.action import ActionEffect
+from netforge_rl.core.state import GlobalNetworkState
+from netforge_rl.core.action import ActionEffect
 
 
 class RansomwareScenario(BaseScenario):
-    """Scenario: Red Team aggressively deploys ransomware."""
+    """Ransomware scenario."""
 
     def __init__(self, agents):
         self.agents = agents
@@ -90,19 +89,12 @@ class RansomwareScenario(BaseScenario):
         effect: 'ActionEffect' = None,
     ) -> float:
         reward = 0.0
-
-        # ONE-TIME action bonuses
         if effect and effect.success and effect.state_deltas:
-            # We iterate differently based on whether it's a dict or a list
             deltas = (
                 effect.state_deltas.items()
                 if isinstance(effect.state_deltas, dict)
                 else []
             )
-
-            # If it's a list (e.g. IdentityFlush), we don't have key/val pairs easily
-            # but we can look for specific attributes if needed.
-            # For now, we only reward dict-based state changes which are common for most actions.
             for delta_key, delta_val in deltas:
                 # Successful isolation
                 if 'status' in delta_key and delta_val == 'isolated':
@@ -170,7 +162,7 @@ class RansomwareScenario(BaseScenario):
         target_hosts = [
             h
             for h in global_state.all_hosts.values()
-            if h.subnet_cidr in ['10.0.0.0/24', '10.0.1.0/24']
+            if global_state.get_subnet_name(h.subnet_cidr) in ['Corporate', 'Secure']
         ]
 
         if target_hosts and all(

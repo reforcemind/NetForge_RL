@@ -1,20 +1,6 @@
-"""OT/ICS kinetic kill-chain scenario. Red must pivot DMZ → Corporate →
-Secure → OT and then trigger kinetic impact on a PLC. Reward shape
-forces full chain execution: nothing big is paid until the PLC ticks
-into ``kinetic_destruction``.
-"""
-
 from __future__ import annotations
-
-from typing import TYPE_CHECKING, Dict
-
+from typing import Dict
 from netforge_rl.scenarios.base_scenario import BaseScenario
-
-if TYPE_CHECKING:
-    pass
-
-
-_OT_CIDR = '10.0.99.0/24'
 
 
 class OTStuxnetScenario(BaseScenario):
@@ -47,7 +33,7 @@ class OTStuxnetScenario(BaseScenario):
                     ip = k.split('/')[1] if '/' in k else None
                     host = state.all_hosts.get(ip) if ip else None
                     if host:
-                        if host.subnet_cidr == _OT_CIDR:
+                        if state.get_subnet_name(host.subnet_cidr) == 'OT':
                             r += self.PER_TIER_BONUS * 3  # OT pwn is worth 3x
                         else:
                             r += self.PER_TIER_BONUS
@@ -63,7 +49,7 @@ class OTStuxnetScenario(BaseScenario):
         ot_clean = all(
             h.compromised_by == 'None'
             for h in state.all_hosts.values()
-            if h.subnet_cidr == _OT_CIDR
+            if state.get_subnet_name(h.subnet_cidr) == 'OT'
         )
         if ot_clean:
             r += self.BLUE_HOLD_BONUS
@@ -80,7 +66,7 @@ class OTStuxnetScenario(BaseScenario):
                 if 'status' in k and v == 'isolated':
                     ip = k.split('/')[1] if '/' in k else None
                     host = state.all_hosts.get(ip) if ip else None
-                    if host and host.subnet_cidr == _OT_CIDR:
+                    if host and state.get_subnet_name(host.subnet_cidr) == 'OT':
                         r += 6.0  # Isolating an OT host is high-value defense
         return r
 

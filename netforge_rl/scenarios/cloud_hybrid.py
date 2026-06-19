@@ -1,20 +1,9 @@
 from typing import Dict
-
 from netforge_rl.scenarios.base_scenario import BaseScenario
 
 
-_SECURE_CIDR = '10.0.1.0/24'
-_DMZ_CIDR = '192.168.1.0/24'
-
-
 class CloudHybridScenario(BaseScenario):
-    """Cloud-style hybrid: Red wins by breaching the Secure subnet (ZTNA-gated);
-    Blue wins by keeping SLA uptime + identity rotation hygiene.
-
-    Red bonuses scale with how deep into the network the breach went; Blue gets
-    a per-step bonus for every Secure host still clean and a one-time hit
-    whenever a Secure host falls.
-    """
+    """Cloud-style hybrid scenario."""
 
     name = 'cloud_hybrid'
 
@@ -44,9 +33,9 @@ class CloudHybridScenario(BaseScenario):
                     host = state.all_hosts.get(ip) if ip else None
                     if not host:
                         continue
-                    if host.subnet_cidr == _SECURE_CIDR:
+                    if state.get_subnet_name(host.subnet_cidr) == 'Secure':
                         r += self.SECURE_BREACH_REWARD
-                    elif host.subnet_cidr == _DMZ_CIDR:
+                    elif state.get_subnet_name(host.subnet_cidr) == 'DMZ':
                         r += 1.0
                     else:
                         r += 2.0
@@ -57,7 +46,9 @@ class CloudHybridScenario(BaseScenario):
     def _blue(self, state, effect):
         r = 0.0
         secure_hosts = [
-            h for h in state.all_hosts.values() if h.subnet_cidr == _SECURE_CIDR
+            h
+            for h in state.all_hosts.values()
+            if state.get_subnet_name(h.subnet_cidr) == 'Secure'
         ]
         if secure_hosts:
             secure_clean = sum(1 for h in secure_hosts if h.compromised_by == 'None')
@@ -70,7 +61,7 @@ class CloudHybridScenario(BaseScenario):
                 if 'status' in k and v == 'isolated':
                     ip = k.split('/')[1] if '/' in k else None
                     host = state.all_hosts.get(ip) if ip else None
-                    if host and host.subnet_cidr == _SECURE_CIDR:
+                    if host and state.get_subnet_name(host.subnet_cidr) == 'Secure':
                         r += 5.0
                     elif host and host.compromised_by != 'None':
                         r += 1.5
@@ -80,7 +71,9 @@ class CloudHybridScenario(BaseScenario):
 
     def check_termination(self, state) -> Dict[str, bool]:
         secure_hosts = [
-            h for h in state.all_hosts.values() if h.subnet_cidr == _SECURE_CIDR
+            h
+            for h in state.all_hosts.values()
+            if state.get_subnet_name(h.subnet_cidr) == 'Secure'
         ]
         if secure_hosts and all(h.compromised_by != 'None' for h in secure_hosts):
             return {a: True for a in self.agents}
