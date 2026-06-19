@@ -293,12 +293,7 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
             )
             if host and getattr(host, 'contains_honeytokens', False):
                 self.siem_logger._push_to_buffer(
-                    {
-                        'signature': 'HONEYTOKEN_TRIGGERED',
-                        'severity': 10,
-                        'target': target_ip,
-                        'agent': res_agent,
-                    },
+                    f"[HONEYTOKEN] Target: {target_ip}, Agent: {res_agent}, Severity: 10",
                     subnet,
                     self.global_state,
                 )
@@ -390,21 +385,31 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
     def _update_episode_metrics(self, resolved_effects):
         """Update episode security metrics."""
         for agent, effect in resolved_effects.items():
-            if not effect.success or not isinstance(effect.state_deltas, dict):
+            if not effect.success:
                 continue
-            for delta_key, delta_val in effect.state_deltas.items():
-                parts = delta_key.split('/')
-                if len(parts) != 3 or parts[0] != 'hosts':
-                    continue
-                ip, attribute = parts[1], parts[2]
-                if attribute == 'privilege' and delta_val in ('User', 'Root'):
-                    self.episode_metrics['infection_times'].setdefault(
-                        ip, self.current_tick
-                    )
-                elif attribute == 'status' and delta_val == 'isolated':
-                    self.episode_metrics['isolation_times'].setdefault(
-                        ip, self.current_tick
-                    )
+                
+            if isinstance(effect.state_deltas, list):
+                for cmd in effect.state_deltas:
+                    cmd_type = type(cmd).__name__
+                    if cmd_type == 'UpdateHostStatusCommand' and getattr(cmd, 'status', None) == 'isolated':
+                        self.episode_metrics['isolation_times'].setdefault(cmd.target_ip, self.current_tick)
+                    elif cmd_type == 'UpdateHostPrivilegeCommand' and getattr(cmd, 'privilege', None) in ('User', 'Root'):
+                        self.episode_metrics['infection_times'].setdefault(cmd.target_ip, self.current_tick)
+
+            elif isinstance(effect.state_deltas, dict):
+                for delta_key, delta_val in effect.state_deltas.items():
+                    parts = delta_key.split('/')
+                    if len(parts) != 3 or parts[0] != 'hosts':
+                        continue
+                    ip, attribute = parts[1], parts[2]
+                    if attribute == 'privilege' and delta_val in ('User', 'Root'):
+                        self.episode_metrics['infection_times'].setdefault(
+                            ip, self.current_tick
+                        )
+                    elif attribute == 'status' and delta_val == 'isolated':
+                        self.episode_metrics['isolation_times'].setdefault(
+                            ip, self.current_tick
+                        )
 
         total = max(len(self.global_state.all_hosts), 1)
         healthy = sum(
