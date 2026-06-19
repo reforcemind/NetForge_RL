@@ -7,7 +7,7 @@ from netforge_rl.scenarios.apt_espionage import AptEspionageScenario
 from netforge_rl.core.action import BaseAction, ActionEffect
 from netforge_rl.core.observation import BaseObservation
 from netforge_rl.core.registry import action_registry
-import netforge_rl.actions  # noqa: F401
+import netforge_rl.actions
 from netforge_rl.core.physics import ConflictResolutionEngine
 from netforge_rl.environment.base_env import BaseNetForgeRLEnv
 from netforge_rl.topologies.network_generator import NetworkGenerator
@@ -88,9 +88,7 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
     def reset(
         self, seed=None, options=None
     ) -> Tuple[Dict[str, np.ndarray], Dict[str, dict]]:
-        """Reset the env. Reseeding ``seed`` makes the whole legacy backend
-        deterministic by reseeding the global random + numpy modules.
-        """
+        """Reset the environment."""
         if seed is not None:
             import random as _random
 
@@ -142,7 +140,7 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
         return self.action_spaces[agent]
 
     def action_mask(self, agent: str) -> np.ndarray:
-        """Binary mask shaped (132,) — RLlib's flat-bool MultiDiscrete format."""
+        """Generate a binary action mask (132,)."""
         mask = np.zeros(132, dtype=np.int8)
         valid_action_types = 17 if 'red' in agent.lower() else 15
         mask[:valid_action_types] = 1
@@ -158,9 +156,8 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
         Dict[str, bool],
         Dict[str, dict],
     ]:
-        """Process actions -> interrupt -> advance tick -> resolve mature events."""
-        # Audit fix 2.2: per-agent budget instead of one global blue counter,
-        # so decentralised Blue operators don't starve each other.
+        """Process actions and advance simulation."""
+
         per_agent_inflight: Dict[str, int] = {}
         for event in self.event_queue:
             per_agent_inflight[event['agent']] = (
@@ -181,7 +178,7 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
                 if action is None:
                     continue
 
-            # Per-agent SOC budget: each Blue agent caps at 2 in-flight actions.
+            # Cap Blue agents at 2 in-flight actions.
             if 'blue' in agent.lower():
                 if per_agent_inflight.get(agent, 0) >= 2:
                     continue
@@ -209,9 +206,7 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
                     }
                 )
 
-        # Audit fix 1.3: IsolateHost only interrupts Red AT COMPLETION TICK
-        # (i.e. once the isolation has actually fired). Pre-completion
-        # interruption let Blue zero-latency-stun Red the moment they queued.
+
         for event in list(self.event_queue):
             if (
                 type(event['action']).__name__ == 'IsolateHost'
@@ -229,7 +224,7 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
                             self.current_tick
                         )
 
-        # Event-driven tick advance.
+
         prev_tick = self.current_tick
         if self.event_queue:
             next_event_tick = min(e['completion_tick'] for e in self.event_queue)
@@ -269,8 +264,7 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
         resolved_effects = self.resolution_engine.resolve(intended_effects)
         self._apply_state_deltas(resolved_effects)
 
-        # Audit fix 2.1: actually populate episode_metrics so SLA / MTTC report
-        # something meaningful (was always 0/1 before).
+
         self._update_episode_metrics(resolved_effects)
 
         for res_agent, res_effect in resolved_effects.items():
@@ -321,11 +315,11 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
         is_truncated = self.current_tick >= self.max_ticks
         truncate = {agent: is_truncated for agent in self.agents}
 
-        # Encode subnet-specific SIEM logs for decentralized Blue agents
+        # Encode SIEM logs.
         agent_siem_vecs = {}
         for agent in self.agents:
             if 'blue' in agent.lower():
-                # Extract subnet tag (e.g., 'blue_dmz' -> 'dmz')
+
                 subnet_tag = agent.split('_')[1] if '_' in agent else 'dmz'
                 subset_logs = self.siem_logger.get_filtered_logs(
                     self.global_state, subnet_tag=subnet_tag, n=8
@@ -340,7 +334,7 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
 
             obs_array = obs.to_numpy(max_size=256)
 
-            # Blue agents receive subnet-specific SIEM embeddings; Red gets zeros.
+
             if 'blue' in agent.lower():
                 agent_siem_vec = agent_siem_vecs.get(
                     agent, np.zeros(EMBEDDING_DIM, dtype=np.float32)
@@ -366,10 +360,10 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
             if not terminate[agent] and not truncate[agent]
         ]
 
-        # ── Build info dicts with security metrics for callbacks ──
+
         infos = self._extract_agent_infos(observations, resolved_effects)
 
-        # Add temporal metadata for Neural ODE cells
+
         for agent in self.agents:
             if agent in infos:
                 infos[agent]['delta_t'] = delta_t
@@ -378,7 +372,7 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
         return observations, rewards, terminate, truncate, infos
 
     def render(self, mode: str = 'rgb_array'):
-        """``mode='rgb_array'`` returns a uint8 HxWx3 frame; ``'ansi'`` is a no-op."""
+        """Render the environment frame."""
         if mode == 'ansi':
             return None
         if mode != 'rgb_array':
@@ -388,13 +382,13 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
         return render_rgb(snapshot_from_envstate(self.to_envstate()))
 
     def to_envstate(self):
-        """Frozen ``EnvState`` PyTree snapshot of the current backend state."""
+        """Return a frozen EnvState PyTree snapshot."""
         from netforge_rl.core.functional import from_global_state
 
         return from_global_state(self.global_state, tuple(self.possible_agents))
 
     def _update_episode_metrics(self, resolved_effects):
-        """Populate infection_times / isolation_times / SLA running sum."""
+        """Update episode security metrics."""
         for agent, effect in resolved_effects.items():
             if not effect.success or not isinstance(effect.state_deltas, dict):
                 continue
@@ -421,7 +415,7 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
         self.episode_metrics['steps_count'] += 1
 
     def _apply_state_deltas(self, effects: Dict[str, ActionEffect]):
-        """Apply resolved deltas to ``global_state`` (post-conflict-resolution)."""
+        """Apply state deltas to global_state."""
         for agent_id, effect in effects.items():
             if not effect.success:
                 continue
@@ -433,7 +427,7 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
                     self.global_state.apply_delta(delta_cmd)
 
     def _extract_agent_infos(self, observations: dict, resolved_effects: dict) -> dict:
-        """Per-agent metrics dict for TensorBoard / CSV callbacks."""
+        """Extract per-agent metrics info dict."""
         infos = {}
         for agent in observations:
             agent_effect = resolved_effects.get(agent)
@@ -501,7 +495,7 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
             )
             info['SLA_Uptime_Percentage'] = float(sla_final)
 
-            # Calculate MTTC (Mean Time To Containment)
+            # Mean Time To Containment
             mttc_vals = []
             for ip, t_iso in self.episode_metrics['isolation_times'].items():
                 if ip in self.episode_metrics['infection_times']:
@@ -510,7 +504,7 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
                     )
             info['MTTC'] = float(sum(mttc_vals) / len(mttc_vals)) if mttc_vals else 0.0
 
-            # Cumulative Impact
+
             info['Total_Exfiltrated_Data'] = float(
                 self.episode_metrics['exfiltrated_data']
             )
@@ -520,7 +514,7 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
         return infos
 
     def global_state_vector(self) -> np.ndarray:
-        """Flat 512-dim vector for centralized critics (MAPPO / QMIX)."""
+        """Generate a flat 512-dim global state vector."""
         priv_codes = {'None': 0.0, 'User': 0.5, 'Root': 1.0}
 
         vec = []
