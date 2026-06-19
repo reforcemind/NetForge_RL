@@ -7,18 +7,20 @@ from netforge_rl.backends.jax import BatchedActions, VectorEnvSpec
 from netforge_rl.bridges.jaxmarl import JaxMARLEnv
 
 
-def init_mlp_params(key, obs_dim, n_actions, hidden=64):
+def init_mlp_params(key, obs_dim, n_targets, n_action_types, hidden=64):
     """Two-layer MLP with separate policy + value heads."""
-    k1, k2, k3, k4 = jax.random.split(key, 4)
+    k1, k2, k3, k4, k5 = jax.random.split(key, 5)
     scale = 0.1
     return {
         'w1': jax.random.normal(k1, (obs_dim, hidden)) * scale,
         'b1': jnp.zeros((hidden,)),
         'w2': jax.random.normal(k2, (hidden, hidden)) * scale,
         'b2': jnp.zeros((hidden,)),
-        'wp': jax.random.normal(k3, (hidden, n_actions)) * scale,
-        'bp': jnp.zeros((n_actions,)),
-        'wv': jax.random.normal(k4, (hidden, 1)) * scale,
+        'wp_target': jax.random.normal(k3, (hidden, n_targets)) * scale,
+        'bp_target': jnp.zeros((n_targets,)),
+        'wp_type': jax.random.normal(k4, (hidden, n_action_types)) * scale,
+        'bp_type': jnp.zeros((n_action_types,)),
+        'wv': jax.random.normal(k5, (hidden, 1)) * scale,
         'bv': jnp.zeros((1,)),
     }
 
@@ -26,9 +28,10 @@ def init_mlp_params(key, obs_dim, n_actions, hidden=64):
 def forward(params, obs):
     h = jax.nn.tanh(obs @ params['w1'] + params['b1'])
     h = jax.nn.tanh(h @ params['w2'] + params['b2'])
-    logits = h @ params['wp'] + params['bp']
+    logits_target = h @ params['wp_target'] + params['bp_target']
+    logits_type = h @ params['wp_type'] + params['bp_type']
     value = (h @ params['wv'] + params['bv'])[..., 0]
-    return logits, value
+    return (logits_target, logits_type), value
 
 
 def init_adam(params, beta1=0.9, beta2=0.999):
@@ -65,9 +68,19 @@ def gae(rewards, values, dones, *, gamma, lam):
 
 
 def ppo_loss(params, obs, actions, old_logp, advantages, returns, *, clip, vf_coef):
-    logits, values = forward(params, obs)
-    logp_all = jax.nn.log_softmax(logits)
-    logp = jnp.take_along_axis(logp_all, actions[..., None], axis=-1)[..., 0]
+    (logits_target, logits_type), values = forward(params, obs)
+    
+    target_idx = actions[..., 0]
+    action_type = actions[..., 1]
+    
+    logp_target_all = jax.nn.log_softmax(logits_target)
+    logp_target = jnp.take_along_axis(logp_target_all, target_idx[..., None], axis=-1)[..., 0]
+    
+    logp_type_all = jax.nn.log_softmax(logits_type)
+    logp_type = jnp.take_along_axis(logp_type_all, action_type[..., None], axis=-1)[..., 0]
+    
+    logp = logp_target + logp_type
+    
     ratio = jnp.exp(logp - old_logp)
     pg = -jnp.minimum(
         ratio * advantages,
@@ -88,6 +101,7 @@ class PPOConfig:
     clip: float = 0.2
     vf_coef: float = 0.5
     n_hosts: int = 100
+    n_action_types: int = 16
     n_red: int = 1
     n_blue: int = 3
     controlled_agent: str = 'blue_dmz'
@@ -96,24 +110,30 @@ class PPOConfig:
     num_minibatches: int = 4
 
 
-def _build_actions(target_idx, env_agents, controlled, n_red, n_blue, n_hosts, key):
+def _build_actions(target_idx, action_type, env_agents, controlled, n_red, n_blue, n_hosts, key):
     """BatchedActions where controlled gets policy target; others uniform random."""
-    k_rt, k_bt, _, _ = jax.random.split(key, 4)
+    k_rt, k_bt, k_rat, k_bat = jax.random.split(key, 4)
     red_t = jax.random.randint(k_rt, (target_idx.shape[0], n_red), 0, n_hosts, dtype=jnp.int32)
     blue_t = jax.random.randint(k_bt, (target_idx.shape[0], n_blue), 0, n_hosts, dtype=jnp.int32)
+    red_at = jax.random.randint(k_rat, (target_idx.shape[0], n_red), 0, 16, dtype=jnp.int8)
+    blue_at = jax.random.randint(k_bat, (target_idx.shape[0], n_blue), 0, 10, dtype=jnp.int8)
 
     red_names = [a for a in env_agents if 'red' in a.lower()]
     blue_names = [a for a in env_agents if 'blue' in a.lower()]
     if controlled in red_names:
         red_t = red_t.at[:, red_names.index(controlled)].set(target_idx)
+        red_at = red_at.at[:, red_names.index(controlled)].set(action_type.astype(jnp.int8))
     elif controlled in blue_names:
         blue_t = blue_t.at[:, blue_names.index(controlled)].set(target_idx)
+        blue_at = blue_at.at[:, blue_names.index(controlled)].set(action_type.astype(jnp.int8))
 
     return BatchedActions(
         red_target_idx=red_t,
         blue_target_idx=blue_t,
         red_attempt=jnp.ones((target_idx.shape[0], n_red), dtype=jnp.bool_),
         blue_attempt=jnp.ones((target_idx.shape[0], n_blue), dtype=jnp.bool_),
+        red_action_type=red_at,
+        blue_action_type=blue_at,
     )
 
 
@@ -126,19 +146,27 @@ def make_rollout_scan(env: JaxMARLEnv, cfg: PPOConfig):
     def step_body(carry, _):
         params, state, obs_dict, key = carry
         obs = obs_dict[controlled]
-        logits, value = forward(params, obs)
-        key, k_act, k_env = jax.random.split(key, 3)
-        target_idx = jax.random.categorical(k_act, logits)
-        logp_all = jax.nn.log_softmax(logits)
-        logp = jnp.take_along_axis(logp_all, target_idx[..., None], axis=-1)[..., 0]
+        (logits_target, logits_type), value = forward(params, obs)
+        key, k_act_t, k_act_type, k_env = jax.random.split(key, 4)
+        
+        target_idx = jax.random.categorical(k_act_t, logits_target)
+        action_type = jax.random.categorical(k_act_type, logits_type)
+        
+        logp_target_all = jax.nn.log_softmax(logits_target)
+        logp_target = jnp.take_along_axis(logp_target_all, target_idx[..., None], axis=-1)[..., 0]
+        
+        logp_type_all = jax.nn.log_softmax(logits_type)
+        logp_type = jnp.take_along_axis(logp_type_all, action_type[..., None], axis=-1)[..., 0]
+        
+        logp = logp_target + logp_type
 
         actions = _build_actions(
-            target_idx, agents, controlled, n_red, n_blue, n_hosts, k_env
+            target_idx, action_type, agents, controlled, n_red, n_blue, n_hosts, k_env
         )
         obs_dict, state, reward, done, _ = env.step(k_env, state, actions)
         out = {
             'obs': obs,
-            'action': target_idx,
+            'action': jnp.stack([target_idx, action_type], axis=-1),
             'logp': logp,
             'value': value,
             'reward': reward[controlled],
@@ -193,7 +221,7 @@ def train(cfg: PPOConfig):
     key, sub = jax.random.split(key)
     obs_dict, state = env.reset(sub)
     obs_dim = obs_dict[cfg.controlled_agent].shape[-1]
-    params = init_mlp_params(jax.random.PRNGKey(cfg.seed + 1), obs_dim, cfg.n_hosts)
+    params = init_mlp_params(jax.random.PRNGKey(cfg.seed + 1), obs_dim, cfg.n_hosts, cfg.n_action_types)
     opt_state = init_adam(params)
     rollout = make_rollout_scan(env, cfg)
     grad_step = _make_grad_step(cfg)
@@ -210,7 +238,7 @@ def train(cfg: PPOConfig):
 
         flat = {
             'obs': traj['obs'].reshape(-1, obs_dim),
-            'action': traj['action'].reshape(-1),
+            'action': traj['action'].reshape(-1, 2),
             'logp': traj['logp'].reshape(-1),
             'adv': advantages.reshape(-1),
             'ret': returns.reshape(-1),

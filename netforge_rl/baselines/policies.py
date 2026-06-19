@@ -3,7 +3,6 @@ from typing import Protocol
 
 import numpy as np
 
-
 class BasePolicy(Protocol):
     name: str
 

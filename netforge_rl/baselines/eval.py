@@ -1,9 +1,5 @@
-"""Baseline evaluation harness — emits the same JSON shape as the zero-shot
-LLM leaderboard so both can be summarized together."""
-
 import argparse
 from pathlib import Path
-
 
 from netforge_rl.baselines.policies import (
     BasePolicy,
