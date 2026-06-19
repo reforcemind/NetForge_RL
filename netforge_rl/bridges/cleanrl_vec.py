@@ -26,7 +26,8 @@ class CleanRLVecEnv:
         self._key = jax.random.PRNGKey(0)
         if self.opponent_action_fn is None:
             self.opponent_action_fn = random_action_dict
-        self.single_action_space = ('discrete', self.spec.n_hosts)
+        n_act = 20 if 'red' in self.agent_id.lower() else 14
+        self.single_action_space = ('multidiscrete', (self.spec.n_hosts, n_act))
         self.single_observation_space = (4 * self.spec.n_hosts,)
 
     def reset(self, seed=0):
@@ -36,13 +37,14 @@ class CleanRLVecEnv:
         return np.asarray(obs[self.agent_id]), {}
 
     def step(self, actions):
-        """actions: int32[num_envs] target index for the controlled agent."""
+        """actions: int32[num_envs, 2] containing target index and action type."""
         self._key, k_op, k_step = jax.random.split(self._key, 3)
         opponent_actions = self.opponent_action_fn(self._env, k_op)
 
-        action_jax = jnp.asarray(actions, dtype=jnp.int32)
+        target_jax = jnp.asarray(actions[..., 0], dtype=jnp.int32)
+        type_jax = jnp.asarray(actions[..., 1], dtype=jnp.int32)
         opponent_actions[self.agent_id] = jnp.stack(
-            [action_jax, jnp.ones_like(action_jax)], axis=-1
+            [target_jax, jnp.ones_like(target_jax), type_jax], axis=-1
         )
 
         obs_dict, self._state, reward_dict, done_dict, info = self._env.step(

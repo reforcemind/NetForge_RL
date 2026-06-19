@@ -1,9 +1,3 @@
-from importlib.util import find_spec
-
-if find_spec('torch') is None:
-    raise ImportError(
-        'netforge_rl.bridges.dlpack requires torch. Install with `pip install torch`.'
-    )
 
 import jax
 import jax.dlpack

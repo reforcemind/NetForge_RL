@@ -74,23 +74,19 @@ class JaxMARLEnv:
         red_names = [a for a in self.agents if 'red' in a.lower()]
         blue_names = [a for a in self.agents if 'blue' in a.lower()]
 
-        def stack(names):
+        def stack(names, idx, dtype):
             return jnp.stack(
-                [jnp.asarray(actions[name][..., 0], dtype=jnp.int32) for name in names],
-                axis=-1,
-            )
-
-        def stack_attempt(names):
-            return jnp.stack(
-                [jnp.asarray(actions[name][..., 1], dtype=jnp.bool_) for name in names],
+                [jnp.asarray(actions[name][..., idx], dtype=dtype) for name in names],
                 axis=-1,
             )
 
         return BatchedActions(
-            red_target_idx=stack(red_names),
-            blue_target_idx=stack(blue_names),
-            red_attempt=stack_attempt(red_names),
-            blue_attempt=stack_attempt(blue_names),
+            red_target_idx=stack(red_names, 0, jnp.int32),
+            blue_target_idx=stack(blue_names, 0, jnp.int32),
+            red_attempt=stack(red_names, 1, jnp.bool_),
+            blue_attempt=stack(blue_names, 1, jnp.bool_),
+            red_action_type=stack(red_names, 2, jnp.int8),
+            blue_action_type=stack(blue_names, 2, jnp.int8),
         )
 
 
@@ -99,9 +95,12 @@ def random_action_dict(env, key):
     keys = jax.random.split(key, len(env.agents))
     out = {}
     for k, agent in zip(keys, env.agents):
+        k1, k2, k3 = jax.random.split(k, 3)
         target = jax.random.randint(
-            k, (env.batch_size,), 0, env.spec.n_hosts, dtype=jnp.int32
+            k1, (env.batch_size,), 0, env.spec.n_hosts, dtype=jnp.int32
         )
-        attempt = jax.random.bernoulli(k, p=0.5, shape=(env.batch_size,))
-        out[agent] = jnp.stack([target, attempt.astype(jnp.int32)], axis=-1)
+        attempt = jax.random.bernoulli(k2, p=0.5, shape=(env.batch_size,))
+        n_act = 20 if 'red' in agent.lower() else 14
+        action_type = jax.random.randint(k3, (env.batch_size,), 0, n_act, dtype=jnp.int32)
+        out[agent] = jnp.stack([target, attempt.astype(jnp.int32), action_type], axis=-1)
     return out
