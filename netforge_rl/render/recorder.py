@@ -1,10 +1,6 @@
 from pathlib import Path
 
-try:
-    from moviepy import ImageSequenceClip
-except ImportError:
-    pass
-
+from moviepy import ImageSequenceClip
 
 class FrameRecorder:
     """In-memory frame buffer; writes mp4/gif via moviepy on save()."""
