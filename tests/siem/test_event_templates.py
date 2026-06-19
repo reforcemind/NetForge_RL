@@ -2,6 +2,7 @@ import pytest
 import xml.etree.ElementTree as ET
 from netforge_rl.siem.event_templates import evid_4624, sysmon_10, ACTION_EVENT_MAP
 
+
 @pytest.mark.fast
 def test_evid_4624_template():
     log = evid_4624(src_ip='192.168.1.1', target_ip='10.0.0.5', username='Attacker')
@@ -11,6 +12,7 @@ def test_evid_4624_template():
     assert 'Attacker' in log
     ET.fromstring(log)
 
+
 @pytest.mark.fast
 def test_sysmon_10_template():
     log = sysmon_10(src_ip='192.168.1.1')
@@ -18,6 +20,7 @@ def test_sysmon_10_template():
     assert 'lsass.exe' in log
     assert '0x1010' in log
     ET.fromstring(log)
+
 
 @pytest.mark.fast
 def test_action_event_map_structure():

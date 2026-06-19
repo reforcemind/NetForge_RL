@@ -1,9 +1,11 @@
 import pytest
 from netforge_rl.actions.blue.identity import RotateKerberos
 
+
 @pytest.fixture
 def blue_agent():
     return 'blue_commander'
+
 
 @pytest.mark.fast
 def test_rotate_kerberos_execution(global_state, blue_agent):
@@ -30,6 +32,7 @@ def test_rotate_kerberos_execution(global_state, blue_agent):
     assert new_token.startswith('Enterprise_Admin_Token_')
     assert old_token not in target_host.cached_credentials
     assert new_token in target_host.cached_credentials
+
 
 @pytest.mark.fast
 def test_rotate_kerberos_costs(global_state, blue_agent):

@@ -1,9 +1,15 @@
 import pytest
-from netforge_rl.actions.blue.mitigation import Remove, RestoreFromBackup, SecurityAwarenessTraining
+from netforge_rl.actions.blue.mitigation import (
+    Remove,
+    RestoreFromBackup,
+    SecurityAwarenessTraining,
+)
+
 
 @pytest.fixture
 def blue_agent():
     return 'blue_operator'
+
 
 def apply_deltas(state, deltas):
     if isinstance(deltas, dict):
@@ -14,9 +20,12 @@ def apply_deltas(state, deltas):
             if hasattr(cmd, 'execute'):
                 cmd.execute(state)
 
+
 @pytest.mark.fast
 def test_remove_action_execution(global_state, blue_agent):
-    target_ip = next((ip for ip, h in global_state.all_hosts.items() if '169.254' not in ip))
+    target_ip = next(
+        (ip for ip, h in global_state.all_hosts.items() if '169.254' not in ip)
+    )
     host = global_state.all_hosts[target_ip]
     host.privilege = 'User'
     host.compromised_by = 'red_operator'
@@ -27,9 +36,12 @@ def test_remove_action_execution(global_state, blue_agent):
     assert host.privilege == 'None'
     assert host.compromised_by == 'None'
 
+
 @pytest.mark.fast
 def test_restore_from_backup_execution(global_state, blue_agent):
-    target_ip = next((ip for ip, h in global_state.all_hosts.items() if '169.254' not in ip))
+    target_ip = next(
+        (ip for ip, h in global_state.all_hosts.items() if '169.254' not in ip)
+    )
     host = global_state.all_hosts[target_ip]
     host.privilege = 'Root'
     host.status = 'kernel_panic'
@@ -41,6 +53,7 @@ def test_restore_from_backup_execution(global_state, blue_agent):
     assert host.privilege == 'None'
     assert host.status == 'online'
     assert host.system_integrity == 'clean'
+
 
 @pytest.mark.fast
 def test_security_awareness_training(global_state, blue_agent):

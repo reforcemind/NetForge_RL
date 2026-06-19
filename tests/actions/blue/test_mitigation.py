@@ -1,9 +1,11 @@
 import pytest
 from netforge_rl.actions.blue.mitigation import IsolateHost, RestoreHost, ConfigureACL
 
+
 @pytest.fixture
 def blue_agent():
     return 'blue_operator'
+
 
 def apply_deltas(state, deltas):
     if isinstance(deltas, dict):
@@ -16,9 +18,12 @@ def apply_deltas(state, deltas):
             else:
                 pass
 
+
 @pytest.mark.fast
 def test_isolate_host_execution(global_state, blue_agent):
-    target_ip = next((ip for ip, h in global_state.all_hosts.items() if '169.254' not in ip))
+    target_ip = next(
+        (ip for ip, h in global_state.all_hosts.items() if '169.254' not in ip)
+    )
     host = global_state.all_hosts[target_ip]
     host.status = 'online'
     action = IsolateHost(agent_id=blue_agent, target_ip=target_ip)
@@ -27,9 +32,12 @@ def test_isolate_host_execution(global_state, blue_agent):
     apply_deltas(global_state, result.state_deltas)
     assert host.status == 'isolated'
 
+
 @pytest.mark.fast
 def test_restore_host_execution(global_state, blue_agent):
-    target_ip = next((ip for ip, h in global_state.all_hosts.items() if '169.254' not in ip))
+    target_ip = next(
+        (ip for ip, h in global_state.all_hosts.items() if '169.254' not in ip)
+    )
     host = global_state.all_hosts[target_ip]
     host.status = 'isolated'
     host.privilege = 'Root'
@@ -39,6 +47,7 @@ def test_restore_host_execution(global_state, blue_agent):
     apply_deltas(global_state, result.state_deltas)
     assert host.status == 'online'
     assert host.privilege == 'None'
+
 
 @pytest.mark.fast
 def test_configure_acl_execution(global_state, blue_agent):

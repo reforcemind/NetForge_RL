@@ -2,9 +2,11 @@ import pytest
 import numpy as np
 from netforge_rl.nlp.log_encoder import LogEncoder, EMBEDDING_DIM
 
+
 @pytest.fixture
 def encoder():
     return LogEncoder(backend='tfidf')
+
 
 @pytest.mark.fast
 def test_encoder_single_line(encoder):
@@ -15,6 +17,7 @@ def test_encoder_single_line(encoder):
     assert vec.dtype == np.float32
     assert np.isclose(np.linalg.norm(vec), 1.0, atol=1e-05)
 
+
 @pytest.mark.fast
 def test_encoder_empty_input(encoder):
     vec = encoder.encode('')
@@ -22,14 +25,20 @@ def test_encoder_empty_input(encoder):
     vec_none = encoder.encode(None)
     assert np.allclose(vec_none, 0.0)
 
+
 @pytest.mark.fast
 def test_encoder_buffer_aggregation(encoder):
-    logs = ['4624 - Success Logon', 'Sysmon 3 - Network Connection', '4688 - Process Created']
+    logs = [
+        '4624 - Success Logon',
+        'Sysmon 3 - Network Connection',
+        '4688 - Process Created',
+    ]
     vec_mean = encoder.encode_buffer(logs, agg='mean')
     assert vec_mean.shape == (EMBEDDING_DIM,)
     vec_max = encoder.encode_buffer(logs, agg='max')
     assert vec_max.shape == (EMBEDDING_DIM,)
     assert not np.allclose(vec_mean, vec_max)
+
 
 @pytest.mark.fast
 def test_encoder_caching(encoder):

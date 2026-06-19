@@ -2,11 +2,13 @@ import pytest
 import numpy as np
 from netforge_rl.environment.parallel_env import NetForgeRLEnv
 
+
 @pytest.fixture
 def env_sim_local(env_config):
     env = NetForgeRLEnv(env_config)
     env.reset(seed=42)
     return env
+
 
 @pytest.mark.fast
 def test_env_reset_shapes(env_sim_local):
@@ -22,11 +24,13 @@ def test_env_reset_shapes(env_sim_local):
         assert data['action_mask'].dtype == np.int8
         assert data['siem_embedding'].dtype == np.float32
 
+
 @pytest.mark.fast
 def test_env_reset_siem_zeros(env_sim_local):
     obs, _ = env_sim_local.reset(seed=42)
     for data in obs.values():
         assert np.allclose(data['siem_embedding'], 0.0)
+
 
 @pytest.mark.fast
 def test_env_action_space_consistency(env_sim_local):

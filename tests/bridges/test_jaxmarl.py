@@ -1,12 +1,15 @@
 import pytest
+
 jax = pytest.importorskip('jax')
 jnp = pytest.importorskip('jax.numpy')
 from netforge_rl.backends.jax import VectorEnvSpec
 from netforge_rl.bridges.jaxmarl import DEFAULT_AGENTS, JaxMARLEnv, random_action_dict
 
-def _env(batch_size: int=4) -> JaxMARLEnv:
+
+def _env(batch_size: int = 4) -> JaxMARLEnv:
     spec = VectorEnvSpec(n_hosts=100, n_red=1, n_blue=3)
     return JaxMARLEnv(spec=spec, batch_size=batch_size)
+
 
 @pytest.mark.fast
 def test_reset_returns_per_agent_obs_dict() -> None:
@@ -16,6 +19,7 @@ def test_reset_returns_per_agent_obs_dict() -> None:
     for v in obs.values():
         assert v.shape[0] == 2
     assert state.hosts.status.shape == (2, 100)
+
 
 @pytest.mark.fast
 def test_step_returns_jaxmarl_tuple() -> None:
@@ -31,6 +35,7 @@ def test_step_returns_jaxmarl_tuple() -> None:
         assert v.shape == (2,)
     assert new_state.current_tick.shape == (2,)
 
+
 @pytest.mark.fast
 def test_step_advances_tick() -> None:
     env = _env(batch_size=1)
@@ -39,6 +44,7 @@ def test_step_advances_tick() -> None:
     before = int(state.current_tick[0])
     _, new_state, _, _, _ = env.step(key, state, random_action_dict(env, key))
     assert int(new_state.current_tick[0]) == before + 1
+
 
 @pytest.mark.fast
 def test_step_is_jit_compatible() -> None:

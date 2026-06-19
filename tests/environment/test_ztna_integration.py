@@ -2,6 +2,7 @@ import pytest
 from netforge_rl.actions.red.exploits import ExploitEternalBlue
 from netforge_rl.actions.red.post_exploitation import DumpLSASS, PassTheTicket
 
+
 @pytest.mark.integration
 def test_ztna_end_to_end_breach(env_sim):
     env_sim.reset(seed=42)

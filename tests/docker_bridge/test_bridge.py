@@ -2,9 +2,11 @@ import pytest
 from netforge_rl.docker_bridge.bridge import DockerBridge
 from netforge_rl.docker_bridge.hypervisor_base import HypervisorResult
 
+
 @pytest.fixture
 def bridge():
     return DockerBridge(mode='sim')
+
 
 @pytest.mark.fast
 def test_bridge_mode_switching(bridge):
@@ -12,11 +14,13 @@ def test_bridge_mode_switching(bridge):
     real_bridge = DockerBridge(mode='real')
     assert real_bridge.mode == 'real'
 
+
 @pytest.mark.fast
 def test_bridge_dispatch_routing(bridge):
     result = bridge.dispatch('ExploitEternalBlue', '10.0.1.5', 'Windows_7')
     assert isinstance(result, HypervisorResult)
     assert result.action_name == 'ExploitEternalBlue'
+
 
 @pytest.mark.fast
 def test_bridge_reward_delta(bridge):

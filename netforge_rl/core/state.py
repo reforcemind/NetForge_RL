@@ -105,6 +105,10 @@ class GlobalNetworkState:
         elif parts[0] == 'history' and len(parts) == 3:
             self.action_history.setdefault(parts[1], set()).add(parts[2])
 
+    def get_subnet_name(self, cidr: str) -> str:
+        subnet = self.subnets.get(cidr)
+        return subnet.name if subnet else 'Unknown'
+
     def copy(self) -> 'GlobalNetworkState':
         """Deep copy for MCTS/AlphaZero planning."""
         from copy import deepcopy
@@ -131,20 +135,21 @@ class GlobalNetworkState:
             (fw.is_blocked(target_subnet, port) for fw in self.firewalls.values())
         ):
             return False
-        if target_subnet == '192.168.1.0/24':
+        subnet_name = self.get_subnet_name(target_subnet)
+        if subnet_name == 'DMZ':
             return True
         has_dmz_pivot = any(
             (
-                h.privilege in ('User', 'Root') and h.subnet_cidr == '192.168.1.0/24'
+                h.privilege in ('User', 'Root') and self.get_subnet_name(h.subnet_cidr) == 'DMZ'
                 for h in self.all_hosts.values()
             )
         )
-        if target_subnet == '10.0.0.0/24':
+        if subnet_name == 'Corporate':
             return has_dmz_pivot
-        if target_subnet == '10.0.1.0/24':
+        if subnet_name == 'Secure':
             has_corp_pivot = any(
                 (
-                    h.privilege in ('User', 'Root') and h.subnet_cidr == '10.0.0.0/24'
+                    h.privilege in ('User', 'Root') and self.get_subnet_name(h.subnet_cidr) == 'Corporate'
                     for h in self.all_hosts.values()
                 )
             )
@@ -170,7 +175,7 @@ class GlobalNetworkState:
     def reallocate_dhcp(self):
         """Reshuffle IPs on every non-DMZ subnet; invalidates stale agent knowledge."""
         for subnet in self.subnets.values():
-            if '192.168.1' in subnet.cidr:
+            if subnet.name == 'DMZ':
                 continue
             hosts = list(subnet.hosts.values())
             if not hosts:

@@ -1,5 +1,10 @@
 import pytest
-from netforge_rl.semantic.grammars import anthropic_tool_schema, openai_tool_schema, vllm_grammar
+from netforge_rl.semantic.grammars import (
+    anthropic_tool_schema,
+    openai_tool_schema,
+    vllm_grammar,
+)
+
 
 @pytest.mark.fast
 def test_anthropic_schema_lists_legal_actions():
@@ -9,6 +14,7 @@ def test_anthropic_schema_lists_legal_actions():
     assert 0 in props['action_id']['enum']
     assert '10.0.0.1' in props['target_ip']['enum']
 
+
 @pytest.mark.fast
 def test_openai_schema_shape():
     s = openai_tool_schema('red_operator', ['10.0.0.1'])
@@ -17,6 +23,7 @@ def test_openai_schema_shape():
     enum = s['function']['parameters']['properties']['action_id']['enum']
     assert 0 in enum
 
+
 @pytest.mark.fast
 def test_vllm_grammar_lark_starts_with_action():
     g = vllm_grammar('blue_dmz', ['10.0.0.1'])
@@ -24,6 +31,7 @@ def test_vllm_grammar_lark_starts_with_action():
     assert '"ACTION "' in g
     assert '"10.0.0.1"' in g
     assert '"0"' in g
+
 
 @pytest.mark.fast
 def test_schemas_reject_when_no_target_ips():

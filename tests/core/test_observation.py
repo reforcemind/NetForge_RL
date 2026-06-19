@@ -3,6 +3,7 @@ import numpy as np
 from netforge_rl.core.observation import BaseObservation
 from netforge_rl.core.state import GlobalNetworkState, Host
 
+
 @pytest.mark.fast
 def test_observation_update_red(red_agent_id):
     obs = BaseObservation(red_agent_id)
@@ -16,6 +17,7 @@ def test_observation_update_red(red_agent_id):
     assert target_ip in obs.visible_hosts
     assert obs.visible_hosts[target_ip]['state'] == 'compromised'
     assert obs.visible_hosts[target_ip]['decoy'] == 'unknown'
+
 
 @pytest.mark.fast
 def test_observation_update_blue(blue_agent_id):
@@ -31,6 +33,7 @@ def test_observation_update_blue(blue_agent_id):
     assert obs.visible_hosts[target_ip]['state'] == 'unknown'
     assert obs.visible_hosts[target_ip]['status'] == 'isolated'
 
+
 @pytest.mark.fast
 def test_observation_siem_alerts(blue_agent_id):
     obs = BaseObservation(blue_agent_id)
@@ -42,10 +45,15 @@ def test_observation_siem_alerts(blue_agent_id):
     assert len(obs.siem_alerts) == 1
     assert obs.siem_alerts[0]['msg'] == 'Detection A'
 
+
 @pytest.mark.fast
 def test_observation_to_numpy_serialization():
     obs = BaseObservation('red_operator_0')
-    obs.network_telemetry = {'global_alert_level': 0.75, 'total_isolated_subnets': 2, 'active_alerts': 5}
+    obs.network_telemetry = {
+        'global_alert_level': 0.75,
+        'total_isolated_subnets': 2,
+        'active_alerts': 5,
+    }
     obs.objective_vector = np.array([0.1, 0.2, 0.3, 0.4, 0.5], dtype=np.float32)
     obs.visible_hosts['10.0.0.5'] = {'state': 'compromised'}
     vec = obs.to_numpy(max_size=32)

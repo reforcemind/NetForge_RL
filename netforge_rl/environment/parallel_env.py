@@ -171,9 +171,9 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
             if isinstance(action_int, BaseAction):
                 action = action_int
             else:
-                target_ips = sorted(self.global_state.all_hosts.keys())
+                self.ordered_hosts = sorted(self.global_state.all_hosts.keys())
                 action = action_registry.instantiate_action(
-                    agent, action_int, target_ips
+                    agent, action_int, self.ordered_hosts
                 )
                 if action is None:
                     continue
@@ -465,6 +465,7 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
                 getattr(agent_effect.action, 'target_ip', None)
                 if agent_effect else None
             )
+            self.ordered_hosts = sorted(self.global_state.all_hosts.keys())
             info['target_ip_index'] = (
                 self.ordered_hosts.index(target_ip)
                 if target_ip and target_ip in self.global_state.all_hosts

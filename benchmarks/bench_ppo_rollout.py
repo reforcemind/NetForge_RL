@@ -37,7 +37,7 @@ def measure(batch, num_steps, iters):
     key, sub = jax.random.split(key)
     obs_dict, state = env.reset(sub)
     params = init_mlp_params(
-        jax.random.PRNGKey(1), obs_dict[cfg.controlled_agent].shape[-1], cfg.n_hosts
+        jax.random.PRNGKey(1), obs_dict[cfg.controlled_agent].shape[-1], cfg.n_hosts, cfg.n_action_types
     )
     _ = init_adam(params)
     rollout = make_rollout_scan(env, cfg)
