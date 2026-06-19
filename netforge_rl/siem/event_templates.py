@@ -1,11 +1,3 @@
-"""
-SIEM event log templates — Windows Event IDs and Sysmon Event IDs.
-
-Each template is a callable that accepts contextual kwargs and returns
-an authentic-looking Windows Event Log / Sysmon XML-style string.
-These are what a real Splunk/Elastic SIEM would ingest from a corporate network.
-"""
-
 from __future__ import annotations
 
 import datetime

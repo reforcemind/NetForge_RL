@@ -1,12 +1,3 @@
-"""
-SIEMLogger — generates stochastic human-readable Windows/Sysmon event logs
-from action effects every tick.
-
-The log buffer lives on GlobalNetworkState.siem_log_buffer (already defined).
-Blue agents read from this buffer at observation time; it is the primary
-input to the NLP encoder in Pillar 2.
-"""
-
 from __future__ import annotations
 
 import random
@@ -31,13 +22,7 @@ P_BACKGROUND_NOISE = 0.15
 
 
 class SIEMLogger:
-    """
-    Stochastic SIEM event generator.
-
-    On each action resolution, log_action() samples the appropriate
-    Windows Event ID / Sysmon template and pushes the string into
-    GlobalNetworkState.siem_log_buffer for observation encoding.
-    """
+    """Stochastic SIEM event generator."""
 
     def __init__(self, seed: int | None = None):
         self._rng = random.Random(seed)
@@ -50,11 +35,7 @@ class SIEMLogger:
         agent_id: str,
         target_ip: str | None = None,
     ) -> str | None:
-        """
-        Potentially generate a SIEM log line for this action's outcome.
-
-        Returns the generated log string (or None if no log was produced).
-        """
+        """Potentially generate a SIEM log line for this action's outcome."""
         p_threshold = P_LOG_ON_SUCCESS if effect.success else P_LOG_ON_FAILURE
         if self._rng.random() > p_threshold:
             return None  # This action was not detected / logged
@@ -72,13 +53,7 @@ class SIEMLogger:
         return log_line
 
     def log_background_noise(self, global_state: 'GlobalNetworkState') -> None:
-        """
-        Inject benign background network activity every tick.
-
-        Simulates the constant low-level noise present in real enterprise
-        networks — Kerberos renewals, DNS queries, NTLM auth, etc.
-        This forces the Blue agent to learn signal vs. noise discrimination.
-        """
+        """Inject benign background network activity every tick."""
         if self._rng.random() > P_BACKGROUND_NOISE:
             return
 
@@ -117,26 +92,21 @@ class SIEMLogger:
         subnet_tag: str | None = None,
         n: int = 8,
     ) -> list[str]:
-        """Return the N most recent logs filtered by subnet mapping.
-
-        Subnet tags are mapped to CIDRs:
-            dmz -> 192.168.1.0/24
-            internal -> 10.0.0.0/24
-            restricted -> 10.0.1.0/24
-        """
+        """Return the N most recent logs filtered by subnet mapping."""
         mapping = {
-            'dmz': '192.168.1.0/24',
-            'internal': '10.0.0.0/24',
-            'restricted': '10.0.1.0/24',
+            'dmz': 'DMZ',
+            'internal': 'Corporate',
+            'restricted': 'Secure',
         }
-        target_cidr = mapping.get(subnet_tag)
-        if not target_cidr:
+        target_name = mapping.get(subnet_tag) if subnet_tag else None
+
+        if not target_name:
             return self.get_recent_logs(global_state, n)
 
         filtered = [
             entry[0]
             for entry in global_state.siem_log_buffer
-            if entry[1] == target_cidr
+            if global_state.get_subnet_name(entry[1]) == target_name
         ]
         return filtered[-n:]
 
