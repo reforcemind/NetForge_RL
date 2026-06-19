@@ -1,5 +1,6 @@
 import pytest
-pytest.importorskip("PIL")
+
+pytest.importorskip('PIL')
 import pytest
 from netforge_rl.semantic.clients import MockLLMClient
 from netforge_rl.semantic.modes import fm_vs_fm, zero_shot_attacker, zero_shot_defender

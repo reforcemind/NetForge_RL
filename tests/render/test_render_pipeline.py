@@ -1,5 +1,6 @@
 import pytest
-pytest.importorskip("matplotlib")
+
+pytest.importorskip('matplotlib')
 import numpy as np
 import pytest
 from netforge_rl.render import FrameRecorder, render_rgb, snapshot_from_envstate

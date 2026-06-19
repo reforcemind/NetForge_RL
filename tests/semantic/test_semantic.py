@@ -1,5 +1,6 @@
 import pytest
-pytest.importorskip("PIL")
+
+pytest.importorskip('PIL')
 import base64
 import numpy as np
 import pytest

@@ -1,5 +1,6 @@
 import pytest
-pytest.importorskip("PIL")
+
+pytest.importorskip('PIL')
 import pytest
 from netforge_rl.semantic.finetune import LMPolicyAdapter
 
