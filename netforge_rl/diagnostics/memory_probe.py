@@ -1,6 +1,5 @@
 from netforge_rl.diagnostics.base import Diagnostic, DiagnosticResult
 
-
 class MemoryProbe(Diagnostic):
     """Plant a Red foothold at reset; score Blue on isolating that host fast."""
 
@@ -17,13 +16,13 @@ class MemoryProbe(Diagnostic):
 
     def setup(self, env):
         candidates = [
-            ip for ip, h in env.global_state.all_hosts.items()
+            ip
+            for ip, h in env.global_state.all_hosts.items()
             if ip.startswith(self.planted_subnet_prefix) and h.status == 'online'
         ]
         if not candidates:
             candidates = [
-                ip for ip in env.global_state.all_hosts
-                if not ip.startswith('169.254.')
+                ip for ip in env.global_state.all_hosts if not ip.startswith('169.254.')
             ]
         self._planted_ip = sorted(candidates)[0]
         host = env.global_state.all_hosts[self._planted_ip]

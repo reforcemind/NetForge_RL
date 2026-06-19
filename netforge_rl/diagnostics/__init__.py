@@ -6,6 +6,7 @@ from netforge_rl.diagnostics.base import (
 )
 from netforge_rl.diagnostics.memory_probe import MemoryProbe
 from netforge_rl.diagnostics.noisy_siem import NoisySIEM
+from netforge_rl.diagnostics.wrapper import DiagnosticsWrapper, OracleObservation
 
 __all__ = [
     'Diagnostic',
@@ -14,4 +15,6 @@ __all__ = [
     'NoisySIEM',
     'all_diagnostics',
     'run_diagnostic',
+    'DiagnosticsWrapper',
+    'OracleObservation',
 ]

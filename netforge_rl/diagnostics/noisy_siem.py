@@ -1,10 +1,7 @@
 from netforge_rl.diagnostics.base import Diagnostic, DiagnosticResult
 
-
 class NoisySIEM(Diagnostic):
-    """One real compromise hidden in heavy SIEM noise; Blue is graded on
-    isolating it without false-positive isolations.
-    """
+    """Grade Blue on isolating one compromise amid heavy SIEM noise."""
 
     name = 'noisy_siem'
     capability = 'attention'
@@ -19,7 +16,8 @@ class NoisySIEM(Diagnostic):
 
     def setup(self, env):
         non_pad = [
-            ip for ip in env.global_state.all_hosts
+            ip
+            for ip in env.global_state.all_hosts
             if not ip.startswith('169.254.')
             and env.global_state.all_hosts[ip].status == 'online'
         ]
