@@ -1256,7 +1256,7 @@
 <p><strong>Who funded the dataset's creation?</strong> Self-funded.</p>
 <h2 id="composition">Composition<a class="headerlink" href="#composition" title="Permanent link">&para;</a></h2>
 <p><strong>What do the instances that comprise the dataset represent?</strong> Procedurally generated three-tier enterprise networks (DMZ / Corporate / Secure ± OT) of exactly 100 host slots (active topology spans 15–30 nodes; the remainder are pinned link-local padding for tensor-shape stability). Each scenario is a Python class with reward and termination logic.</p>
-<p><strong>How many instances are there in total?</strong> Infinite — the topology generator produces a new instance per <code>(scenario, seed)</code>. The repo ships <strong>2 reference scenarios</strong> (<code>ransomware</code>, <code>apt_espionage</code>) at v4.0; Phase 5 will expand to 5 standardized scenarios.</p>
+<p><strong>How many instances are there in total?</strong> Infinite — the topology generator produces a new instance per <code>(scenario, seed)</code>. The repo ships <strong>2 reference scenarios</strong> (<code>ransomware</code>, <code>apt_espionage</code>) at v2.0; Phase 5 will expand to 5 standardized scenarios.</p>
 <p><strong>What data does each instance consist of?</strong> A <code>GlobalNetworkState</code> (or its frozen <code>EnvState</code> mirror) containing host attributes (status, privilege, OS, services, vulnerabilities, ZTNA tokens, decoy flags, honeytokens), subnet topology, firewall rules, agent inventories / fog-of-war, and per-tick action history.</p>
 <p><strong>Is there a label or target?</strong> Reward signals per agent are defined by the scenario; canonical metrics emitted by every episode: Mean Time To Containment (MTTC), SLA Uptime, Total Exfiltrated Data, hosts compromised / isolated.</p>
 <p><strong>Are there recommended data splits?</strong> Train: any seeds. Eval: a held-out seed range published with each NeurIPS submission (TBD); zero-shot foundation-model leaderboard uses seeds 0..49 of each scenario.</p>
@@ -1266,7 +1266,7 @@
 <p><strong>What mechanisms or procedures were used to collect the data?</strong> N/A — fully synthetic.</p>
 <p><strong>Does the dataset relate to people?</strong> No.</p>
 <h2 id="preprocessing-cleaning-labeling">Preprocessing / cleaning / labeling<a class="headerlink" href="#preprocessing-cleaning-labeling" title="Permanent link">&para;</a></h2>
-<p><strong>Was any preprocessing of the data done?</strong> Padding hosts (<code>169.254.0.0/16</code>) are appended to every instance to keep the host tensor at exactly 100 rows. The frozen <code>EnvState</code> representation encodes categorical attributes (<code>status</code>, <code>privilege</code>, <code>decoy</code>) against pinned codebooks documented in <code>netforge_rl/core/functional.py</code>.</p>
+<p><strong>Was any preprocessing of the data done?</strong> Padding hosts (<code>169.252.0.0/16</code>) are appended to every instance to keep the host tensor at exactly 100 rows. The frozen <code>EnvState</code> representation encodes categorical attributes (<code>status</code>, <code>privilege</code>, <code>decoy</code>) against pinned codebooks documented in <code>netforge_rl/core/functional.py</code>.</p>
 <h2 id="uses">Uses<a class="headerlink" href="#uses" title="Permanent link">&para;</a></h2>
 <p><strong>Has the dataset been used for any tasks already?</strong> RL training of attack / defense policies; reference baselines in <code>netforge_rl/baselines/</code>; zero-shot foundation-model evaluation via <code>netforge_rl/semantic/runner.py</code>; LoRA + PPO fine-tuning of open-weights LLMs (notebook <code>07_finetune_llama3_lora.ipynb</code>).</p>
 <p><strong>Is there a repository that links to any or all papers or systems that use the dataset?</strong> Yes — the leaderboard at <code>leaderboard/results.json</code> (under construction).</p>
@@ -1275,7 +1275,7 @@
 <p><strong>Are there tasks for which the dataset should not be used?</strong> Generating exploits for live use against unauthorized systems. The Vulhub <code>Sim2RealBridge</code> is intended for evaluating defensive policies against intentionally vulnerable lab images only.</p>
 <h2 id="distribution">Distribution<a class="headerlink" href="#distribution" title="Permanent link">&para;</a></h2>
 <p><strong>Will the dataset be distributed to third parties outside of the entity?</strong> Yes — open source under the MIT License.</p>
-<p><strong>How will the dataset be distributed?</strong> Source via GitHub (<code>reforcemind/NetForge_RL</code>); a frozen v4.0.0 release archive will be deposited to Zenodo with a DOI for the NeurIPS submission.</p>
+<p><strong>How will the dataset be distributed?</strong> Source via GitHub (<code>reforcemind/NetForge_RL</code>); a frozen v2.0.0 release archive will be deposited to Zenodo with a DOI for the NeurIPS submission.</p>
 <h2 id="maintenance">Maintenance<a class="headerlink" href="#maintenance" title="Permanent link">&para;</a></h2>
 <p><strong>Who is supporting / hosting / maintaining the dataset?</strong> ReforceMind via the GitHub issue tracker.</p>
 <p><strong>Will the dataset be updated?</strong> Yes — Phase 5 expands the scenario suite; Phase 8 milestones M2 / M3 will add leaderboard results.</p>
