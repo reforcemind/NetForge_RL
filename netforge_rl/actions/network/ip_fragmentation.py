@@ -11,7 +11,6 @@ class IPFragmentationAction(BaseAction):
     def __init__(self, agent_id: str, target_ip: str, payload_type: str='reverse_shell'):
         super().__init__(agent_id=agent_id, target_ip=target_ip)
         self.payload_type = payload_type
-        self.fragment_size = 8
 
     def validate(self, global_state: 'GlobalNetworkState') -> bool:
         return global_state.can_route_to(self.target_ip, agent_id=self.agent_id)

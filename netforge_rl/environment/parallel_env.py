@@ -7,7 +7,7 @@ from netforge_rl.scenarios.apt_espionage import AptEspionageScenario
 from netforge_rl.core.action import BaseAction, ActionEffect
 from netforge_rl.core.observation import BaseObservation
 from netforge_rl.core.registry import action_registry
-import netforge_rl.actions
+
 from netforge_rl.core.physics import ConflictResolutionEngine
 from netforge_rl.environment.base_env import BaseNetForgeRLEnv
 from netforge_rl.topologies.network_generator import NetworkGenerator
@@ -293,7 +293,7 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
             )
             if host and getattr(host, 'contains_honeytokens', False):
                 self.siem_logger._push_to_buffer(
-                    f"[HONEYTOKEN] Target: {target_ip}, Agent: {res_agent}, Severity: 10",
+                    {"signature": "HONEYTOKEN_TRIGGERED", "target": target_ip, "agent": res_agent, "severity": 10},
                     subnet,
                     self.global_state,
                 )

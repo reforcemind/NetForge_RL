@@ -11,9 +11,6 @@ from netforge_rl.backends.jax import (
     to_numpy,
 )
 from netforge_rl.core.functional import (
-    PRIVILEGE_CODES,
-    STATUS_CODES,
-    apply_state_delta,
     from_global_state,
 )
 

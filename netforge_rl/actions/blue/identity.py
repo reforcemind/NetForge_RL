@@ -51,5 +51,5 @@ class RotateKerberos(BaseAction):
         return True
 
     def execute(self, global_state) -> ActionEffect:
-        deltas = [RotateKerberosCommand(self.agent_id)]
+        deltas = {'identity_flush': RotateKerberosCommand(self.agent_id)}
         return ActionEffect(success=True, state_deltas=deltas, observation_data={'alert': 'CRITICAL: Global Domain Keys Rotated. Enterprise Network re-verified.'}, eta=self.duration)

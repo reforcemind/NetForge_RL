@@ -12,21 +12,6 @@ class IStateDeltaCommand(ABC):
     @abstractmethod
     def target_ip(self) -> Optional[str]: ...
 
-
-class UpdateKnowledgeCommand(IStateDeltaCommand):
-    def __init__(self, agent_id: str, ip: str, value: Any = True):
-        self.agent_id = agent_id
-        self._target_ip = ip
-        self.value = value
-
-    @property
-    def target_ip(self):
-        return self._target_ip
-
-    def execute(self, global_state):
-        global_state.update_knowledge(self.agent_id, self.target_ip)
-
-
 class UpdateHostPrivilegeCommand(IStateDeltaCommand):
     def __init__(self, ip: str, privilege: str, compromised_by: Optional[str] = None):
         self._target_ip = ip
@@ -61,24 +46,7 @@ class UpdateHostStatusCommand(IStateDeltaCommand):
             host.status = self.status
 
 
-class UpdateServiceCommand(IStateDeltaCommand):
-    def __init__(self, ip: str, service: str, action: str = 'remove'):
-        self._target_ip = ip
-        self.service = service
-        self.action = action
 
-    @property
-    def target_ip(self):
-        return self._target_ip
-
-    def execute(self, global_state):
-        host = global_state.all_hosts.get(self._target_ip)
-        if host is None:
-            return
-        if self.action == 'remove' and self.service in host.services:
-            host.services.remove(self.service)
-        elif self.action == 'add' and self.service not in host.services:
-            host.services.append(self.service)
 
 
 class BlockPortCommand(IStateDeltaCommand):
@@ -98,32 +66,10 @@ class BlockPortCommand(IStateDeltaCommand):
         )
 
 
-class AddHistoryCommand(IStateDeltaCommand):
-    def __init__(self, agent_id: str, record: str):
-        self.agent_id = agent_id
-        self.record = record
-
-    @property
-    def target_ip(self):
-        return None
-
-    def execute(self, global_state):
-        global_state.action_history.setdefault(self.agent_id, set()).add(self.record)
 
 
-class UpdateDecoyCommand(IStateDeltaCommand):
-    def __init__(self, ip: str, decoy_type: str):
-        self._target_ip = ip
-        self.decoy_type = decoy_type
 
-    @property
-    def target_ip(self):
-        return self._target_ip
 
-    def execute(self, global_state):
-        host = global_state.all_hosts.get(self._target_ip)
-        if host is not None:
-            host.decoy = self.decoy_type
 
 
 class EstablishSessionCommand(IStateDeltaCommand):

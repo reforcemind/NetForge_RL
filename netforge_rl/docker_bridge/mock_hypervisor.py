@@ -79,7 +79,6 @@ class MockHypervisor(BaseHypervisor):
             action_name=action_name,
             target_ip=target_ip,
             target_os=target_os,
-            container_id='mock',
         )
 
     def teardown_all(self) -> None:

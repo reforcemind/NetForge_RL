@@ -24,11 +24,11 @@ def test_bridge_dispatch_routing(bridge):
 
 @pytest.mark.fast
 def test_bridge_reward_delta(bridge):
-    res_suc = HypervisorResult(True, '', 0, 100.0, 'Act', '1.1.1.1', 'Win', 'mock')
+    res_suc = HypervisorResult(True, '', 0, 100.0, 'Act', '1.1.1.1', 'Win')
     assert bridge.reward_delta(res_suc) == 5.0
-    res_fail = HypervisorResult(False, '', 1, 100.0, 'Act', '1.1.1.1', 'Win', 'mock')
+    res_fail = HypervisorResult(False, '', 1, 100.0, 'Act', '1.1.1.1', 'Win')
     assert bridge.reward_delta(res_fail) == -10.0
-    res_noisy = HypervisorResult(False, '', 1, 6000.0, 'Act', '1.1.1.1', 'Win', 'mock')
+    res_noisy = HypervisorResult(False, '', 1, 6000.0, 'Act', '1.1.1.1', 'Win')
     assert bridge.reward_delta(res_noisy) == -20.0
-    res_err = HypervisorResult(False, '', 2, 100.0, 'Act', '1.1.1.1', 'Win', 'mock')
+    res_err = HypervisorResult(False, '', 2, 100.0, 'Act', '1.1.1.1', 'Win')
     assert bridge.reward_delta(res_err) == -25.0

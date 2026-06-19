@@ -19,6 +19,8 @@ _pycache_/
 
 uv.lock
 
+.venv/
+
 CybORG/Logs/
 CybORG/Emulator/Logs/
 CybORG/Emulator/logs/

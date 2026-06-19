@@ -1,6 +1,5 @@
 from netforge_rl.core.action import BaseAction, ActionEffect
 from netforge_rl.core.registry import action_registry
-from netforge_rl.core.commands import UpdateHostPrivilegeCommand
 
 @action_registry.register('red', 1)
 class PrivilegeEscalate(BaseAction):
@@ -79,5 +78,4 @@ class PassTheHash(BaseAction):
         return global_state.can_route_to(self.target_ip, agent_id=self.agent_id)
 
     def execute(self, global_state) -> ActionEffect:
-        deltas = [UpdateHostPrivilegeCommand(self.target_ip, 'Root', compromised_by=self.agent_id)]
-        return ActionEffect(success=True, state_deltas=deltas, observation_data={'privilege': 'Pass-The-Hash lateral pivot successful.'})
+        return ActionEffect(success=True, state_deltas={f'hosts/{self.target_ip}/privilege': 'Root', f'hosts/{self.target_ip}/compromised_by': self.agent_id}, observation_data={'privilege': 'Pass-The-Hash lateral pivot successful.'})

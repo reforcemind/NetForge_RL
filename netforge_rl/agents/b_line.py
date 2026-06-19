@@ -26,7 +26,7 @@ class BLineAgent:
             return ActionClass(self.agent_id, target)
         return None
 
-    def get_action(self, observation: np.ndarray, global_state) -> Any:
+    def get_action(self, _observation: np.ndarray, global_state) -> Any:
         from netforge_rl.actions import (
             DiscoverRemoteSystems,
             DiscoverNetworkServices,

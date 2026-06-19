@@ -1,6 +1,5 @@
 import pytest
 from netforge_rl.environment.parallel_env import NetForgeRLEnv
-from netforge_rl.docker_bridge.bridge import DockerBridge
 from netforge_rl.siem.siem_logger import SIEMLogger
 from netforge_rl.nlp.log_encoder import LogEncoder
 
@@ -30,11 +29,6 @@ def global_state():
     gen = NetworkGenerator()
     state = gen.generate(seed=0)
     return state
-
-
-@pytest.fixture
-def mock_bridge():
-    return DockerBridge(mode='sim')
 
 
 @pytest.fixture

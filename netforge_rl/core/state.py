@@ -65,7 +65,6 @@ class GlobalNetworkState:
         self.business_downtime_score = 0.0
         self.agent_locked_until: Dict[str, int] = {}
         self.action_history: Dict[str, set] = {}
-        self.pending_effects: list = []
         self.siem_log_buffer: list = []
         self.current_tick = 0
         self.active_sessions: Dict[str, list] = {}

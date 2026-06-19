@@ -431,13 +431,6 @@ def test_sat_decrements_human_vulnerability(global_state) -> None:
     assert float(rewards[0, spec.n_red]) == pytest.approx(float(jnp.tanh(3.0 * 0.01)))
 
 
-def _find_vulnerable_host(state, cve_name: str) -> int | None:
-    col = CVE_CODES.index(cve_name)
-    mask = state.hosts.vuln_mask[0, :, col]
-    candidates = [int(i) for i, v in enumerate(mask) if bool(v)]
-    return candidates[0] if candidates else None
-
-
 @pytest.mark.fast
 def test_bluekeep_needs_cve_bit_set(global_state) -> None:
     spec = _spec()

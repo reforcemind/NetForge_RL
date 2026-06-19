@@ -8,13 +8,12 @@ class BaseObservation:
     def __init__(self, agent_id: str):
         self.agent_id = agent_id
         self.visible_hosts = {}
-        self.detected_anomalies = []
         self.active_sessions = []
         self.objective_vector = np.zeros(5, dtype=np.float32)
         self.network_telemetry = {}
         self.siem_alerts = []
 
-    def update_from_state(self, global_state: Any, action_effects: List[Any]):
+    def update_from_state(self, global_state: Any, _action_effects: List[Any]):
         """Filter ``global_state`` down to what this agent can observe."""
         is_blue = 'blue' in self.agent_id.lower()
         is_commander = 'commander' in self.agent_id.lower()

@@ -1,15 +1,7 @@
 from dataclasses import dataclass, field
-from typing import Protocol
 
-import numpy as np
 
 from netforge_rl.environment.parallel_env import NetForgeRLEnv
-
-
-class Policy(Protocol):
-    name: str
-
-    def act(self, env: NetForgeRLEnv, agent_id: str) -> np.ndarray: ...
 
 
 @dataclass

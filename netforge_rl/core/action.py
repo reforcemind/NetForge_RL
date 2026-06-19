@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional, TYPE_CHECKING, Union
+from typing import Any, Dict, List, Optional, Union
 from netforge_rl.core.commands import IStateDeltaCommand
 from netforge_rl.core.state import GlobalNetworkState
 

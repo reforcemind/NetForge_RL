@@ -7,7 +7,7 @@ from netforge_rl.core.observation import BaseObservation
 class OracleObservation(BaseObservation):
     """Perfect information view of the network state (No fog-of-war)."""
 
-    def update_from_state(self, global_state: Any, action_effects: List[Any]):
+    def update_from_state(self, global_state: Any, _action_effects: List[Any]):
         if global_state:
             # Oracle knows ALL ips
             for ip, host in global_state.all_hosts.items():

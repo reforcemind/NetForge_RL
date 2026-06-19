@@ -15,10 +15,6 @@ class FrameRecorder:
     def __len__(self):
         return len(self._frames)
 
-    @property
-    def frames(self):
-        return self._frames
-
     def save(self, path):
         if not self._frames:
             raise ValueError('FrameRecorder has no frames to save.')

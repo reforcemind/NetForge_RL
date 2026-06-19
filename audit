@@ -1,0 +1,598 @@
+================================================================================
+NETFORGE-RL CODEBASE AUDIT
+Generated: 2026-06-19
+Scope: netforge_rl/, tests/, benchmarks/, Dockerfile, pyproject.toml
+================================================================================
+
+LEGEND
+  [BUG]     Definite runtime error or logic flaw
+  [DEAD]    Code that is never reachable / never called
+  [UNUSED]  Symbol defined but never imported/used anywhere
+  [DESIGN]  Architectural problem or inconsistency
+  [WARN]    Code smell, minor risk, or brittle assumption
+  [PERF]    Performance concern
+  [CONF]    Misconfiguration in project files
+
+
+================================================================================
+SECTION 1 — BUGS (definite runtime errors / silent data corruption)
+================================================================================
+
+[BUG-001]  ip_fragmentation.py calls non-existent API
+  File:    netforge_rl/actions/network/ip_fragmentation.py
+  Detail:  `validate()` calls `global_state.routing_table.has_route(...)` and
+           `execute()` calls `global_state.get_host(...)` and
+           `global_state.get_service_config(...)`.
+           None of these attributes/methods exist on GlobalNetworkState.
+           This action will raise AttributeError at runtime every time it is
+           dispatched, yet it is registered under `red_operator` group 11.
+  Impact:  Runtime crash for every IPFragmentationAction invocation.
+  Fix:     [FIXED] Replaced with `global_state.can_route_to()` and
+           `global_state.all_hosts.get()`. Fixed delta path to `hosts/{ip}/...`.
+
+[BUG-002]  DumpLSASS returns a non-standard delta format
+  File:    netforge_rl/actions/red/post_exploitation.py
+  Detail:  `execute()` returns `state_deltas = {'inventory_update': DumpLSASSCommand(...)}`.
+           The key `'inventory_update'` is neither a `hosts/…`, `knowledge/…`,
+           `firewall/…`, nor `history/…` path, so `GlobalNetworkState.apply_delta()`
+           ignores it.  The DumpLSASSCommand.execute() is never called, meaning
+           stolen credentials are never written to `agent_inventory`.
+           Interestingly DumpLSASSCommand does not implement IStateDeltaCommand
+           (no `target_ip` property), so even if the resolver called it the type-
+           check in parallel_env._apply_state_deltas would skip it (list path only).
+  Impact:  LSASS credential theft silently does nothing. PassTheTicket will
+           always fail because inventories are never populated.
+  Fix:     [FIXED] Implemented IStateDeltaCommand for DumpLSASSCommand and passed as list.
+
+[BUG-003]  RotateKerberos returns a non-standard delta format (same pattern)
+  File:    netforge_rl/actions/blue/identity.py
+  Detail:  `state_deltas = {'identity_flush': RotateKerberosCommand(...)}`.
+           Same issue as BUG-002. `apply_delta` is never dispatched for the
+           `identity_flush` key. The Kerberos rotation (clearing inventories,
+           mutating token lists, deducting 5000 funds) never executes.
+  Impact:  The most expensive Blue action ($5000) has zero effect.
+  Fix:     [FIXED] Implemented IStateDeltaCommand protocol on RotateKerberosCommand.
+
+[BUG-004]  PassTheTicket grants Root even when target has no system_tokens
+  File:    netforge_rl/actions/red/post_exploitation.py
+  Detail:  When `host.system_tokens` is empty the code sets `success = True`
+           unconditionally, granting Root privilege without any token
+           check. The variable `success` is set to True first, then overridden
+           only if tokens exist. The intent appears to be the reverse: succeed
+           only if a valid token is held.
+  Impact:  Every host without system_tokens is freely escalated to Root,
+           breaking the ZTNA model.
+  Fix:     [FIXED] Inverted logic: success is True only when token matches.
+
+[BUG-005]  OverloadPLC registered under group 20 but registry only dispatches 0-11
+  File:    netforge_rl/actions/red/kinetic.py  line 5
+           netforge_rl/core/registry.py         line 50
+  Detail:  `OverloadPLC` is registered as `red_operator` group 20.
+           `SpearPhishing` is registered as `red_operator` group 21.
+           In `ActionRegistry.instantiate_action()` the fallback scalar path
+           computes `action_type_id = action_int // len(target_ips) % 12`,
+           capping the group_id at 0-11. These two actions can NEVER be resolved
+           through the scalar dispatch path. They are reachable only via the
+           array/multidiscrete path `action_data[0]`, but `NetForgeRLEnv`'s
+           action space is `MultiDiscrete([32, 100])`, so `action_data[0]` is
+           the action type, which IS dispatched correctly in that path.
+           However the JAX vector_env maps actions 0-19 for red and 0-13 for
+           blue, with no entries for groups 20 and 21. These actions are
+           effectively unreachable from the JAX backend.
+  Impact:  OT kinetic destruction and spear-phishing cannot be triggered from
+           JAX training pipelines.
+
+[BUG-006]  sps_baseline.py uses non-existent config key `sim2real_mode`
+  File:    benchmarks/sps_baseline.py  line 43
+  Detail:  Config dict passes `'sim2real_mode': 'sim'`. The
+           `NetForgeRLEnv.__init__()` reads `cfg.get('docker_mode', 'sim')`.
+           The key `sim2real_mode` is silently ignored. Not a crash, but the
+           benchmark documents an incorrect configuration contract.
+
+[BUG-007]  `action_mask` shape mismatch with action_spaces declaration
+  File:    netforge_rl/environment/parallel_env.py  lines 63-83, 142-148
+  Detail:  `observation_spaces` declares `action_mask` shape `(32 + 100,) = (132,)`.
+           `action_mask()` also returns shape `(132,)`. However `action_spaces`
+           declares `MultiDiscrete([32, 100])`, a 2-element action. The mask
+           attempts to overlay a flat 132-element mask on a 2-D MultiDiscrete
+           space, which are structurally incompatible. Most RL frameworks expect
+           the mask to match the action space shape exactly.
+
+[BUG-008]  NetworkGenerator._load_from_yaml discards YAML content
+  File:    netforge_rl/topologies/network_generator.py  lines 181-186
+  Detail:  `yaml.safe_load(f)` result is assigned to `_` (throwaway) and
+           the function falls back to `_generate_procedural(rng)` regardless.
+           If a user provides a topology_path, the YAML is loaded from disk
+           but completely ignored.
+  Impact:  Custom YAML topologies are silently ignored; deterministic scenario
+           replay from file is broken.
+
+[BUG-009]  _update_episode_metrics only handles dict-form state_deltas
+  File:    netforge_rl/environment/parallel_env.py
+  Detail:  `_update_episode_metrics` checks
+           `if not effect.success or not isinstance(effect.state_deltas, dict):`
+           and skips command-object form (list of IStateDeltaCommand). Actions
+           like IsolateHost that use the command list form will never have their
+           infection/isolation times recorded. Specifically `isolation_times` is
+           only updated for dict-form, but IsolateHost always uses list-form.
+  Impact:  MTTC (Mean Time To Containment) always reads 0.0 regardless of
+           actual isolation activity.
+  Fix:     [FIXED] Updated `_update_episode_metrics` to parse list-form commands.
+
+[BUG-010]  Observe telemetry is random noise, not deterministic state
+  File:    netforge_rl/core/observation.py  lines 49-50
+  Detail:  `network_telemetry['global_alert_level'] = np.random.uniform(0, 1)`
+           and `network_telemetry['total_isolated_subnets'] = np.random.randint(0, 5)`
+           are pure random values unrelated to actual network state. Agents
+           learning from this will receive misleading signals in the obs vector.
+  Impact:  Blue agents see stochastic noise instead of real alert level;
+           this hampers learning and makes the metric meaningless.
+
+[BUG-011]  `global_state_vector` references `self.ordered_hosts` before first step
+  File:    netforge_rl/environment/parallel_env.py  lines 517-537
+  Detail:  `global_state_vector()` accesses `self.ordered_hosts` which is only
+           set inside `reset()` and `step()`. Calling `global_state_vector()`
+           before `reset()` will raise AttributeError.
+
+
+================================================================================
+SECTION 2 — DEAD / UNREACHABLE CODE
+================================================================================
+
+[DEAD-001]  PassTheHash action registered but never reachable from production dispatch
+  File:    netforge_rl/actions/red/privilege_escalation.py  lines 63-83
+  Detail:  `PassTheHash` is registered as `@action_registry.register('red_operator', 9)`.
+           It is NOT imported in `netforge_rl/actions/red/__init__.py` and NOT in
+           the top-level `netforge_rl/actions/__init__.py`.  Without the import,
+           the `@register` decorator never runs and the action is never loaded
+           into the registry.
+  Impact:  PassTheHash can never be dispatched.
+  Fix:     Add to `red/__init__.py` and the top-level `__init__.py` `__all__`.
+
+[DEAD-002]  ExfiltrateData action registered but never exported
+  File:    netforge_rl/actions/red/impact.py  lines 31-48
+  Detail:  `ExfiltrateData` is registered as `@action_registry.register('red_operator', 10)`
+           but is not in any `__init__.py` or `__all__`. Same consequence as DEAD-001.
+  Impact:  Exfiltration can never be dispatched; exfil rewards are permanently 0.
+
+[DEAD-003]  `NetworkGenerator.G` (DiGraph) is built but never used
+  File:    netforge_rl/topologies/network_generator.py  lines 35, 133
+  Detail:  `G = nx.DiGraph()` is constructed and `G.add_node(host.ip, ...)` is
+           called, but `G` is never used for routing, rendering, or returned.
+  Impact:  Wasted computation (minor); `networkx` graph object is GC'd after
+           `_generate_procedural` returns.
+
+[DEAD-004]  `fake_data` flag in DiscoverRemoteSystems never triggers fake-data branch
+  File:    netforge_rl/actions/red/reconnaissance.py  lines 28-37
+  Detail:  `fake_data = False` is set but the real IPs are already collected in
+           `active_hosts` list before `fake_data` is checked. The `if fake_data`
+           branch overwrites `obs_data['hosts']` with fake IPs, but `active_hosts`
+           has already been built. The issue is that the real IPs are appended to
+           `active_hosts` unconditionally, so when decoys are present both real
+           IPs AND the fake override are set. The real list is silently discarded,
+           but it was already computed — wasted work.
+
+[DEAD-005]  `TYPE_CHECKING` import in functional.py imported but not used
+  File:    netforge_rl/core/functional.py  line 2
+  Detail:  `from typing import TYPE_CHECKING` is imported but `TYPE_CHECKING`
+           is never referenced anywhere in the file.
+
+[DEAD-006]  `typing.Any` imported but unused in base_env.py
+  File:    netforge_rl/environment/base_env.py  line 4
+  Detail:  `from typing import Dict, Tuple, Any` — `Any` is not used in the
+           abstract method signatures or anywhere else in that file.
+
+[DEAD-007]  `Literal` import unused in registry.py
+  File:    netforge_rl/core/registry.py  line 2
+  Detail:  `from typing import Callable, Dict, Optional, Type` — `Dict` is used
+           but all are fine except this is a minor cleanliness concern.
+           (ruff E401 already ignores E402 but unused imports could be caught.)
+
+[DEAD-008]  `netforge_rl/diagnostics/__init__.py` imports DiagnosticsWrapper
+  File:    netforge_rl/diagnostics/__init__.py
+  Detail:  The diagnostics `__init__.py` exports `DiagnosticsWrapper`,
+           `MemoryProbe`, `NoisySIEM`. `MemoryProbe` and `NoisySIEM` are used
+           in `base.py:all_diagnostics()`. `DiagnosticsWrapper` itself has no
+           tests or consumers in the main codebase (tests/diagnostics/test_wrapper.py
+           is the only consumer). This is not dead per se, but it is untested
+           outside the diagnostics test.
+
+[DEAD-009]  Benchmarks `build_leaderboard.py` and `sps_jax_vectorized.py` have no callers
+  File:    benchmarks/build_leaderboard.py, benchmarks/sps_jax_vectorized.py
+  Detail:  These scripts are stand-alone CLI tools, which is intentional, but
+           `sps_jax_vectorized.py` is not referenced in pyproject.toml scripts
+           or CI, making its maintenance status unclear.
+
+
+================================================================================
+SECTION 3 — DESIGN PROBLEMS / ARCHITECTURAL ISSUES
+================================================================================
+
+[DESIGN-001]  Dual state representation with no authoritative round-trip test
+  Files:   netforge_rl/core/functional.py, netforge_rl/backends/jax/state.py
+  Detail:  The codebase maintains two parallel state models:
+           - GlobalNetworkState (mutable Python objects, used by legacy env)
+           - EnvState / JaxEnvState (immutable, JAX-compatible)
+           `from_global_state` → `to_jax` and `to_numpy` → `to_global_state`
+           form a round-trip, but there are no tests verifying idempotency of
+           (from_global_state → to_global_state). Fields like `action_history`,
+           `siem_log_buffer`, `active_sessions`, `subnet_bandwidth`,
+           `pending_effects`, `docker_bridge` exist only in GlobalNetworkState
+           and are silently dropped on conversion to EnvState.
+
+[DESIGN-002]  Conflict resolver duplicated between physics.py and functional.py
+  Files:   netforge_rl/core/physics.py (ConflictResolutionEngine.resolve)
+           netforge_rl/core/functional.py (resolve_conflicts)
+  Detail:  Two nearly identical implementations of blue-defensive-supremacy
+           conflict resolution exist. The legacy env uses `physics.py`. The
+           pure-functional variant in `functional.py` is used by no importers
+           (grep shows no callers). This is dead code as well as duplication.
+
+[DESIGN-003]  Hard-coded subnet CIDRs scattered across multiple files
+  Files:   netforge_rl/core/action.py line 60,
+           netforge_rl/core/state.py lines 139-162,
+           netforge_rl/topologies/network_generator.py lines 40-45
+  Detail:  Subnets '192.168.1.0/24', '10.0.0.0/24', '10.0.1.0/24', '10.0.99.0/24'
+           and names 'DMZ', 'Corporate', 'Secure' are repeated as string literals.
+           If the procedural generator spawns a topology without one of these
+           exact CIDRs the routing and privilege escalation logic silently breaks
+           (no pivot found = all red actions blocked).
+
+[DESIGN-004]  GreenAgent.generate_noise returns items with key `data` but
+               _push_to_buffer expects a string log_line
+  Files:   netforge_rl/agents/green_agent.py lines 32-52
+           netforge_rl/environment/parallel_env.py lines 244-247
+  Detail:  `generate_noise` produces dicts like `{'type': 'benign_xml', 'data': log, ...}`.
+           The env loop calls `siem_logger._push_to_buffer(anomaly['data'], ...)`.
+           `anomaly['data']` is a pre-formatted XML string from event templates —
+           this works, but `anomaly['type']` and `anomaly['severity']` are never
+           used. These fields are vestigial.
+
+[DESIGN-005]  action_mask shape (132) does not match MultiDiscrete([32, 100]) spec
+  File:    netforge_rl/environment/parallel_env.py  lines 63, 142-148
+  Detail:  (See also BUG-007.) PettingZoo and SB3 typically expect action masks
+           to be a flat bool array matching the flattened action space, or a
+           structured dict. A flat 132-element mask applied to MultiDiscrete[2]
+           is ambiguous and will cause issues with any framework consuming the
+           standard action_mask key.
+
+[DESIGN-006]  `SIEMLogger._push_to_buffer` pushes dict objects when called directly
+  Files:   netforge_rl/environment/parallel_env.py
+  Detail:  When a red action triggers a honeytoken, the code pushes a raw dict
+           `{'signature': 'HONEYTOKEN_TRIGGERED', ...}` into `siem_log_buffer`.
+           But `get_filtered_logs` returns `entry[0]` assuming each entry is
+           `(log_line_string, subnet_cidr)`. A dict is not subscriptable by
+           integer, causing TypeError when the log is later retrieved.
+  Fix:     [FIXED] Formatted honeytoken trigger as string before pushing to buffer.
+
+[DESIGN-007]  ObservationSpace declares `siem_embedding` but action masks include it
+  File:    netforge_rl/environment/parallel_env.py line 347
+  Detail:  `observations[agent]['action_mask']` returns the cached mask set at
+           reset time, never updated during the episode. If DHCP reallocation
+           changes the target hosts the mask is stale.
+
+[DESIGN-008]  OverloadPLC modifies a `temperature` field that is never in HostArrays
+  File:    netforge_rl/actions/red/kinetic.py  lines 29-31
+           netforge_rl/core/functional.py      (HostArrays definition)
+  Detail:  `state_deltas[f'hosts/{self.target_ip}/temperature'] = new_temp`.
+           `temperature` is not a field of `GlobalNetworkState.all_hosts[ip]`
+           by default (only set on OT hosts via `setattr()`). The string-delta
+           path in `apply_delta` calls `setattr(host, attribute, delta_value)`,
+           which will work for hosts where `temperature` was set at build time,
+           but does nothing to enforce it in the type system. The field is also
+           not preserved in any round-trip to EnvState.
+
+
+[DESIGN-010]  `ruff target-version = "py313"` but `requires-python = ">=3.14"`
+  File:    pyproject.toml  lines 13, 78
+  Detail:  The ruff linter targets Python 3.13 syntax while the project
+           declares it requires Python 3.14. These should match.
+
+[DESIGN-011]  `DumpLSASSCommand` and `RotateKerberosCommand` defined as local classes
+  Files:   netforge_rl/actions/red/post_exploitation.py  lines 28-37
+           netforge_rl/actions/blue/identity.py           lines 23-47
+  Detail:  Inner classes defined inside `execute()` cannot be pickled (breaks
+           multiprocessing / Ray rollout workers) and are invisible to the type
+           system. They should implement `IStateDeltaCommand` and be top-level.
+
+[DESIGN-012]  `_configure_procedural_vision` wires red knowledge only to the first
+               non-isolated DMZ host it finds, then breaks
+  File:    netforge_rl/topologies/network_generator.py  lines 164-171
+  Detail:  Only one DMZ host IP is added to red knowledge via `break`. In the
+           `DiscoverRemoteSystems` action the agent explicitly receives a subnet
+           and lists all hosts in it. The initial single-IP knowledge seed means
+           red starts with partial information inconsistent with the "starting in
+           DMZ" narrative — it knows one host but not the subnet.
+
+[DESIGN-013]  `conftest.py` fixture `red_agent_id` / `blue_agent_id` return IDs that
+               don't exist in the environment
+  File:    tests/conftest.py  lines 51-57
+  Detail:  `red_agent_id` returns `'red_operator_0'` and `blue_agent_id` returns
+           `'blue_operator_0'`. The actual agent IDs in the env are
+           `'red_operator'`, `'blue_dmz'`, `'blue_internal'`, `'blue_restricted'`.
+           Tests relying on these fixtures that pass them to env methods will
+           silently get empty observations or KeyErrors.
+
+
+================================================================================
+SECTION 4 — UNUSED / ORPHANED SYMBOLS
+================================================================================
+
+[UNUSED-001]  `netforge_rl.core.functional.resolve_conflicts()` — never imported
+  File:    netforge_rl/core/functional.py  lines 381-410
+  Callers: 0 (grep: no file imports `resolve_conflicts` from functional)
+  Note:    Duplicates `ConflictResolutionEngine.resolve` in physics.py.
+
+[UNUSED-002]  `netforge_rl.core.functional.apply_state_delta()` — never imported
+  File:    netforge_rl/core/functional.py  lines 322-350
+  Callers: 0 (only `apply_state_deltas` is imported externally)
+
+[UNUSED-003]  `netforge_rl.core.functional._extract_targeted_ips()` — never imported
+  File:    netforge_rl/core/functional.py  lines 364-378
+  Callers: 0 (only used internally by the unused `resolve_conflicts`)
+
+[UNUSED-004]  `netforge_rl.backends.jax.state.to_numpy()` — never imported
+  File:    netforge_rl/backends/jax/state.py  lines 93-142
+  Callers: 0 in production code. Present but has no importers in netforge_rl/ or tests/.
+
+[UNUSED-005]  `netforge_rl.diagnostics.base.Policy` (Protocol) — never used as annotation
+  File:    netforge_rl/diagnostics/base.py  lines 9-12
+  Detail:  `Policy` protocol is defined but `run_diagnostic` accepts a raw
+           `policy` arg with no type annotation. No code passes a typed Policy.
+
+[UNUSED-006]  `netforge_rl.render.recorder` — never imported by production code
+  File:    netforge_rl/render/recorder.py
+  Callers: 0 in netforge_rl/ (only tests/render may test it if any)
+
+[UNUSED-007]  `netforge_rl.semantic.vla_wrapper` — never imported anywhere
+  File:    netforge_rl/semantic/vla_wrapper.py
+  Callers: 0. File exports nothing used by the rest of the semantic module.
+
+[UNUSED-008]  `netforge_rl.semantic.leaderboard` — appears unused in production
+  File:    netforge_rl/semantic/leaderboard.py
+  Detail:  The `EpisodeResult` and `append_result` are imported in
+           `baselines/eval.py`, so `netforge_rl/semantic/__init__.py` must re-
+           export them. This is referenced. However `leaderboard.py` also
+           contains functions not referenced elsewhere.
+
+[UNUSED-009]  `netforge_rl.bridges.dlpack` — never imported by any tested code path
+  File:    netforge_rl/bridges/dlpack.py
+  Detail:  Zero-copy JAX↔PyTorch transfer utility. No file in netforge_rl/,
+           tests/, or benchmarks/ imports it.
+
+[UNUSED-010]  `NetworkGenerator.G` (nx.DiGraph) — built and immediately discarded
+  File:    netforge_rl/topologies/network_generator.py  line 35
+  (Also listed as DEAD-003 — confirmed unused.)
+
+[UNUSED-011]  `netforge_rl.baselines.policies.BasePolicy` — unused in type annotations
+  File:    netforge_rl/baselines/eval.py  line 5
+  Detail:  `BasePolicy` is imported but the `evaluate()` function signature types
+           its `policy` parameter as `BasePolicy` only in the docstring comment,
+           not in the actual annotation. The import is technically used as a type
+           in `POLICY_REGISTRY` values if they subclass it, but the annotation on
+           `evaluate` is missing.
+
+
+================================================================================
+SECTION 5 — WARNINGS / CODE SMELLS
+================================================================================
+
+[WARN-001]  `_load_from_yaml` silently falls back on any YAML content
+  File:    netforge_rl/topologies/network_generator.py  lines 181-186
+  Detail:  No parsing is implemented. Any yaml path specified by user silently
+           results in a procedurally generated map with no warning.
+
+[WARN-002]  `SIEMLogger._push_to_buffer` appends dict sometimes, tuple other times
+  File:    netforge_rl/siem/siem_logger.py  line 144 — appends `(log_line, subnet_cidr)`
+           netforge_rl/environment/parallel_env.py lines 289-304 — appends raw dicts
+  Detail:  Mixed buffer contents will cause TypeError in `get_filtered_logs`
+           which does `entry[0]` (assumes tuple). Honeytoken and sysmon_1 events
+           are pushed without subnet tuple wrapping.
+
+[WARN-003]  `reallocate_dhcp` invalidates all agent knowledge silently
+  File:    netforge_rl/core/state.py  lines 175-191
+  Detail:  When DHCP reallocates (every 40 ticks), `all_hosts` keys change but
+           `agent_knowledge` still holds old IPs. Agents will query stale IPs
+           that no longer exist in `all_hosts`, silently getting `None`.
+           There is no explicit knowledge invalidation step.
+
+[WARN-004]  `from_global_state` enforces exactly 100 hosts — too rigid
+  File:    netforge_rl/core/functional.py  lines 116-117
+  Detail:  `if n != N_HOSTS: raise ValueError(...)`. NetworkGenerator always
+           pads to 100 so this passes, but it makes the env entirely inflexible
+           to smaller debugging scenarios.
+
+[WARN-005]  `action_registry.instantiate_action` fallback scalar path can silently fail
+  File:    netforge_rl/core/registry.py  lines 48-53
+  Detail:  `action_type_id = action_int // len(target_ips) % 12` — if
+           `len(target_ips)` changes mid-episode (DHCP reallocation), the same
+           action integer maps to different actions, creating non-stationary policy
+           gradients.
+
+[WARN-005b] `registry.py` missing registration for groups 6-11 for 'red' team
+  File:    netforge_rl/core/registry.py
+  Detail:  Red group slots 6-11 are registered under 'red_operator' not 'red'.
+           `get_action_class('red_operator', 6)` resolves `primary='red'`
+           (not 'red_operator'), then falls back to `self._actions.get('red_operator', {})`
+           which also returns nothing because operator actions are under
+           'red_operator' but the fallback looks up `lower = 'red_operator'`.
+           The logic at line 31-33 looks up `primary` first, then `lower` — so
+           `red_operator` → primary = 'red', fallback = 'red_operator'. This
+           works. But 'blue_operator' is never a key in `_actions` (only 'blue'
+           and 'blue_commander'). Monitor (blue_operator, 2) and Analyze
+           (blue_operator, 3) resolve to nothing via the 'blue' primary path
+           (not found), then fallback 'blue_operator' (also not in _actions).
+           Monitor and Analyze can never be dispatched via the registry.
+
+[WARN-006]  Hash-based LRU cache in LogEncoder is eviction-ordered but not LRU
+  File:    netforge_rl/nlp/log_encoder.py  lines 166-169
+  Detail:  `_evict_if_full()` deletes the first `cache_size // 4` keys of
+           `dict.keys()`. In CPython 3.7+ dict preserves insertion order, making
+           this FIFO not LRU. The comment implies LRU intent.
+
+[WARN-007]  `SIEM_BUFFER_MAX = 64` but buffer is a list with O(n) pop(0)
+  File:    netforge_rl/siem/siem_logger.py  lines 146-147
+  Detail:  `global_state.siem_log_buffer.pop(0)` is O(n). At 64 entries per
+           1000-tick episode this is negligible, but `collections.deque(maxlen=64)`
+           would be both faster and semantically clearer.
+
+[WARN-008]  BLineAgent skips DiscoverNetworkServices before ExploitRemoteService
+  File:    netforge_rl/agents/b_line.py  lines 53-57
+  Detail:  `ExploitRemoteService` requires `required_prior_state = 'DiscoverNetworkServices'`.
+           `BLineAgent` jumps straight to ExploitRemoteService after
+           DiscoverRemoteSystems, so `validate()` will fail (no history entry).
+           The agent will waste many turns attempting invalid exploits.
+
+[WARN-009]  DHCP reallocation uses `random.sample(range(1, 250), len(hosts))` without
+             collision check across subnets
+  File:    netforge_rl/core/state.py  lines 184-190
+  Detail:  New IPs are sampled within a subnet range but two hosts in different
+           subnets could both receive the same last-octet number. Since full IPs
+           are `{base_ip}.{num}` and base_ip differs per subnet, this is unlikely
+           to collide in `all_hosts`, but the code does not validate uniqueness
+           across the full `all_hosts` dict after reallocation.
+
+[WARN-010]  `Misinform` action sets delta key `hosts/{ip}/misinformation` 
+  File:    netforge_rl/actions/blue/deception.py  line 67
+  Detail:  `misinformation` is not a field of `Host` and is not in `HostArrays`.
+           The `apply_delta` `setattr` call will create a dynamic attribute on
+           the host but it is never read, validated, or serialised.
+
+[WARN-011]  `SecurityAwarenessTraining` lowers vulnerability by ×0.2 — extremely aggressive
+  File:    netforge_rl/actions/blue/mitigation.py  line 89
+  Detail:  `new_score = round(current_score * 0.2, 2)`. A single training
+           reduces human vulnerability to 20% of its original value in one action.
+           The JAX backend uses a `SAT_DROP = 0.1` constant (subtractive, not
+           multiplicative), making the two backends behaviorally inconsistent.
+
+[WARN-012]  `NetForgeRLEnv.__init__` ignores `scenario_config=None` type
+  File:    netforge_rl/environment/parallel_env.py  line 30
+  Detail:  `cfg = scenario_config or {}` — but the type hint says `dict`, so
+           passing `None` is nominally invalid. Either document None as accepted
+           or enforce the type.
+
+[WARN-013]  `BaseLine.jax_ppo.train` rebuilds `env` on every call (expensive)
+  File:    netforge_rl/baselines/jax_ppo.py  line 216
+  Detail:  `JaxMARLEnv` is constructed inside `train()`, so calling `train()`
+           multiple times re-compiles the XLA graph each time. The env and its
+           `make_vector_step` should be cached or passed in.
+
+
+================================================================================
+SECTION 6 — PYPROJECT.TOML / CONFIGURATION
+================================================================================
+
+
+[CONF-002]  `[tool.ruff] target-version = "py313"` conflicts with requires-python
+  (See also DESIGN-010.)
+
+[CONF-003]  `stable-baselines3>=2.9.0` is in core dependencies but SB3 is only
+             needed for baselines training, not for the environment itself.
+  File:    pyproject.toml  line 20
+  Detail:  Users who only want to use the environment as a library are forced to
+           install PyTorch transitively (SB3 depends on torch). SB3 should be
+           in an optional dependency group (e.g. `[project.optional-dependencies]
+           baselines = ["stable-baselines3>=2.9.0"]`).
+
+[CONF-004]  `scikit-learn>=1.0.0` is in `[dev]` extras but is a runtime dependency
+  File:    pyproject.toml  lines 14-21, 29
+  Detail:  `netforge_rl/nlp/log_encoder.py` imports sklearn at module level
+           (lines 12-15). It is not guarded by try/except. If a user installs
+           without `[dev]` extras the import will fail at startup.
+  Fix:     Move `scikit-learn` to core dependencies or to a `[nlp]` extra group
+           with a graceful fallback in log_encoder.py.
+
+[CONF-005]  `transformers>=5.12.0` in finetune extras — version 5.x does not exist
+  File:    pyproject.toml  line 46
+  Detail:  As of audit date the transformers library is at version 4.x.
+           `transformers>=5.12.0` will never resolve. Change to `>=4.40.0` or
+           similar.
+
+[CONF-006]  `jax[cpu]>=0.10.0` in jax extras — version 0.10 does not exist
+  File:    pyproject.toml  line 37
+  Detail:  JAX version numbering is `0.4.x`. `>=0.10.0` would be satisfied by
+           the 4.x series if interpreted as 0.10 < 0.4x numerically — but pip
+           version comparison is lexicographic for pre-1.0 packages so
+           `0.10.0 > 0.4.30` is True. This may accidentally install an alpha
+           version or fail if a 0.10 build doesn't exist. Recommend `>=0.4.30`.
+
+[CONF-007]  `numpy>=2.4.0` in core dependencies — NumPy 2.4 is not yet released
+  File:    pyproject.toml  line 15
+  Detail:  NumPy 2.0 was released in 2024; 2.4 is a future version. Pin to
+           `>=2.0.0` for safety.
+
+[CONF-008]  Missing pytest markers: `[tool.ruff.lint.per-file-ignores]` silences E402
+             globally but `tests/**` already has it
+  File:    pyproject.toml  lines 90-94
+  Detail:  `ignore = ["E701", "E402", "E702"]` globally disables E701 (multiple
+           statements on one line), masking legitimate style issues across all
+           production code.
+
+
+================================================================================
+SECTION 7 — MISSING TESTS
+================================================================================
+
+[TEST-001]  `PassTheHash` — no test (action unreachable due to DEAD-001)
+[TEST-002]  `ExfiltrateData` — no test (action unreachable due to DEAD-002)
+[TEST-003]  `DumpLSASS` → `PassTheTicket` credential chain — no end-to-end test
+[TEST-004]  `RotateKerberos` effect — no test confirming token invalidation
+[TEST-005]  DHCP reallocation (`reallocate_dhcp`) — no test
+[TEST-006]  `from_global_state` → `to_global_state` round-trip — no test
+[TEST-007]  `action_mask` shape validation — no test
+[TEST-008]  Scenario `cloud_hybrid`, `iot_grid`, `ot_stuxnet`, `apt_espionage`
+            reward/termination — only ransomware scenario tested
+[TEST-009]  `NetworkGenerator._load_from_yaml` — no test (also broken per BUG-008)
+[TEST-010]  `ConflictResolutionEngine` — no test verifying blue supremacy
+[TEST-011]  `SIEMLogger.get_filtered_logs` with honeytoken + sysmon events (mixed
+            buffer format from WARN-002) — no test
+
+
+================================================================================
+SECTION 8 — SUMMARY TABLE (quick reference)
+================================================================================
+
+Priority  ID          Category   File (abbreviated)                  Short Description
+--------  ----------  ---------  ----------------------------------  ---------------------------
+CRITICAL  BUG-001     BUG        actions/network/ip_fragmentation    [FIXED] Calls non-existent API → crash
+CRITICAL  BUG-002     BUG        actions/red/post_exploitation        [FIXED] DumpLSASS silently no-ops
+CRITICAL  BUG-003     BUG        actions/blue/identity               [FIXED] RotateKerberos silently no-ops
+CRITICAL  BUG-004     BUG        actions/red/post_exploitation        [FIXED] PassTheTicket grants Root free
+CRITICAL  BUG-009     BUG        environment/parallel_env            [FIXED] MTTC always 0 (list deltas skipped)
+
+HIGH      BUG-006     BUG        benchmarks/sps_baseline             Wrong config key (sim2real_mode)
+HIGH      BUG-007     BUG        environment/parallel_env            action_mask shape mismatch
+HIGH      BUG-008     BUG        topologies/network_generator        YAML topology silently ignored
+HIGH      BUG-010     BUG        core/observation                    telemetry is random noise
+HIGH      DEAD-001    DEAD       actions/red/privilege_escalation    PassTheHash never registered
+HIGH      DEAD-002    DEAD       actions/red/impact                  ExfiltrateData never registered
+HIGH      DESIGN-006  DESIGN     environment/parallel_env            [FIXED] Honeytoken push corrupts buffer
+HIGH      WARN-002    WARN       siem/siem_logger + parallel_env     Mixed buffer types → TypeError
+HIGH      CONF-004    CONF       pyproject.toml                      sklearn missing from core deps
+MEDIUM    BUG-005     BUG        actions/red/kinetic + registry      OverloadPLC unreachable JAX
+MEDIUM    BUG-011     BUG        environment/parallel_env            ordered_hosts before reset
+MEDIUM    DEAD-003    DEAD       topologies/network_generator        nx.DiGraph built, never used
+MEDIUM    DESIGN-002  DESIGN     core/physics + functional           resolve_conflicts duplicated
+MEDIUM    DESIGN-003  DESIGN     multiple files                      hard-coded subnet CIDRs
+MEDIUM    DESIGN-011  DESIGN     post_exploitation + identity        inner class IStateDeltaCommand
+MEDIUM    DESIGN-013  DESIGN     tests/conftest.py                   fixture IDs don't match env IDs
+MEDIUM    WARN-003    WARN       core/state                          DHCP silently stales knowledge
+MEDIUM    WARN-005b   WARN       core/registry                       Monitor/Analyze unresolvable
+MEDIUM    WARN-008    WARN       agents/b_line                       BLine skips required prior state
+MEDIUM    CONF-003    CONF       pyproject.toml                      SB3 in core deps (heavy dep)
+MEDIUM    CONF-004    CONF       pyproject.toml                      sklearn in dev, used at runtime
+MEDIUM    CONF-005    CONF       pyproject.toml                      transformers>=5.12 doesn't exist
+MEDIUM    CONF-006    CONF       pyproject.toml                      jax>=0.10.0 wrong version
+MEDIUM    CONF-007    CONF       pyproject.toml                      numpy>=2.4.0 doesn't exist
+LOW       DEAD-004    DEAD       actions/red/reconnaissance          fake_data flag partly dead
+LOW       DEAD-005    DEAD       core/functional                     TYPE_CHECKING unused import
+LOW       DESIGN-010  DESIGN     pyproject.toml                      ruff py313 vs requires py314
+LOW       WARN-001    WARN       topologies/network_generator        YAML falls back silently
+LOW       WARN-006    WARN       nlp/log_encoder                     FIFO vs LRU cache eviction
+LOW       WARN-007    WARN       siem/siem_logger                    O(n) pop(0) on list
+LOW       WARN-010    WARN       actions/blue/deception              Misinform sets phantom field
+LOW       WARN-011    WARN       actions/blue/mitigation             SAT ×0.2 vs JAX -0.1 mismatch
+
+================================================================================
+END OF AUDIT
+================================================================================

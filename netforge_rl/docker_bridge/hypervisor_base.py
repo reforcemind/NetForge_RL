@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 
 @dataclass
@@ -15,7 +15,6 @@ class HypervisorResult:
     action_name: str
     target_ip: str
     target_os: str
-    container_id: str = field(default='mock')
 
     def __repr__(self) -> str:
         status = 'SUCCESS' if self.success else 'FAILED'

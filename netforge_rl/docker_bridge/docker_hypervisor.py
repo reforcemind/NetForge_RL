@@ -128,9 +128,6 @@ class DockerHypervisor(BaseHypervisor):
             action_name=action_name,
             target_ip=target_ip,
             target_os=target_os,
-            container_id=getattr(container, 'short_id', 'unknown')
-            if container
-            else 'error',
         )
 
     def teardown_all(self) -> None:
