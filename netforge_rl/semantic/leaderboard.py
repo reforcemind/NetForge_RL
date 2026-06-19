@@ -37,7 +37,8 @@ def summarize(path):
                 'mean_isolated': sum(r['final_isolated'] for r in rs) / len(rs),
                 'mean_invalid_replies': sum(
                     sum(r['invalid_replies'].values()) for r in rs
-                ) / len(rs),
+                )
+                / len(rs),
             }
         )
     summary.sort(key=lambda r: r['mean_total_reward'], reverse=True)

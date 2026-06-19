@@ -1,13 +1,11 @@
 import os
 
 try:
-    import google.generativeai
-    if 'google.generativeai' == 'google.generativeai':
-        import google.generativeai as genai
+    import google.generativeai as genai
+
     HAS_GOOGLE = True
 except ImportError:
     HAS_GOOGLE = False
-
 
 
 class GoogleClient:

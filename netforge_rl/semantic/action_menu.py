@@ -1,4 +1,4 @@
-import netforge_rl.actions  # noqa: F401  populate the registry
+import netforge_rl.actions  # noqa: F401
 from netforge_rl.core.registry import action_registry
 
 

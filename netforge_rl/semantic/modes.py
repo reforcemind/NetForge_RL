@@ -1,10 +1,3 @@
-"""Three standard scoreboard modes for the Zero-Shot Incident Response leaderboard.
-
-* :func:`zero_shot_defender` — LLM controls Blue; a scripted Red attacks.
-* :func:`zero_shot_attacker` — LLM controls Red; a heuristic SOC defends.
-* :func:`fm_vs_fm`           — one LLM per side. Reports each side's score.
-"""
-
 import numpy as np
 from netforge_rl.baselines.policies import HeuristicRedPolicy, HeuristicBluePolicy
 
@@ -75,7 +68,11 @@ def zero_shot_defender(env, blue_client, *, max_steps=None, seed=0):
     blue_clients = {a: blue_client for a in BLUE_AGENTS if a in env.possible_agents}
     red_baseline = HeuristicRedPolicy(seed=seed).act
     cum_reward, invalid, steps = _drive(
-        env, blue_clients, red_baseline, max_steps=max_steps, seed=seed,
+        env,
+        blue_clients,
+        red_baseline,
+        max_steps=max_steps,
+        seed=seed,
     )
     return {
         'mode': 'zero_shot_defender',
@@ -93,7 +90,11 @@ def zero_shot_attacker(env, red_client, *, max_steps=None, seed=0):
     red_clients = {a: red_client for a in RED_AGENTS if a in env.possible_agents}
     blue_baseline = HeuristicBluePolicy(seed=seed).act
     cum_reward, invalid, steps = _drive(
-        env, red_clients, blue_baseline, max_steps=max_steps, seed=seed,
+        env,
+        red_clients,
+        blue_baseline,
+        max_steps=max_steps,
+        seed=seed,
     )
     return {
         'mode': 'zero_shot_attacker',
@@ -115,7 +116,11 @@ def fm_vs_fm(env, blue_client, red_client, *, max_steps=None, seed=0):
         return _no_op()
 
     cum_reward, invalid, steps = _drive(
-        env, clients, _never, max_steps=max_steps, seed=seed,
+        env,
+        clients,
+        _never,
+        max_steps=max_steps,
+        seed=seed,
     )
     return {
         'mode': 'fm_vs_fm',
@@ -131,11 +136,9 @@ def fm_vs_fm(env, blue_client, red_client, *, max_steps=None, seed=0):
 def _score_extras(env):
     return {
         'final_compromised': sum(
-            1 for h in env.global_state.all_hosts.values()
-            if h.compromised_by != 'None'
+            1 for h in env.global_state.all_hosts.values() if h.compromised_by != 'None'
         ),
         'final_isolated': sum(
-            1 for h in env.global_state.all_hosts.values()
-            if h.status == 'isolated'
+            1 for h in env.global_state.all_hosts.values() if h.status == 'isolated'
         ),
     }

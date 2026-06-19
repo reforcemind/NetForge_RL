@@ -2,21 +2,14 @@ import os
 
 try:
     import openai
-    if 'openai' == 'google.generativeai':
-        import google.generativeai as genai
+
     HAS_VLLM = True
 except ImportError:
     HAS_VLLM = False
 
 
-
 class VLLMClient:
-    """LLMClient against a local vLLM server's OpenAI-compatible endpoint.
-
-    Use it the same way as OpenAIClient but pointed at your own vLLM
-    deployment — defaults assume `vllm serve` running on
-    http://localhost:8000/v1.
-    """
+    """LLMClient against a local vLLM server's OpenAI-compatible endpoint."""
 
     def __init__(
         self,

@@ -15,12 +15,7 @@ class RolloutBatch:
 
 
 class LMPolicyAdapter:
-    """Bridge a NetForge env onto trl's (query, response, reward) protocol.
-
-    queries() emits one SIEM prompt; step(responses) parses the reply,
-    advances the env, returns a RolloutBatch. Invalid replies incur
-    invalid_penalty so the policy gradient gets signal.
-    """
+    """Bridge a NetForge env onto trl's (query, response, reward) protocol."""
 
     def __init__(
         self,

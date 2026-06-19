@@ -2,12 +2,10 @@ import os
 
 try:
     import openai
-    if 'openai' == 'google.generativeai':
-        import google.generativeai as genai
+
     HAS_OPENAI = True
 except ImportError:
     HAS_OPENAI = False
-
 
 
 class OpenAIClient:

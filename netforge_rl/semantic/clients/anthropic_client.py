@@ -2,12 +2,10 @@ import os
 
 try:
     import anthropic
-    if 'anthropic' == 'google.generativeai':
-        import google.generativeai as genai
+
     HAS_ANTHROPIC = True
 except ImportError:
     HAS_ANTHROPIC = False
-
 
 
 class AnthropicClient:

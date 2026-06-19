@@ -1,5 +1,3 @@
-"""Reference LoRA + PPO recipe; lazy-imports trl/transformers/peft."""
-
 import argparse
 from pathlib import Path
 import torch
@@ -10,6 +8,7 @@ from trl import AutoModelForCausalLMWithValueHead, PPOConfig, PPOTrainer
 
 from netforge_rl.environment.parallel_env import NetForgeRLEnv
 from netforge_rl.semantic.finetune.adapter import LMPolicyAdapter
+
 
 def main(config_path):
     cfg = yaml.safe_load(Path(config_path).read_text())
@@ -58,7 +57,6 @@ def main(config_path):
     gen_kwargs = cfg['generation']
     out_dir = Path(cfg['run']['output_dir'])
     out_dir.mkdir(parents=True, exist_ok=True)
-
 
     for step in range(cfg['run']['total_steps']):
         queries = adapter.queries()

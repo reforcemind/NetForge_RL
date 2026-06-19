@@ -4,11 +4,7 @@ from netforge_rl.semantic.action_menu import action_menu
 
 
 class MockLLMClient:
-    """Drives a deterministic policy without API keys.
-
-    Two modes: scripted (fixed reply list, cycles) and random (uniform-random
-    legal ACTION line; requires _agent_id and _target_ips in the prompt).
-    """
+    """Drives a deterministic policy without API keys."""
 
     model_id = 'mock'
 
