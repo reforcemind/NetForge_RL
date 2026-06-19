@@ -12,29 +12,27 @@
         <meta name="author" content="Igor Jankowski">
       
       
-        <link rel="canonical" href="https://reforcemind.github.io/NetForge_RL/">
+        <link rel="canonical" href="https://reforcemind.github.io/NetForge_RL/ACTION_COVERAGE/">
       
       
-      
-        <link rel="next" href="quickstart/">
       
       
         
       
       
-      <link rel="icon" href="assets/images/favicon.png">
+      <link rel="icon" href="../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
       
-        <title>NetForge RL</title>
+        <title>Action Coverage Audit — JAX vs Legacy Backend - NetForge RL</title>
       
     
     
-      <link rel="stylesheet" href="assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
       
         
-        <link rel="stylesheet" href="assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -53,11 +51,11 @@
       
     
     
-      <link rel="stylesheet" href="assets/_mkdocstrings.css">
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
     
-      <link rel="stylesheet" href="stylesheets/custom.css">
+      <link rel="stylesheet" href="../stylesheets/custom.css">
     
-    <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -82,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#whats-new-in-v40" class="md-skip">
+        <a href="#action-coverage-audit-jax-vs-legacy-backend" class="md-skip">
           Skip to content
         </a>
       
@@ -98,7 +96,7 @@
 
 <header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="." title="NetForge RL" class="md-header__button md-logo" aria-label="NetForge RL" data-md-component="logo">
+    <a href=".." title="NetForge RL" class="md-header__button md-logo" aria-label="NetForge RL" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 1 3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5zm0 6c1.4 0 2.8 1.1 2.8 2.5V11c.6 0 1.2.6 1.2 1.3v3.5c0 .6-.6 1.2-1.3 1.2H9.2c-.6 0-1.2-.6-1.2-1.3v-3.5c0-.6.6-1.2 1.2-1.2V9.5C9.2 8.1 10.6 7 12 7m0 1.2c-.8 0-1.5.5-1.5 1.3V11h3V9.5c0-.8-.7-1.3-1.5-1.3"/></svg>
@@ -118,7 +116,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Home
+              Action Coverage Audit — JAX vs Legacy Backend
             
           </span>
         </div>
@@ -226,11 +224,9 @@
   
   
   
-    
   
-  
-    <li class="md-tabs__item md-tabs__item--active">
-      <a href="." class="md-tabs__link">
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
         
   
   
@@ -249,7 +245,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="quickstart/" class="md-tabs__link">
+      <a href="../quickstart/" class="md-tabs__link">
         
   
   
@@ -270,7 +266,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="architecture/overview/" class="md-tabs__link">
+        <a href="../architecture/overview/" class="md-tabs__link">
           
   
   
@@ -290,7 +286,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="cybersec/overview/" class="md-tabs__link">
+        <a href="../cybersec/overview/" class="md-tabs__link">
           
   
   
@@ -310,7 +306,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="api/environment/" class="md-tabs__link">
+        <a href="../api/environment/" class="md-tabs__link">
           
   
   
@@ -330,7 +326,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="training/rllib/" class="md-tabs__link">
+        <a href="../training/rllib/" class="md-tabs__link">
           
   
   
@@ -348,7 +344,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="changelog/" class="md-tabs__link">
+      <a href="../changelog/" class="md-tabs__link">
         
   
   
@@ -389,7 +385,7 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="." title="NetForge RL" class="md-nav__button md-logo" aria-label="NetForge RL" data-md-component="logo">
+    <a href=".." title="NetForge RL" class="md-nav__button md-logo" aria-label="NetForge RL" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 1 3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5zm0 6c1.4 0 2.8 1.1 2.8 2.5V11c.6 0 1.2.6 1.2 1.3v3.5c0 .6-.6 1.2-1.3 1.2H9.2c-.6 0-1.2-.6-1.2-1.3v-3.5c0-.6.6-1.2 1.2-1.2V9.5C9.2 8.1 10.6 7 12 7m0 1.2c-.8 0-1.5.5-1.5 1.3V11h3V9.5c0-.8-.7-1.3-1.5-1.3"/></svg>
@@ -416,35 +412,10 @@
       
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Home
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="." class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
         
   
   
@@ -460,129 +431,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#whats-new-in-v40" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        What's new in v4.0
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#why-netforge" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Why NetForge
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#quick-start" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Quick start
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Quick start">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#legacy-pytorch-backend-10-lines" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Legacy PyTorch backend (10 lines)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#jax-vectorized-backend-4096-envs" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        JAX vectorized backend (4096 envs)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#run-an-llm-as-a-soc-operator" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Run an LLM as a SOC operator
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#fine-tune-llama-3-8b-with-lora-ppo" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Fine-tune Llama-3-8B with LoRA + PPO
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#architecture" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Architecture
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#citation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Citation
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -594,7 +442,7 @@
   
   
     <li class="md-nav__item">
-      <a href="quickstart/" class="md-nav__link">
+      <a href="../quickstart/" class="md-nav__link">
         
   
   
@@ -675,7 +523,7 @@
   
   
     <li class="md-nav__item">
-      <a href="architecture/overview/" class="md-nav__link">
+      <a href="../architecture/overview/" class="md-nav__link">
         
   
   
@@ -703,7 +551,7 @@
   
   
     <li class="md-nav__item">
-      <a href="architecture/zero_trust/" class="md-nav__link">
+      <a href="../architecture/zero_trust/" class="md-nav__link">
         
   
   
@@ -731,7 +579,7 @@
   
   
     <li class="md-nav__item">
-      <a href="architecture/sim2real/" class="md-nav__link">
+      <a href="../architecture/sim2real/" class="md-nav__link">
         
   
   
@@ -759,7 +607,7 @@
   
   
     <li class="md-nav__item">
-      <a href="architecture/nlp_siem/" class="md-nav__link">
+      <a href="../architecture/nlp_siem/" class="md-nav__link">
         
   
   
@@ -848,7 +696,7 @@
   
   
     <li class="md-nav__item">
-      <a href="cybersec/overview/" class="md-nav__link">
+      <a href="../cybersec/overview/" class="md-nav__link">
         
   
   
@@ -876,7 +724,7 @@
   
   
     <li class="md-nav__item">
-      <a href="cybersec/threat_model/" class="md-nav__link">
+      <a href="../cybersec/threat_model/" class="md-nav__link">
         
   
   
@@ -904,7 +752,7 @@
   
   
     <li class="md-nav__item">
-      <a href="cybersec/red_actions/" class="md-nav__link">
+      <a href="../cybersec/red_actions/" class="md-nav__link">
         
   
   
@@ -932,7 +780,7 @@
   
   
     <li class="md-nav__item">
-      <a href="cybersec/blue_actions/" class="md-nav__link">
+      <a href="../cybersec/blue_actions/" class="md-nav__link">
         
   
   
@@ -1021,7 +869,7 @@
   
   
     <li class="md-nav__item">
-      <a href="api/environment/" class="md-nav__link">
+      <a href="../api/environment/" class="md-nav__link">
         
   
   
@@ -1049,7 +897,7 @@
   
   
     <li class="md-nav__item">
-      <a href="api/sim2real/" class="md-nav__link">
+      <a href="../api/sim2real/" class="md-nav__link">
         
   
   
@@ -1077,7 +925,7 @@
   
   
     <li class="md-nav__item">
-      <a href="api/siem/" class="md-nav__link">
+      <a href="../api/siem/" class="md-nav__link">
         
   
   
@@ -1105,7 +953,7 @@
   
   
     <li class="md-nav__item">
-      <a href="api/nlp/" class="md-nav__link">
+      <a href="../api/nlp/" class="md-nav__link">
         
   
   
@@ -1194,7 +1042,7 @@
   
   
     <li class="md-nav__item">
-      <a href="training/rllib/" class="md-nav__link">
+      <a href="../training/rllib/" class="md-nav__link">
         
   
   
@@ -1222,7 +1070,7 @@
   
   
     <li class="md-nav__item">
-      <a href="training/scenarios/" class="md-nav__link">
+      <a href="../training/scenarios/" class="md-nav__link">
         
   
   
@@ -1257,7 +1105,7 @@
   
   
     <li class="md-nav__item">
-      <a href="changelog/" class="md-nav__link">
+      <a href="../changelog/" class="md-nav__link">
         
   
   
@@ -1294,6 +1142,8 @@
   
   
   
+    
+  
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
@@ -1302,10 +1152,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#whats-new-in-v40" class="md-nav__link">
+  <a href="#1-registry-inventory" class="md-nav__link">
     <span class="md-ellipsis">
       
-        What's new in v4.0
+        1. Registry inventory
       
     </span>
   </a>
@@ -1313,10 +1163,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#why-netforge" class="md-nav__link">
+  <a href="#2-jax-backend-coverage" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Why NetForge
+        2. JAX backend coverage
       
     </span>
   </a>
@@ -1324,22 +1174,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#quick-start" class="md-nav__link">
+  <a href="#3-whats-missing-by-required-scaffolding" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Quick start
+        3. What's missing — by required scaffolding
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Quick start">
+    <nav class="md-nav" aria-label="3. What&#39;s missing — by required scaffolding">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#legacy-pytorch-backend-10-lines" class="md-nav__link">
+  <a href="#31-already-representable-drop-in-adds-0-new-fields" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Legacy PyTorch backend (10 lines)
+        3.1 Already representable — drop-in adds (~0 new fields)
       
     </span>
   </a>
@@ -1347,10 +1197,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#jax-vectorized-backend-4096-envs" class="md-nav__link">
+  <a href="#32-need-a-new-fog-of-war-knowledge-mask" class="md-nav__link">
     <span class="md-ellipsis">
       
-        JAX vectorized backend (4096 envs)
+        3.2 Need a new fog-of-war / knowledge mask
       
     </span>
   </a>
@@ -1358,10 +1208,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#run-an-llm-as-a-soc-operator" class="md-nav__link">
+  <a href="#33-need-an-identity-credential-mask" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Run an LLM as a SOC operator
+        3.3 Need an identity / credential mask
       
     </span>
   </a>
@@ -1369,10 +1219,21 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#fine-tune-llama-3-8b-with-lora-ppo" class="md-nav__link">
+  <a href="#34-need-new-dynamics" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Fine-tune Llama-3-8B with LoRA + PPO
+        3.4 Need new dynamics
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#35-wont-port-out-of-scope-for-the-jax-kernel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.5 Won't port (out of scope for the JAX kernel)
       
     </span>
   </a>
@@ -1385,10 +1246,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#architecture" class="md-nav__link">
+  <a href="#4-recommended-porting-order" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Architecture
+        4. Recommended porting order
       
     </span>
   </a>
@@ -1396,10 +1257,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#citation" class="md-nav__link">
+  <a href="#5-beyond-actions-broader-state-of-the-system" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Citation
+        5. Beyond actions — broader state of the system
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-concrete-next-slices-ordered-by-leverage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Concrete next slices (ordered by leverage)
       
     </span>
   </a>
@@ -1426,87 +1298,519 @@
   
 
 
-<div align="center">
-  <img src="https://img.shields.io/badge/Python-3.12-blue?style=for-the-badge&logo=python" alt="Python 3.12"/>
-  <img src="https://img.shields.io/badge/JAX-vmap%20%2B%20jit-orange?style=for-the-badge" alt="JAX"/>
-  <img src="https://img.shields.io/badge/PettingZoo-MARL-purple?style=for-the-badge" alt="PettingZoo"/>
-  <img src="https://img.shields.io/badge/MITRE_ATT%26CK-Mapped-red?style=for-the-badge" alt="MITRE ATT&CK"/>
-  <img src="https://img.shields.io/badge/LLM%20policies-trl%20%2B%20LoRA-green?style=for-the-badge" alt="LLM policies"/>
-</div>
-
-<h1 align="center">NetForge RL</h1>
-
-<p align="center">
-  <b>A research-grade multi-agent cybersecurity environment for Sim2Real reinforcement learning.</b><br><br>
-  <a href="ROADMAP.md">Roadmap</a> · <a href="AUDIT.md">Audit</a> · <a href="changelog.md">Changelog</a> · <a href="notebooks/">Notebooks</a>
-</p>
-
+<h1 id="action-coverage-audit-jax-vs-legacy-backend">Action Coverage Audit — JAX vs Legacy Backend<a class="headerlink" href="#action-coverage-audit-jax-vs-legacy-backend" title="Permanent link">&para;</a></h1>
+<p><strong>Status at HEAD (<code>ad6e9dc</code>).</strong> Sourced by introspecting <code>action_registry</code>
+plus reading <code>netforge_rl/backends/jax/vector_env.py</code>.</p>
+<p>The repo has two backends sharing one functional core (<a href="../netforge_rl/core/functional.py">core/functional.py</a>).
+The <strong>legacy PyTorch / PettingZoo backend</strong> (<a href="../netforge_rl/environment/parallel_env.py">environment/parallel_env.py</a>)
+wires up all 34 actions registered in <code>action_registry</code>. The <strong>JAX backend</strong>
+(<a href="../netforge_rl/backends/jax/vector_env.py">backends/jax/vector_env.py</a>) is a
+parallel reimplementation optimized for <code>jax.vmap</code> — it currently implements
+8 of those 34 action semantics.</p>
+<p>Concretely: training via the JAX path runs at ~660k SPS on 4096 envs but
+the policy's action vocabulary is restricted to the 8 ported actions.
+Training via the legacy path covers the full 34 but at ~10 SPS.</p>
 <hr />
-<h2 id="whats-new-in-v40">What's new in v4.0<a class="headerlink" href="#whats-new-in-v40" title="Permanent link">&para;</a></h2>
+<h2 id="1-registry-inventory">1. Registry inventory<a class="headerlink" href="#1-registry-inventory" title="Permanent link">&para;</a></h2>
+<p>34 action classes across 6 team buckets (gid = action_type integer 0–31 in
+the MultiDiscrete action space). When an agent_id resolves through
+<code>get_action_class</code>, the primary team is checked first, then the agent-
+specific team — so e.g. red_operator's gid=2 ("Impact") is shadowed by
+red's gid=2 ("DiscoverNetworkServices") and is unreachable via that path.</p>
+<table>
+<thead>
+<tr>
+<th>Team</th>
+<th>Actions</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>red</code> (8)</td>
+<td>ExploitRemoteService, PrivilegeEscalate, DiscoverNetworkServices, ExploitBlueKeep, ExploitEternalBlue, ExploitHTTP_RFI, DumpLSASS, PassTheTicket</td>
+</tr>
+<tr>
+<td><code>red_commander</code> (4)</td>
+<td>NetworkScan, DiscoverRemoteSystems, DiscoverNetworkServices, ShareIntelligence</td>
+</tr>
+<tr>
+<td><code>red_operator</code> (8)</td>
+<td>Impact, JuicyPotato, V4L2KernelExploit, KillProcess, PassTheHash, ExfiltrateData, OverloadPLC, SpearPhishing</td>
+</tr>
+<tr>
+<td><code>blue</code> (6)</td>
+<td>IsolateHost, RestoreHost, Remove, RestoreFromBackup, ConfigureACL, SecurityAwarenessTraining</td>
+</tr>
+<tr>
+<td><code>blue_commander</code> (6)</td>
+<td>RotateKerberos, DecoyApache, DecoySSHD, DecoyTomcat, Misinform, DeployHoneytoken</td>
+</tr>
+<tr>
+<td><code>blue_operator</code> (2)</td>
+<td>Monitor, Analyze</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="2-jax-backend-coverage">2. JAX backend coverage<a class="headerlink" href="#2-jax-backend-coverage" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>JAX action</th>
+<th>Legacy equivalent</th>
+<th>Mutates</th>
+<th>Reward</th>
+<th>Shipped</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>RED_COMPROMISE</code> (0)</td>
+<td>ExploitRemoteService + variants</td>
+<td><code>privilege: None→User</code>, <code>compromised_by</code></td>
+<td>+1</td>
+<td>✅</td>
+</tr>
+<tr>
+<td><code>RED_PRIVESC</code> (1)</td>
+<td>PrivilegeEscalate / JuicyPotato</td>
+<td><code>privilege: User→Root</code> (gated)</td>
+<td>+3</td>
+<td>✅</td>
+</tr>
+<tr>
+<td><code>RED_IMPACT</code> (2)</td>
+<td>Impact</td>
+<td><code>system_integrity → compromised</code> (Root-gated)</td>
+<td>+10</td>
+<td>✅</td>
+</tr>
+<tr>
+<td><code>RED_KINETIC</code> (3)</td>
+<td>OverloadPLC</td>
+<td><code>system_integrity → kinetic_destruction</code> (Root-gated)</td>
+<td>+10,000</td>
+<td>✅</td>
+</tr>
+<tr>
+<td><code>BLUE_ISOLATE</code> (0)</td>
+<td>IsolateHost</td>
+<td><code>status → isolated</code></td>
+<td>+1</td>
+<td>✅</td>
+</tr>
+<tr>
+<td><code>BLUE_RESTORE</code> (1)</td>
+<td>RestoreHost / RestoreFromBackup</td>
+<td><code>priv → None</code>, <code>status → online</code>, <code>integrity → clean</code>, <code>compromised_by → -1</code></td>
+<td>+2</td>
+<td>✅</td>
+</tr>
+<tr>
+<td><code>BLUE_DEPLOY_DECOY</code> (2)</td>
+<td>DecoyApache / SSHD / Tomcat</td>
+<td><code>decoy → active</code></td>
+<td>+0.5</td>
+<td>✅</td>
+</tr>
+<tr>
+<td><code>BLUE_DEPLOY_HONEYTOKEN</code> (3)</td>
+<td>DeployHoneytoken</td>
+<td><code>contains_honeytokens → True</code>; Red trap penalty -5</td>
+<td>+0.5</td>
+<td>✅</td>
+</tr>
+<tr>
+<td><code>BLUE_REMOVE</code> (4)</td>
+<td>Remove</td>
+<td><code>privilege → None</code> (status unchanged)</td>
+<td>+1.5</td>
+<td>✅</td>
+</tr>
+<tr>
+<td><code>BLUE_SAT</code> (5)</td>
+<td>SecurityAwarenessTraining</td>
+<td><code>human_vulnerability -= 0.1</code> (clamped at 0)</td>
+<td>+0.3</td>
+<td>✅</td>
+</tr>
+<tr>
+<td><code>RED_EXPLOIT_BLUEKEEP</code> (4)</td>
+<td>ExploitBlueKeep</td>
+<td>COMPROMISE gated on <code>vuln_mask[CVE-2019-0708]</code></td>
+<td>+1.5</td>
+<td>✅</td>
+</tr>
+<tr>
+<td><code>RED_EXPLOIT_ETERNALBLUE</code> (5)</td>
+<td>ExploitEternalBlue</td>
+<td>COMPROMISE gated on <code>vuln_mask[MS17-010]</code></td>
+<td>+1.5</td>
+<td>✅</td>
+</tr>
+<tr>
+<td><code>RED_EXPLOIT_HTTP_RFI</code> (6)</td>
+<td>ExploitHTTP_RFI</td>
+<td>COMPROMISE gated on <code>vuln_mask[CVE-2021-44228]</code></td>
+<td>+1.5</td>
+<td>✅</td>
+</tr>
+<tr>
+<td><code>RED_RECON</code> (7)</td>
+<td>DiscoverRemoteSystems / NetworkScan</td>
+<td><code>knowledge_mask[red_agent, target] = True</code></td>
+<td>+0.2 on new intel</td>
+<td>✅</td>
+</tr>
+<tr>
+<td><code>BLUE_MONITOR</code> (6)</td>
+<td>Monitor / Analyze</td>
+<td><code>knowledge_mask[blue_agent, target] = True</code></td>
+<td>+0.2 on new intel</td>
+<td>✅</td>
+</tr>
+<tr>
+<td><code>RED_EXFILTRATE</code> (8)</td>
+<td>ExfiltrateData</td>
+<td><code>exfiltrated_bytes += EXFIL_PER_HOST</code> per Rooted target</td>
+<td>+EXFIL_PER_HOST</td>
+<td>✅</td>
+</tr>
+<tr>
+<td><code>BLUE_MISINFORM</code> (7)</td>
+<td>Misinform</td>
+<td><code>decoy → Apache</code> (planted fake service)</td>
+<td>+0.4</td>
+<td>✅</td>
+</tr>
+<tr>
+<td><code>RED_SHARE_INTEL</code> (9)</td>
+<td>ShareIntelligence</td>
+<td>OR every Red row of <code>knowledge_mask</code> together</td>
+<td>+0.4 per sharer</td>
+<td>✅</td>
+</tr>
+<tr>
+<td><code>BLUE_CONFIGURE_ACL</code> (8)</td>
+<td>ConfigureACL</td>
+<td><code>edr_active → True</code> on target</td>
+<td>+0.7</td>
+<td>✅</td>
+</tr>
+<tr>
+<td><code>RED_DUMP_LSASS</code> (10)</td>
+<td>DumpLSASS</td>
+<td>Root-gated; OR <code>host_tokens[target]</code> into <code>agent_credentials[red]</code></td>
+<td>+2 per fresh loot</td>
+<td>✅</td>
+</tr>
+<tr>
+<td><code>RED_PASS_THE_HASH</code> (11)</td>
+<td>PassTheHash</td>
+<td>Token-locality gated (target's required tokens must be a subset of looted creds) — audit fix §1.1</td>
+<td>+1 (compromise)</td>
+<td>✅</td>
+</tr>
+<tr>
+<td><code>RED_PASS_THE_TICKET</code> (12)</td>
+<td>PassTheTicket</td>
+<td>Token-locality gated privesc to Root</td>
+<td>+3 (privesc)</td>
+<td>✅</td>
+</tr>
+<tr>
+<td><code>BLUE_ROTATE_KERBEROS</code> (9)</td>
+<td>RotateKerberos</td>
+<td>Clear every Red row of <code>agent_credentials</code></td>
+<td>+4</td>
+<td>✅</td>
+</tr>
+<tr>
+<td><code>RED_JUICY_POTATO</code> (13)</td>
+<td>JuicyPotato</td>
+<td>Privesc gated on <code>os_family == WINDOWS</code></td>
+<td>+3</td>
+<td>✅</td>
+</tr>
+<tr>
+<td><code>RED_V4L2</code> (14)</td>
+<td>V4L2KernelExploit</td>
+<td>Privesc gated on <code>os_family == LINUX</code></td>
+<td>+3</td>
+<td>✅</td>
+</tr>
+<tr>
+<td><code>RED_KILL_PROCESS</code> (15)</td>
+<td>KillProcess</td>
+<td>Root-gated; <code>status → kernel_panic</code></td>
+<td>+5</td>
+<td>✅</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Coverage:</strong> 16 red + 10 blue = 26 unique behaviours. Conflict resolution
+between any same-target Red/Blue pair holds via <code>resolve_conflicts_mask</code>.</p>
+<p><strong>Audit-driven reward fixes (§1.2):</strong> Blue isolate and Red impact / kinetic
+rewards are now gated on actual state transitions — re-isolating an
+already-isolated host or re-impacting an already-compromised host pays 0.</p>
+<hr />
+<h2 id="3-whats-missing-by-required-scaffolding">3. What's missing — by required scaffolding<a class="headerlink" href="#3-whats-missing-by-required-scaffolding" title="Permanent link">&para;</a></h2>
+<p>The remaining 26 ports fall into four buckets keyed by what new state-array
+fields they require. Easier buckets first.</p>
+<h3 id="31-already-representable-drop-in-adds-0-new-fields">3.1 Already representable — drop-in adds (~0 new fields)<a class="headerlink" href="#31-already-representable-drop-in-adds-0-new-fields" title="Permanent link">&para;</a></h3>
+<p>Should land as straightforward kernel additions matching the existing
+COMPROMISE / RESTORE pattern. No JaxEnvState changes.</p>
+<table>
+<thead>
+<tr>
+<th>Legacy action</th>
+<th>What it does</th>
+<th>Cost</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ExploitBlueKeep, ExploitEternalBlue, ExploitHTTP_RFI</td>
+<td>CVE-gated variants of compromise</td>
+<td>per host: condition on <code>vulnerabilities[idx]</code> (already in <code>meta</code>, not yet a leaf — push to a <code>bool[N_HOSTS, N_CVE]</code> mask).</td>
+</tr>
+<tr>
+<td>JuicyPotato, V4L2KernelExploit</td>
+<td>OS-gated privesc</td>
+<td>condition on <code>os</code> (already in meta).</td>
+</tr>
+<tr>
+<td>Remove</td>
+<td><code>privilege → None</code> without restoring status</td>
+<td>trivial — one-line variant of BLUE_RESTORE.</td>
+</tr>
+<tr>
+<td>RestoreFromBackup</td>
+<td>Same as BLUE_RESTORE plus integrity wipe</td>
+<td>already what BLUE_RESTORE does.</td>
+</tr>
+<tr>
+<td>KillProcess</td>
+<td>small impact / disrupt</td>
+<td>new <code>process_running</code> bool field.</td>
+</tr>
+<tr>
+<td>Misinform</td>
+<td>Blue commander; flips one host's <code>decoy</code> to a specific category</td>
+<td>trivial variant of BLUE_DEPLOY_DECOY.</td>
+</tr>
+<tr>
+<td>SecurityAwarenessTraining</td>
+<td>bumps <code>human_vulnerability_score</code> down</td>
+<td>trivial — additive arithmetic on the existing float32 field.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="32-need-a-new-fog-of-war-knowledge-mask">3.2 Need a new fog-of-war / knowledge mask<a class="headerlink" href="#32-need-a-new-fog-of-war-knowledge-mask" title="Permanent link">&para;</a></h3>
+<p>A <code>knowledge: bool[N_AGENTS, N_HOSTS]</code> field on <code>JaxHostArrays</code>, plus a
+helper that sets bits on reconnaissance success.</p>
+<table>
+<thead>
+<tr>
+<th>Legacy action</th>
+<th>Behaviour</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>DiscoverNetworkServices, DiscoverRemoteSystems, NetworkScan</td>
+<td>flips <code>knowledge[agent, target]</code> (and neighbors).</td>
+</tr>
+<tr>
+<td>Monitor, Analyze</td>
+<td>Blue equivalents — reveals host status / privilege.</td>
+</tr>
+<tr>
+<td>ShareIntelligence</td>
+<td>OR's knowledge rows across allied agents.</td>
+</tr>
+</tbody>
+</table>
+<p>Cost: adds one rank-2 leaf array (proportional to <code>N_AGENTS × N_HOSTS = 4 × 100</code>)
+and an update kernel. Converters need to round-trip it.</p>
+<h3 id="33-need-an-identity-credential-mask">3.3 Need an identity / credential mask<a class="headerlink" href="#33-need-an-identity-credential-mask" title="Permanent link">&para;</a></h3>
+<p>A <code>credentials: bool[N_AGENTS, N_TOKEN]</code> field. The legacy state has
+<code>agent_inventory: dict[agent_id, set[str]]</code> — we'd pin the token vocabulary
+to a small static list (e.g. <code>('Enterprise_Admin', 'Local_Admin_DMZ', ...)</code>).</p>
+<table>
+<thead>
+<tr>
+<th>Legacy action</th>
+<th>Behaviour</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>DumpLSASS</td>
+<td>Reads <code>cached_credentials</code> off the host → adds to Red's inventory.</td>
+</tr>
+<tr>
+<td>PassTheTicket, PassTheHash</td>
+<td>Spends an inventory token to unlock a lateral move.</td>
+</tr>
+<tr>
+<td>RotateKerberos</td>
+<td>Blue commander; clears every Red inventory bit for that token.</td>
+</tr>
+</tbody>
+</table>
+<p>Cost: one rank-2 leaf, one static token codebook.</p>
+<h3 id="34-need-new-dynamics">3.4 Need new dynamics<a class="headerlink" href="#34-need-new-dynamics" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Legacy action</th>
+<th>Why it's harder</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ExfiltrateData</td>
+<td>Per-step cumulative damage — needs a <code>bytes_exfiltrated: float32</code> scalar per env. Cheap.</td>
+</tr>
+<tr>
+<td>SpearPhishing</td>
+<td>Probabilistic; needs explicit <code>jax.random.PRNGKey</code> threading in the step (currently absent — the step is deterministic). Bigger lift.</td>
+</tr>
+<tr>
+<td>ConfigureACL</td>
+<td>Touches the (currently legacy-only) firewall rules. Need a firewall mask field.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="35-wont-port-out-of-scope-for-the-jax-kernel">3.5 Won't port (out of scope for the JAX kernel)<a class="headerlink" href="#35-wont-port-out-of-scope-for-the-jax-kernel" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>JAX backend</strong>: <code>jax.vmap</code> + <code>jax.jit</code> vectorized step delivering <strong>1,082,255 aggregate SPS at 4096 parallel envs on CPU</strong> — 103,500× the single-env legacy baseline. GPU/TPU pushes this further.</li>
-<li><strong>JaxMARL-shape API + DLPack zero-copy</strong>: ride the JAX rollouts from CleanRL / Stable-Baselines3 / RLlib without leaving the device.</li>
-<li><strong>Decoupled renderer</strong>: <code>env.render('rgb_array')</code> produces matplotlib + NetworkX frames off the hot path; <code>FrameRecorder</code> writes mp4 / gif via moviepy.</li>
-<li><strong>Semantic Bridge</strong> (Phase 8): the first MARL benchmark in which language and vision models are first-class agents — <code>state_to_text</code> SIEM reports, <code>build_vla_prompt</code> multimodal payloads, a regex action parser with grammar-constrained-decoding hooks, a zero-shot leaderboard harness, and a <code>trl</code>-based LoRA + PPO recipe that fine-tunes Llama-3-8B on a single 24 GB GPU.</li>
-<li><strong>Functional core</strong>: frozen <code>EnvState</code> PyTree with parity-tested pure <code>apply_state_delta</code> and <code>resolve_conflicts</code>. Legacy backend is byte-identical to the Phase 0 baseline (golden trajectory hash <code>abd164a5…</code> preserved across every refactor).</li>
+<li><code>Sim2RealBridge</code> Docker hypervisor actions — by design only run on the legacy
+  backend (eval-time only).</li>
+<li>Anything that mutates the agent's own action_history (legacy
+  <code>required_prior_state</code> machinery). Already replaced in JAX by direct
+  state gating (e.g. RED_IMPACT requires Root, not "PrivilegeEscalate has
+  fired on this host before").</li>
 </ul>
-<h2 id="why-netforge">Why NetForge<a class="headerlink" href="#why-netforge" title="Permanent link">&para;</a></h2>
-<p>High-fidelity MARL cybersecurity simulators (CybORG / CAGE) run at hundreds of steps per second and resist large-scale experimentation. Throughput-optimized envs (JaxMARL, SMAX) lack the partial observability, SIEM telemetry, MITRE ATT&amp;CK alignment, zero-trust enforcement, and OT/ICS kinetic impact the security research community actually needs.</p>
-<p>NetForge-MARL resolves the trade-off through a <strong>dual-backend</strong> architecture sharing one functional core, and is further the first cybersecurity MARL benchmark in which <strong>foundation models are first-class agents</strong> alongside PPO/MAPPO/QMIX.</p>
-<h2 id="quick-start">Quick start<a class="headerlink" href="#quick-start" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>pip<span class="w"> </span>install<span class="w"> </span><span class="s1">&#39;netforge_rl[jax,render,finetune] @ git+https://github.com/reforcemind/NetForge_RL&#39;</span>
-</code></pre></div>
-<h3 id="legacy-pytorch-backend-10-lines">Legacy PyTorch backend (10 lines)<a class="headerlink" href="#legacy-pytorch-backend-10-lines" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">netforge_rl.environment.parallel_env</span><span class="w"> </span><span class="kn">import</span> <span class="n">NetForgeRLEnv</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="n">env</span> <span class="o">=</span> <span class="n">NetForgeRLEnv</span><span class="p">({</span><span class="s1">&#39;scenario_type&#39;</span><span class="p">:</span> <span class="s1">&#39;ransomware&#39;</span><span class="p">,</span> <span class="s1">&#39;max_ticks&#39;</span><span class="p">:</span> <span class="mi">50</span><span class="p">})</span>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="n">obs</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="k">while</span> <span class="n">env</span><span class="o">.</span><span class="n">agents</span><span class="p">:</span>
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>    <span class="n">actions</span> <span class="o">=</span> <span class="p">{</span><span class="n">a</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">env</span><span class="o">.</span><span class="n">agents</span><span class="p">}</span>
-<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>    <span class="n">obs</span><span class="p">,</span> <span class="n">rewards</span><span class="p">,</span> <span class="n">term</span><span class="p">,</span> <span class="n">trunc</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">actions</span><span class="p">)</span>
-<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>    <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">term</span><span class="o">.</span><span class="n">values</span><span class="p">())</span> <span class="ow">or</span> <span class="nb">all</span><span class="p">(</span><span class="n">trunc</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
-<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>        <span class="k">break</span>
-</code></pre></div>
-<h3 id="jax-vectorized-backend-4096-envs">JAX vectorized backend (4096 envs)<a class="headerlink" href="#jax-vectorized-backend-4096-envs" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">jax</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">netforge_rl.backends.jax</span><span class="w"> </span><span class="kn">import</span> <span class="n">VectorEnvSpec</span>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">netforge_rl.bridges.jaxmarl</span><span class="w"> </span><span class="kn">import</span> <span class="n">JaxMARLEnv</span><span class="p">,</span> <span class="n">random_action_dict</span>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="n">env</span> <span class="o">=</span> <span class="n">JaxMARLEnv</span><span class="p">(</span><span class="n">spec</span><span class="o">=</span><span class="n">VectorEnvSpec</span><span class="p">(</span><span class="n">n_hosts</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">n_red</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_blue</span><span class="o">=</span><span class="mi">3</span><span class="p">),</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">4096</span><span class="p">)</span>
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="n">key</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="n">obs</span><span class="p">,</span> <span class="n">state</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
-<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="n">obs</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">random_action_dict</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">key</span><span class="p">))</span>
-</code></pre></div>
-<h3 id="run-an-llm-as-a-soc-operator">Run an LLM as a SOC operator<a class="headerlink" href="#run-an-llm-as-a-soc-operator" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">netforge_rl.semantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">state_to_text</span><span class="p">,</span> <span class="n">parse_action</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="n">prompt</span> <span class="o">=</span> <span class="n">state_to_text</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">to_envstate</span><span class="p">(),</span> <span class="n">agent_id</span><span class="o">=</span><span class="s1">&#39;blue_dmz&#39;</span><span class="p">)</span>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="c1"># ...send prompt to your favorite API, then:</span>
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="n">action_idx</span> <span class="o">=</span> <span class="n">parse_action</span><span class="p">(</span><span class="n">model_reply</span><span class="p">,</span> <span class="s1">&#39;blue_dmz&#39;</span><span class="p">,</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">global_state</span><span class="o">.</span><span class="n">all_hosts</span><span class="p">))</span>
-</code></pre></div>
-<h3 id="fine-tune-llama-3-8b-with-lora-ppo">Fine-tune Llama-3-8B with LoRA + PPO<a class="headerlink" href="#fine-tune-llama-3-8b-with-lora-ppo" title="Permanent link">&para;</a></h3>
-<p>See <a href="notebooks/07_finetune_llama3_lora.ipynb"><code>notebooks/07_finetune_llama3_lora.ipynb</code></a>. Targets a 4-hour wall-clock on a single 24 GB GPU.</p>
-<h2 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>netforge_rl/
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>├── core/functional.py         frozen EnvState PyTree + pure interpreters
-<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>├── backends/jax/              vmap&#39;d kernels + vector_env (≥10⁶ SPS @ 4096)
-<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>├── environment/parallel_env   legacy PettingZoo backend (golden hash locked)
-<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>├── bridges/{jaxmarl,dlpack}   JaxMARL adapter + zero-copy torch↔jax
-<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>├── render/                    decoupled matplotlib + recorder (off hot path)
-<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>├── semantic/                  LA + VLA wrappers, zero-shot runner, leaderboard,
-<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>│   └── finetune/                trl LoRA+PPO adapter
-<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>├── baselines/                 RandomPolicy, HeuristicBlue/Red, JAX PPO
-<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>└── scenarios/                 ransomware, APT espionage (+ Phase 5 suite expanding)
-</code></pre></div>
-<h2 id="citation">Citation<a class="headerlink" href="#citation" title="Permanent link">&para;</a></h2>
-<p>If you use NetForge RL, please cite:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nc">@misc</span><span class="p">{</span><span class="nl">netforge_rl_2026</span><span class="p">,</span>
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span><span class="na">title</span><span class="w">  </span><span class="p">=</span><span class="w"> </span><span class="s">{NetForge RL}</span><span class="p">,</span>
-<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span><span class="na">author</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">{ReforceMind}</span><span class="p">,</span>
-<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">  </span><span class="na">year</span><span class="w">   </span><span class="p">=</span><span class="w"> </span><span class="s">{2026}</span><span class="p">,</span>
-<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">  </span><span class="na">url</span><span class="w">    </span><span class="p">=</span><span class="w"> </span><span class="s">{https://github.com/reforcemind/NetForge_RL}</span>
-<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="p">}</span>
-</code></pre></div>
+<hr />
+<h2 id="4-recommended-porting-order">4. Recommended porting order<a class="headerlink" href="#4-recommended-porting-order" title="Permanent link">&para;</a></h2>
+<p>Each line is roughly one PR. Tight scope, hash-preserving (legacy untouched).</p>
+<ol>
+<li><strong>CVE-gated exploit variants</strong> (BlueKeep, EternalBlue, HTTP_RFI). Adds a
+   <code>vuln_mask: bool[N_HOSTS, N_CVE]</code> leaf and conditions COMPROMISE on it.</li>
+<li><strong>OS-gated privesc</strong> (JuicyPotato, V4L2KernelExploit). Adds an <code>os_code:
+   int8[N_HOSTS]</code> leaf (already in meta, just promote).</li>
+<li><strong>Knowledge mask + reconnaissance trio</strong> (DiscoverRemoteSystems,
+   NetworkScan, Monitor). Adds <code>knowledge: bool[N_AGENTS, N_HOSTS]</code>.</li>
+<li><strong>Credential mask + DumpLSASS / PassTheTicket / RotateKerberos</strong>. Adds
+   <code>credentials: bool[N_AGENTS, N_TOKEN]</code>.</li>
+<li><strong>ExfiltrateData</strong> + cumulative damage scalar.</li>
+<li><strong>SpearPhishing</strong> — gated on RNG plumbing into the step (this is the
+   one that motivates the <code>key</code> argument we've been deferring on the
+   batched step signature).</li>
+</ol>
+<hr />
+<h2 id="5-beyond-actions-broader-state-of-the-system">5. Beyond actions — broader state of the system<a class="headerlink" href="#5-beyond-actions-broader-state-of-the-system" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Subsystem</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Audit / Phase 0 baseline</td>
+<td>✅ shipped (<a href="../AUDIT/">AUDIT.md</a>)</td>
+</tr>
+<tr>
+<td>Phase 1 functional core</td>
+<td>✅ shipped</td>
+</tr>
+<tr>
+<td>Phase 2 JAX kernels + vmap</td>
+<td>✅ shipped (8 actions)</td>
+</tr>
+<tr>
+<td>Phase 3 bridges (JaxMARL / DLPack / CleanRLVec)</td>
+<td>✅ shipped</td>
+</tr>
+<tr>
+<td>Phase 4 decoupled renderer</td>
+<td>✅ shipped</td>
+</tr>
+<tr>
+<td>Phase 5 baselines (random / heuristic / JAX PPO)</td>
+<td>✅ shipped</td>
+</tr>
+<tr>
+<td>Phase 5 scenarios</td>
+<td>✅ 4 of 5 (ransomware / apt / iot_grid / ot_stuxnet) — <code>cloud_hybrid</code> deferred</td>
+</tr>
+<tr>
+<td>Phase 5 leaderboard</td>
+<td>✅ shipped (<code>leaderboard/baselines{,_summary}.json</code>)</td>
+</tr>
+<tr>
+<td>Phase 6 notebooks 01-06</td>
+<td>✅ shipped</td>
+</tr>
+<tr>
+<td>Phase 7 CHANGELOG / DATASHEET</td>
+<td>✅ shipped (CHANGELOG has post-v4.0 commits to backfill)</td>
+</tr>
+<tr>
+<td>Phase 8 M1 LA + VLA wrappers</td>
+<td>✅ shipped</td>
+</tr>
+<tr>
+<td>Phase 8 M2 zero-shot leaderboard</td>
+<td>✅ shipped (real Anthropic + OpenAI client adapters)</td>
+</tr>
+<tr>
+<td>Phase 8 M3 LoRA + PPO fine-tune scaffold + Colab</td>
+<td>✅ shipped (notebook 07)</td>
+</tr>
+<tr>
+<td><strong>JAX backend full 32 action port</strong></td>
+<td>⚠️ 8 of 34</td>
+</tr>
+<tr>
+<td><strong>Phase 8 grammar-constrained decoding</strong></td>
+<td>⚠️ regex parser only — grammar/tool-use schemas under <code>semantic/grammars/</code> not yet written</td>
+</tr>
+<tr>
+<td><strong>MkDocs nav refresh + site rebuild</strong></td>
+<td>⚠️ <code>mkdocs.yml</code> still points at the old branding</td>
+</tr>
+<tr>
+<td><strong>Phase 5 cloud_hybrid scenario</strong></td>
+<td>⚠️ not implemented</td>
+</tr>
+<tr>
+<td><strong>Phase 8 M2 Google client</strong></td>
+<td>⚠️ not implemented (Anthropic + OpenAI shipped)</td>
+</tr>
+<tr>
+<td><strong>Phase 7 release tag + Zenodo DOI</strong></td>
+<td>⚠️ user-driven; tag not pushed</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="6-concrete-next-slices-ordered-by-leverage">6. Concrete next slices (ordered by leverage)<a class="headerlink" href="#6-concrete-next-slices-ordered-by-leverage" title="Permanent link">&para;</a></h2>
+<ol>
+<li>CVE-gated Red exploit variants (§3.1, §4-1).</li>
+<li>OS-gated Red privesc (§3.1, §4-2).</li>
+<li>Knowledge mask + reconnaissance trio (§3.2, §4-3).</li>
+<li>CHANGELOG sync for post-v4.0 commits.</li>
+<li>MkDocs nav refresh.</li>
+<li>Phase 8 grammar-constrained decoding hooks (Anthropic tool_use schema first).</li>
+<li>Credential mask + LSASS / PassTheTicket (§3.3, §4-4).</li>
+<li>cloud_hybrid scenario.</li>
+<li>ExfiltrateData + cumulative damage scalar (§3.4, §4-5).</li>
+<li>SpearPhishing — motivates threading a <code>jax.random.PRNGKey</code> through the step (§3.4, §4-6).</li>
+</ol>
 
 
 
@@ -1539,28 +1843,6 @@
       
         <footer class="md-footer">
   
-    
-      
-      <nav class="md-footer__inner md-grid" aria-label="Footer" >
-        
-        
-          
-          <a href="quickstart/" class="md-footer__link md-footer__link--next" aria-label="Next: Quick Start">
-            <div class="md-footer__title">
-              <span class="md-footer__direction">
-                Next
-              </span>
-              <div class="md-ellipsis">
-                Quick Start
-              </div>
-            </div>
-            <div class="md-footer__button md-icon">
-              
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
-            </div>
-          </a>
-        
-      </nav>
     
   
   <div class="md-footer-meta md-typeset">
@@ -1604,10 +1886,10 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": ".", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.top", "navigation.footer", "search.highlight", "search.share", "content.code.copy", "content.code.annotate", "content.tabs.link"], "search": "assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.top", "navigation.footer", "search.highlight", "search.share", "content.code.copy", "content.code.annotate", "content.tabs.link"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
       
     
   </body>
