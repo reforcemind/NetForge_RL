@@ -7,17 +7,7 @@ from netforge_rl.core.state import GlobalNetworkState, Subnet, Host
 
 
 class NetworkGenerator:
-    """Procedurally generates or loads dynamic network topologies for MARL
-
-    training.
-
-    Prevents agents from overfitting to a static 10-node architecture.
-
-    RNG is routed through an explicit ``random.Random`` instance instead of
-    the global ``random`` module so generation is referentially transparent
-    and safe to interleave with other seeded callers (required for the JAX
-    backend refactor — see docs/AUDIT.md blocker B3).
-    """
+    """Procedurally generates dynamic network topologies for MARL training."""
 
     def __init__(self, config_path: Optional[str] = None):
         self.config_path = config_path
@@ -31,7 +21,7 @@ class NetworkGenerator:
         rng = random.Random(seed) if seed is not None else random.Random()
 
         if self.config_path and Path(self.config_path).exists():
-            return self._load_from_yaml(self.config_path)
+            return self._load_from_yaml(self.config_path, rng)
 
         return self._generate_procedural(rng)
 
@@ -116,7 +106,7 @@ class NetworkGenerator:
                     host.services = chosen_services
                     host.cvss_score = round(rng.uniform(3.5, 9.8), 1)
 
-                    # Human error dynamics: Linux admins fall for phishing less often than generalized Windows Corporate users
+                    # Assign base phishing vulnerability
                     base_phish = (
                         rng.uniform(0.1, 0.4)
                         if 'Linux' in chosen_os
@@ -172,7 +162,10 @@ class NetworkGenerator:
         """Builds fog-of-war vision depending on the layout."""
         # Red baseline starts in DMZ
         for host in state.all_hosts.values():
-            if host.subnet_cidr == '192.168.1.0/24' and host.status != 'isolated':
+            if (
+                state.get_subnet_name(host.subnet_cidr) == 'DMZ'
+                and host.status != 'isolated'
+            ):
                 state.update_knowledge('red_commander', host.ip)
                 state.update_knowledge('red_operator', host.ip)
                 break
@@ -183,11 +176,11 @@ class NetworkGenerator:
                 state.update_knowledge('blue_commander', host.ip)
                 state.update_knowledge('blue_operator', host.ip)
 
-    def _load_from_yaml(self, path: str) -> GlobalNetworkState:
+    def _load_from_yaml(self, path: str, rng: random.Random) -> GlobalNetworkState:
         """Loads a deterministic graph from a YAML configuration."""
         with open(path, 'r') as f:
             _ = yaml.safe_load(f)
 
         # Implementation left for future expansion if YAML is required.
         # Defaults to procedural if parsing fails.
-        return self._generate_procedural()
+        return self._generate_procedural(rng)
