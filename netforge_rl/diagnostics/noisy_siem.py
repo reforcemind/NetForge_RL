@@ -1,5 +1,6 @@
 from netforge_rl.diagnostics.base import Diagnostic, DiagnosticResult
 
+
 class NoisySIEM(Diagnostic):
     """Grade Blue on isolating one compromise amid heavy SIEM noise."""
 

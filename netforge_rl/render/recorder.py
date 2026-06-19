@@ -2,6 +2,7 @@ from pathlib import Path
 
 from moviepy import ImageSequenceClip
 
+
 class FrameRecorder:
     """In-memory frame buffer; writes mp4/gif via moviepy on save()."""
 

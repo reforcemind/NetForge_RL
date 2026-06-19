@@ -4,6 +4,7 @@ from pettingzoo.utils.wrappers import BaseParallelWrapper
 
 from netforge_rl.core.observation import BaseObservation
 
+
 class OracleObservation(BaseObservation):
     """Perfect information view of the network state (No fog-of-war)."""
 

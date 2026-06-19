@@ -1,6 +1,7 @@
 from netforge_rl.core.action import BaseAction, ActionEffect
 from netforge_rl.core.registry import action_registry
 
+
 @action_registry.register('red_commander', 0)
 class NetworkScan(BaseAction):
     """Maps active IPs on subnet."""
@@ -12,7 +13,13 @@ class NetworkScan(BaseAction):
         return True
 
     def execute(self, global_state) -> ActionEffect:
-        return ActionEffect(success=True, state_deltas={}, observation_data={'discovered_subnet': self.target_ip}, eta=3)
+        return ActionEffect(
+            success=True,
+            state_deltas={},
+            observation_data={'discovered_subnet': self.target_ip},
+            eta=3,
+        )
+
 
 @action_registry.register('red_commander', 1)
 class DiscoverRemoteSystems(BaseAction):
@@ -35,8 +42,13 @@ class DiscoverRemoteSystems(BaseAction):
         obs_data = {'ping_sweep': self.target_ip, 'hosts': active_hosts}
         if fake_data:
             obs_data['hosts'] = ['10.x.x.99', '10.x.x.100']
-        knowledge_deltas = {f'knowledge/{self.agent_id}/{ip}': 'True' for ip in obs_data['hosts']}
-        return ActionEffect(success=True, state_deltas=knowledge_deltas, observation_data=obs_data)
+        knowledge_deltas = {
+            f'knowledge/{self.agent_id}/{ip}': 'True' for ip in obs_data['hosts']
+        }
+        return ActionEffect(
+            success=True, state_deltas=knowledge_deltas, observation_data=obs_data
+        )
+
 
 @action_registry.register('red_commander', 2)
 @action_registry.register('red', 2)
@@ -63,5 +75,10 @@ class DiscoverNetworkServices(BaseAction):
                 obs_data['services'] = host.services
                 obs_data['os'] = host.os
                 obs_data['vulnerabilities'] = host.vulnerabilities
-        knowledge_deltas = {f'knowledge/{self.agent_id}/{self.target_ip}': 'True', f'history/{self.agent_id}/DiscoverNetworkServices:{self.target_ip}': 'add'}
-        return ActionEffect(success=True, state_deltas=knowledge_deltas, observation_data=obs_data)
+        knowledge_deltas = {
+            f'knowledge/{self.agent_id}/{self.target_ip}': 'True',
+            f'history/{self.agent_id}/DiscoverNetworkServices:{self.target_ip}': 'add',
+        }
+        return ActionEffect(
+            success=True, state_deltas=knowledge_deltas, observation_data=obs_data
+        )

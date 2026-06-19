@@ -37,7 +37,10 @@ def measure(batch, num_steps, iters):
     key, sub = jax.random.split(key)
     obs_dict, state = env.reset(sub)
     params = init_mlp_params(
-        jax.random.PRNGKey(1), obs_dict[cfg.controlled_agent].shape[-1], cfg.n_hosts, cfg.n_action_types
+        jax.random.PRNGKey(1),
+        obs_dict[cfg.controlled_agent].shape[-1],
+        cfg.n_hosts,
+        cfg.n_action_types,
     )
     _ = init_adam(params)
     rollout = make_rollout_scan(env, cfg)
@@ -47,9 +50,7 @@ def measure(batch, num_steps, iters):
 
     t0 = time.perf_counter()
     for _ in range(iters):
-        state, obs_dict, key, traj, last_value = rollout(
-            params, state, obs_dict, key
-        )
+        state, obs_dict, key, traj, last_value = rollout(params, state, obs_dict, key)
     traj['reward'].block_until_ready()
     wall = time.perf_counter() - t0
 

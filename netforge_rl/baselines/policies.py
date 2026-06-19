@@ -3,6 +3,7 @@ from typing import Protocol
 
 import numpy as np
 
+
 class BasePolicy(Protocol):
     name: str
 
@@ -19,9 +20,7 @@ class RandomPolicy:
 
     def act(self, env, agent_id):
         space = env.action_space(agent_id)
-        return np.array(
-            [self._rng.integers(0, n) for n in space.nvec], dtype=np.int64
-        )
+        return np.array([self._rng.integers(0, n) for n in space.nvec], dtype=np.int64)
 
 
 class HeuristicBluePolicy:
@@ -35,7 +34,8 @@ class HeuristicBluePolicy:
     def act(self, env, agent_id):
         target_ips = sorted(env.global_state.all_hosts.keys())
         compromised = [
-            ip for ip, h in env.global_state.all_hosts.items()
+            ip
+            for ip, h in env.global_state.all_hosts.items()
             if h.compromised_by != 'None' and h.status != 'isolated'
         ]
         if compromised:
@@ -55,8 +55,10 @@ class HeuristicRedPolicy:
     def act(self, env, agent_id):
         target_ips = sorted(env.global_state.all_hosts.keys())
         targets = [
-            ip for ip, h in env.global_state.all_hosts.items()
-            if h.compromised_by == 'None' and h.status == 'online'
+            ip
+            for ip, h in env.global_state.all_hosts.items()
+            if h.compromised_by == 'None'
+            and h.status == 'online'
             and not ip.startswith('169.254.')
         ]
         if not targets:

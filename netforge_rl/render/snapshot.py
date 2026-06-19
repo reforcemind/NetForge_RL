@@ -22,6 +22,7 @@ COLOR_PANIC = (0.10, 0.10, 0.10)
 @dataclass(frozen=True)
 class Snapshot:
     """Renderer-ready view; padding nodes filtered out."""
+
     labels: tuple
     subnets: tuple
     colors: np.ndarray
@@ -33,7 +34,9 @@ class Snapshot:
         return self.colors.shape[0]
 
 
-def _classify(status_code, priv_code, decoy_code, honeytoken, compromised_by, edr_active):
+def _classify(
+    status_code, priv_code, decoy_code, honeytoken, compromised_by, edr_active
+):
     if STATUS_CODES[status_code] == 'kernel_panic':
         return COLOR_PANIC
     if STATUS_CODES[status_code] == 'isolated':
@@ -52,7 +55,8 @@ def _classify(status_code, priv_code, decoy_code, honeytoken, compromised_by, ed
 def snapshot_from_envstate(state: EnvState) -> Snapshot:
     """Build a render snapshot from a frozen EnvState (padding hosts filtered)."""
     active_idx = [
-        i for i, sn in enumerate(state.meta.subnet_cidr)
+        i
+        for i, sn in enumerate(state.meta.subnet_cidr)
         if not sn.startswith('169.254.')
     ]
 

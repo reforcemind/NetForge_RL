@@ -39,7 +39,6 @@ class GreenAgent:
                 )
 
         if random.random() < p_fp:
-
             target = random.choice(hosts)
             log = evid_4625('unknown_external', target.ip, username='Administrator')
             noise_logs.append(

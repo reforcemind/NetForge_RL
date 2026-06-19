@@ -45,8 +45,8 @@ def adam_update(params, grads, state, lr, eps=1e-8):
     t = t + 1
     m = jax.tree_util.tree_map(lambda mi, gi: b1 * mi + (1 - b1) * gi, m, grads)
     v = jax.tree_util.tree_map(lambda vi, gi: b2 * vi + (1 - b2) * gi * gi, v, grads)
-    mhat = jax.tree_util.tree_map(lambda mi: mi / (1 - b1 ** t), m)
-    vhat = jax.tree_util.tree_map(lambda vi: vi / (1 - b2 ** t), v)
+    mhat = jax.tree_util.tree_map(lambda mi: mi / (1 - b1**t), m)
+    vhat = jax.tree_util.tree_map(lambda vi: vi / (1 - b2**t), v)
     new_params = jax.tree_util.tree_map(
         lambda p, mh, vh: p - lr * mh / (jnp.sqrt(vh) + eps), params, mhat, vhat
     )
@@ -55,6 +55,7 @@ def adam_update(params, grads, state, lr, eps=1e-8):
 
 def gae(rewards, values, dones, *, gamma, lam):
     """Generalized Advantage Estimation. values has length T+1."""
+
     def body(carry, t):
         gae_tm1 = carry
         delta = rewards[t] + gamma * values[t + 1] * (1.0 - dones[t]) - values[t]
@@ -69,18 +70,22 @@ def gae(rewards, values, dones, *, gamma, lam):
 
 def ppo_loss(params, obs, actions, old_logp, advantages, returns, *, clip, vf_coef):
     (logits_target, logits_type), values = forward(params, obs)
-    
+
     target_idx = actions[..., 0]
     action_type = actions[..., 1]
-    
+
     logp_target_all = jax.nn.log_softmax(logits_target)
-    logp_target = jnp.take_along_axis(logp_target_all, target_idx[..., None], axis=-1)[..., 0]
-    
+    logp_target = jnp.take_along_axis(logp_target_all, target_idx[..., None], axis=-1)[
+        ..., 0
+    ]
+
     logp_type_all = jax.nn.log_softmax(logits_type)
-    logp_type = jnp.take_along_axis(logp_type_all, action_type[..., None], axis=-1)[..., 0]
-    
+    logp_type = jnp.take_along_axis(logp_type_all, action_type[..., None], axis=-1)[
+        ..., 0
+    ]
+
     logp = logp_target + logp_type
-    
+
     ratio = jnp.exp(logp - old_logp)
     pg = -jnp.minimum(
         ratio * advantages,
@@ -110,22 +115,36 @@ class PPOConfig:
     num_minibatches: int = 4
 
 
-def _build_actions(target_idx, action_type, env_agents, controlled, n_red, n_blue, n_hosts, key):
+def _build_actions(
+    target_idx, action_type, env_agents, controlled, n_red, n_blue, n_hosts, key
+):
     """BatchedActions where controlled gets policy target; others uniform random."""
     k_rt, k_bt, k_rat, k_bat = jax.random.split(key, 4)
-    red_t = jax.random.randint(k_rt, (target_idx.shape[0], n_red), 0, n_hosts, dtype=jnp.int32)
-    blue_t = jax.random.randint(k_bt, (target_idx.shape[0], n_blue), 0, n_hosts, dtype=jnp.int32)
-    red_at = jax.random.randint(k_rat, (target_idx.shape[0], n_red), 0, 20, dtype=jnp.int8)
-    blue_at = jax.random.randint(k_bat, (target_idx.shape[0], n_blue), 0, 14, dtype=jnp.int8)
+    red_t = jax.random.randint(
+        k_rt, (target_idx.shape[0], n_red), 0, n_hosts, dtype=jnp.int32
+    )
+    blue_t = jax.random.randint(
+        k_bt, (target_idx.shape[0], n_blue), 0, n_hosts, dtype=jnp.int32
+    )
+    red_at = jax.random.randint(
+        k_rat, (target_idx.shape[0], n_red), 0, 20, dtype=jnp.int8
+    )
+    blue_at = jax.random.randint(
+        k_bat, (target_idx.shape[0], n_blue), 0, 14, dtype=jnp.int8
+    )
 
     red_names = [a for a in env_agents if 'red' in a.lower()]
     blue_names = [a for a in env_agents if 'blue' in a.lower()]
     if controlled in red_names:
         red_t = red_t.at[:, red_names.index(controlled)].set(target_idx)
-        red_at = red_at.at[:, red_names.index(controlled)].set(action_type.astype(jnp.int8))
+        red_at = red_at.at[:, red_names.index(controlled)].set(
+            action_type.astype(jnp.int8)
+        )
     elif controlled in blue_names:
         blue_t = blue_t.at[:, blue_names.index(controlled)].set(target_idx)
-        blue_at = blue_at.at[:, blue_names.index(controlled)].set(action_type.astype(jnp.int8))
+        blue_at = blue_at.at[:, blue_names.index(controlled)].set(
+            action_type.astype(jnp.int8)
+        )
 
     return BatchedActions(
         red_target_idx=red_t,
@@ -148,16 +167,20 @@ def make_rollout_scan(env: JaxMARLEnv, cfg: PPOConfig):
         obs = obs_dict[controlled]
         (logits_target, logits_type), value = forward(params, obs)
         key, k_act_t, k_act_type, k_env = jax.random.split(key, 4)
-        
+
         target_idx = jax.random.categorical(k_act_t, logits_target)
         action_type = jax.random.categorical(k_act_type, logits_type)
-        
+
         logp_target_all = jax.nn.log_softmax(logits_target)
-        logp_target = jnp.take_along_axis(logp_target_all, target_idx[..., None], axis=-1)[..., 0]
-        
+        logp_target = jnp.take_along_axis(
+            logp_target_all, target_idx[..., None], axis=-1
+        )[..., 0]
+
         logp_type_all = jax.nn.log_softmax(logits_type)
-        logp_type = jnp.take_along_axis(logp_type_all, action_type[..., None], axis=-1)[..., 0]
-        
+        logp_type = jnp.take_along_axis(logp_type_all, action_type[..., None], axis=-1)[
+            ..., 0
+        ]
+
         logp = logp_target + logp_type
 
         actions = _build_actions(
@@ -194,8 +217,14 @@ def _make_grad_step(cfg: PPOConfig):
         adv = flat['adv'][idx]
         ret = flat['ret'][idx]
         (loss, _), grads = jax.value_and_grad(ppo_loss, has_aux=True)(
-            params, obs, action, logp, adv, ret,
-            clip=cfg.clip, vf_coef=cfg.vf_coef,
+            params,
+            obs,
+            action,
+            logp,
+            adv,
+            ret,
+            clip=cfg.clip,
+            vf_coef=cfg.vf_coef,
         )
         params, opt_state = adam_update(params, grads, opt_state, lr=cfg.learning_rate)
         return params, opt_state, loss
@@ -221,7 +250,9 @@ def train(cfg: PPOConfig):
     key, sub = jax.random.split(key)
     obs_dict, state = env.reset(sub)
     obs_dim = obs_dict[cfg.controlled_agent].shape[-1]
-    params = init_mlp_params(jax.random.PRNGKey(cfg.seed + 1), obs_dim, cfg.n_hosts, cfg.n_action_types)
+    params = init_mlp_params(
+        jax.random.PRNGKey(cfg.seed + 1), obs_dim, cfg.n_hosts, cfg.n_action_types
+    )
     opt_state = init_adam(params)
     rollout = make_rollout_scan(env, cfg)
     grad_step = _make_grad_step(cfg)

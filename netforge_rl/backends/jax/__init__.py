@@ -12,7 +12,6 @@ __all__ = [
     'BatchedActions',
     'JaxEnvState',
     'VectorEnvSpec',
-
     'initial_batched_state',
     'make_vector_step',
     'random_actions',

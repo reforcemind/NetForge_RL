@@ -1,6 +1,7 @@
 from netforge_rl.core.action import BaseAction, ActionEffect
 from netforge_rl.core.registry import action_registry
 
+
 @action_registry.register('red', 1)
 class PrivilegeEscalate(BaseAction):
     """Executes a local privilege escalation exploit."""
@@ -15,7 +16,15 @@ class PrivilegeEscalate(BaseAction):
         return global_state.can_route_to(self.target_ip, agent_id=self.agent_id)
 
     def execute(self, global_state) -> ActionEffect:
-        return ActionEffect(success=True, state_deltas={f'hosts/{self.target_ip}/privilege': 'Root', f'hosts/{self.target_ip}/compromised_by': self.agent_id}, observation_data={'privilege': 'escalated'})
+        return ActionEffect(
+            success=True,
+            state_deltas={
+                f'hosts/{self.target_ip}/privilege': 'Root',
+                f'hosts/{self.target_ip}/compromised_by': self.agent_id,
+            },
+            observation_data={'privilege': 'escalated'},
+        )
+
 
 @action_registry.register('red_operator', 6)
 class JuicyPotato(BaseAction):
@@ -35,8 +44,20 @@ class JuicyPotato(BaseAction):
     def execute(self, global_state) -> ActionEffect:
         host = global_state.all_hosts.get(self.target_ip)
         if host and 'Windows' not in host.os:
-            return ActionEffect(success=False, state_deltas={}, observation_data={'privilege': 'failed - OS is not Windows'})
-        return ActionEffect(success=True, state_deltas={f'hosts/{self.target_ip}/privilege': 'Root', f'hosts/{self.target_ip}/compromised_by': self.agent_id}, observation_data={'privilege': 'JuicyPotato elevated'})
+            return ActionEffect(
+                success=False,
+                state_deltas={},
+                observation_data={'privilege': 'failed - OS is not Windows'},
+            )
+        return ActionEffect(
+            success=True,
+            state_deltas={
+                f'hosts/{self.target_ip}/privilege': 'Root',
+                f'hosts/{self.target_ip}/compromised_by': self.agent_id,
+            },
+            observation_data={'privilege': 'JuicyPotato elevated'},
+        )
+
 
 @action_registry.register('red_operator', 7)
 class V4L2KernelExploit(BaseAction):
@@ -56,8 +77,22 @@ class V4L2KernelExploit(BaseAction):
     def execute(self, global_state) -> ActionEffect:
         host = global_state.all_hosts.get(self.target_ip)
         if host and ('Linux' not in host.os or 'V4L2' not in host.vulnerabilities):
-            return ActionEffect(success=False, state_deltas={}, observation_data={'privilege': 'failed - target patched or incompatible OS'})
-        return ActionEffect(success=True, state_deltas={f'hosts/{self.target_ip}/privilege': 'Root', f'hosts/{self.target_ip}/compromised_by': self.agent_id}, observation_data={'privilege': 'V4L2 Kernel escalated'})
+            return ActionEffect(
+                success=False,
+                state_deltas={},
+                observation_data={
+                    'privilege': 'failed - target patched or incompatible OS'
+                },
+            )
+        return ActionEffect(
+            success=True,
+            state_deltas={
+                f'hosts/{self.target_ip}/privilege': 'Root',
+                f'hosts/{self.target_ip}/compromised_by': self.agent_id,
+            },
+            observation_data={'privilege': 'V4L2 Kernel escalated'},
+        )
+
 
 @action_registry.register('red_operator', 9)
 class PassTheHash(BaseAction):
@@ -78,4 +113,11 @@ class PassTheHash(BaseAction):
         return global_state.can_route_to(self.target_ip, agent_id=self.agent_id)
 
     def execute(self, global_state) -> ActionEffect:
-        return ActionEffect(success=True, state_deltas={f'hosts/{self.target_ip}/privilege': 'Root', f'hosts/{self.target_ip}/compromised_by': self.agent_id}, observation_data={'privilege': 'Pass-The-Hash lateral pivot successful.'})
+        return ActionEffect(
+            success=True,
+            state_deltas={
+                f'hosts/{self.target_ip}/privilege': 'Root',
+                f'hosts/{self.target_ip}/compromised_by': self.agent_id,
+            },
+            observation_data={'privilege': 'Pass-The-Hash lateral pivot successful.'},
+        )

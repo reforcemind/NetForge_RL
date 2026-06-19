@@ -41,18 +41,18 @@ RED_EXPLOIT_BLUEKEEP = 4
 RED_EXPLOIT_ETERNALBLUE = 5
 RED_EXPLOIT_HTTP_RFI = 6
 RED_RECON = 7
-RED_EXFILTRATE = 8           # Root-gated; +exfiltrated_bytes per tick
-RED_SHARE_INTEL = 9          # OR every Red row of knowledge_mask together
-RED_DUMP_LSASS = 10          # Root-gated; OR host_tokens[target] -> agent_credentials
-RED_PASS_THE_HASH = 11       # compromise gated on token-locality (target's required token)
-RED_PASS_THE_TICKET = 12     # privesc gated on token-locality
-RED_JUICY_POTATO = 13        # Windows-only privesc (os_family == WINDOWS)
-RED_V4L2 = 14                # Linux-only privesc (os_family == LINUX)
-RED_KILL_PROCESS = 15        # Root-gated; status -> kernel_panic
-RED_IP_FRAGMENTATION = 16    # acts as generic compromise in JAX
-RED_NETWORK_SCAN = 17        # recon action, adds to knowledge
-RED_DISCOVER_REMOTE_SYSTEMS = 18 # recon action, adds to knowledge
-RED_SPEARPHISHING = 19       # compromise gated by OS_WINDOWS
+RED_EXFILTRATE = 8  # Root-gated; +exfiltrated_bytes per tick
+RED_SHARE_INTEL = 9  # OR every Red row of knowledge_mask together
+RED_DUMP_LSASS = 10  # Root-gated; OR host_tokens[target] -> agent_credentials
+RED_PASS_THE_HASH = 11  # compromise gated on token-locality (target's required token)
+RED_PASS_THE_TICKET = 12  # privesc gated on token-locality
+RED_JUICY_POTATO = 13  # Windows-only privesc (os_family == WINDOWS)
+RED_V4L2 = 14  # Linux-only privesc (os_family == LINUX)
+RED_KILL_PROCESS = 15  # Root-gated; status -> kernel_panic
+RED_IP_FRAGMENTATION = 16  # acts as generic compromise in JAX
+RED_NETWORK_SCAN = 17  # recon action, adds to knowledge
+RED_DISCOVER_REMOTE_SYSTEMS = 18  # recon action, adds to knowledge
+RED_SPEARPHISHING = 19  # compromise gated by OS_WINDOWS
 
 BLUE_ISOLATE = 0
 BLUE_RESTORE = 1
@@ -61,13 +61,13 @@ BLUE_DEPLOY_HONEYTOKEN = 3
 BLUE_REMOVE = 4
 BLUE_SAT = 5
 BLUE_MONITOR = 6
-BLUE_MISINFORM_APACHE = 7    # decoy -> Apache (planted fake service)
-BLUE_CONFIGURE_ACL = 8       # edr_active -> True (endpoint monitoring on)
-BLUE_ROTATE_KERBEROS = 9     # clear every Red row of agent_credentials
-BLUE_ANALYZE = 10            # acts identically to monitor but targeted
-BLUE_RESTORE_FROM_BACKUP = 11 # also clears system_integrity
-BLUE_MISINFORM_TOMCAT = 12   # decoy -> Tomcat
-BLUE_MISINFORM_SSHD = 13     # decoy -> SSHD
+BLUE_MISINFORM_APACHE = 7  # decoy -> Apache (planted fake service)
+BLUE_CONFIGURE_ACL = 8  # edr_active -> True (endpoint monitoring on)
+BLUE_ROTATE_KERBEROS = 9  # clear every Red row of agent_credentials
+BLUE_ANALYZE = 10  # acts identically to monitor but targeted
+BLUE_RESTORE_FROM_BACKUP = 11  # also clears system_integrity
+BLUE_MISINFORM_TOMCAT = 12  # decoy -> Tomcat
+BLUE_MISINFORM_SSHD = 13  # decoy -> SSHD
 
 SAT_DROP = 0.1
 
@@ -122,9 +122,9 @@ def _single_env_step(
     red_is_impact = (red_action_type == RED_IMPACT) & red_success
     red_is_kinetic = (red_action_type == RED_KINETIC) & red_success
     red_is_recon = (
-        (red_action_type == RED_RECON) |
-        (red_action_type == RED_NETWORK_SCAN) |
-        (red_action_type == RED_DISCOVER_REMOTE_SYSTEMS)
+        (red_action_type == RED_RECON)
+        | (red_action_type == RED_NETWORK_SCAN)
+        | (red_action_type == RED_DISCOVER_REMOTE_SYSTEMS)
     ) & red_success
     red_is_exfil = (red_action_type == RED_EXFILTRATE) & red_success
     red_is_share = (red_action_type == RED_SHARE_INTEL) & red_success
@@ -148,27 +148,40 @@ def _single_env_step(
     target_os_early = jnp.take(state.hosts.os_family, red_targets)
     spearphish_ok = red_is_spearphishing & (target_os_early == OS_WINDOWS)
     red_is_compromise = (
-        red_is_compromise | red_is_bluekeep | red_is_eternalblue | red_is_http_rfi | red_is_ip_frag | spearphish_ok
+        red_is_compromise
+        | red_is_bluekeep
+        | red_is_eternalblue
+        | red_is_http_rfi
+        | red_is_ip_frag
+        | spearphish_ok
     )
 
     blue_is_isolate = (blue_action_type == BLUE_ISOLATE) & blue_attempt
     blue_is_restore = (blue_action_type == BLUE_RESTORE) & blue_attempt
-    blue_is_restore_backup = (blue_action_type == BLUE_RESTORE_FROM_BACKUP) & blue_attempt
+    blue_is_restore_backup = (
+        blue_action_type == BLUE_RESTORE_FROM_BACKUP
+    ) & blue_attempt
     blue_is_decoy = (blue_action_type == BLUE_DEPLOY_DECOY) & blue_attempt
     blue_is_honey = (blue_action_type == BLUE_DEPLOY_HONEYTOKEN) & blue_attempt
     blue_is_remove = (blue_action_type == BLUE_REMOVE) & blue_attempt
     blue_is_sat = (blue_action_type == BLUE_SAT) & blue_attempt
     blue_is_monitor = (blue_action_type == BLUE_MONITOR) & blue_attempt
     blue_is_analyze = (blue_action_type == BLUE_ANALYZE) & blue_attempt
-    blue_is_misinform_apache = (blue_action_type == BLUE_MISINFORM_APACHE) & blue_attempt
-    blue_is_misinform_tomcat = (blue_action_type == BLUE_MISINFORM_TOMCAT) & blue_attempt
+    blue_is_misinform_apache = (
+        blue_action_type == BLUE_MISINFORM_APACHE
+    ) & blue_attempt
+    blue_is_misinform_tomcat = (
+        blue_action_type == BLUE_MISINFORM_TOMCAT
+    ) & blue_attempt
     blue_is_misinform_sshd = (blue_action_type == BLUE_MISINFORM_SSHD) & blue_attempt
     blue_is_acl = (blue_action_type == BLUE_CONFIGURE_ACL) & blue_attempt
     blue_is_rotate = (blue_action_type == BLUE_ROTATE_KERBEROS) & blue_attempt
 
     blue_writes_isolate = jnp.any(blue_target_mask & blue_is_isolate[:, None], axis=0)
     blue_writes_restore = jnp.any(blue_target_mask & blue_is_restore[:, None], axis=0)
-    blue_writes_restore_backup = jnp.any(blue_target_mask & blue_is_restore_backup[:, None], axis=0)
+    blue_writes_restore_backup = jnp.any(
+        blue_target_mask & blue_is_restore_backup[:, None], axis=0
+    )
     blue_writes_any_restore = blue_writes_restore | blue_writes_restore_backup
     blue_writes_decoy = jnp.any(blue_target_mask & blue_is_decoy[:, None], axis=0)
     blue_writes_honey = jnp.any(blue_target_mask & blue_is_honey[:, None], axis=0)
@@ -196,11 +209,11 @@ def _single_env_step(
     new_red_creds = state.agent_credentials[: spec.n_red] | looted_per_agent
 
     # PTH/PTT requires token locality
-    red_creds = state.agent_credentials[: spec.n_red]      # bool[N_RED, N_TOKEN]
+    red_creds = state.agent_credentials[: spec.n_red]  # bool[N_RED, N_TOKEN]
     target_tokens = jnp.take(state.hosts.host_tokens, red_targets, axis=0)
     held = jnp.where(target_tokens, red_creds, True).all(axis=-1)
     target_has_req = target_tokens.any(axis=-1)
-    red_token_ok = held & target_has_req                   # bool[N_RED]
+    red_token_ok = held & target_has_req  # bool[N_RED]
 
     red_writes_user_pth = jnp.any(
         red_target_mask & (red_is_pth & red_token_ok)[:, None], axis=0
@@ -215,22 +228,18 @@ def _single_env_step(
     target_os = jnp.take(state.hosts.os_family, red_targets)
     juicy_ok = red_is_juicy & (target_os == OS_WINDOWS)
     v4l2_ok = red_is_v4l2 & (target_os == OS_LINUX)
-    red_writes_root_juicy = jnp.any(
-        red_target_mask & juicy_ok[:, None], axis=0
-    )
-    red_writes_root_v4l2 = jnp.any(
-        red_target_mask & v4l2_ok[:, None], axis=0
-    )
+    red_writes_root_juicy = jnp.any(red_target_mask & juicy_ok[:, None], axis=0)
+    red_writes_root_v4l2 = jnp.any(red_target_mask & v4l2_ok[:, None], axis=0)
     red_writes_root = red_writes_root | red_writes_root_juicy | red_writes_root_v4l2
 
     # KillProcess requires Root; sets kernel_panic
-    red_writes_kill = jnp.any(
-        red_target_mask & red_is_kill[:, None], axis=0
-    ) & host_is_root
+    red_writes_kill = (
+        jnp.any(red_target_mask & red_is_kill[:, None], axis=0) & host_is_root
+    )
 
     # RotateKerberos clears Red credentials
     any_blue_rotate = jnp.any(blue_is_rotate)
-    new_blue_creds = state.agent_credentials[spec.n_red:]
+    new_blue_creds = state.agent_credentials[spec.n_red :]
     new_red_creds = jnp.where(
         any_blue_rotate, jnp.zeros_like(new_red_creds), new_red_creds
     )
@@ -241,14 +250,18 @@ def _single_env_step(
     new_blue_isolations = blue_writes_isolate & ~already_isolated
 
     new_status = state.hosts.status
-    new_status = jnp.where(blue_writes_any_restore, jnp.int8(_STATUS_ONLINE), new_status)
+    new_status = jnp.where(
+        blue_writes_any_restore, jnp.int8(_STATUS_ONLINE), new_status
+    )
     new_status = jnp.where(blue_writes_isolate, jnp.int8(_STATUS_ISOLATED), new_status)
     new_status = jnp.where(red_writes_kill, jnp.int8(_STATUS_KERNEL_PANIC), new_status)
 
     new_privilege = state.hosts.privilege
     new_privilege = jnp.where(red_writes_user, jnp.int8(_PRIV_USER), new_privilege)
     new_privilege = jnp.where(red_writes_root, jnp.int8(_PRIV_ROOT), new_privilege)
-    new_privilege = jnp.where(blue_writes_any_restore, jnp.int8(_PRIV_NONE), new_privilege)
+    new_privilege = jnp.where(
+        blue_writes_any_restore, jnp.int8(_PRIV_NONE), new_privilege
+    )
     new_privilege = jnp.where(blue_writes_remove, jnp.int8(_PRIV_NONE), new_privilege)
 
     red_owners = (
@@ -270,13 +283,19 @@ def _single_env_step(
     )
     blue_writes_acl = jnp.any(blue_target_mask & blue_is_acl[:, None], axis=0)
     new_decoy = jnp.where(blue_writes_decoy, jnp.int8(_DECOY_ACTIVE), state.hosts.decoy)
-    new_decoy = jnp.where(blue_writes_misinform_apache, jnp.int8(_DECOY_APACHE), new_decoy)
-    new_decoy = jnp.where(blue_writes_misinform_tomcat, jnp.int8(_DECOY_TOMCAT), new_decoy)
+    new_decoy = jnp.where(
+        blue_writes_misinform_apache, jnp.int8(_DECOY_APACHE), new_decoy
+    )
+    new_decoy = jnp.where(
+        blue_writes_misinform_tomcat, jnp.int8(_DECOY_TOMCAT), new_decoy
+    )
     new_decoy = jnp.where(blue_writes_misinform_sshd, jnp.int8(_DECOY_SSHD), new_decoy)
     new_edr = state.hosts.edr_active | blue_writes_acl
     new_honey = state.hosts.contains_honeytokens | blue_writes_honey
 
-    already_compromised = state.hosts.system_integrity == jnp.int8(_INTEGRITY_COMPROMISED)
+    already_compromised = state.hosts.system_integrity == jnp.int8(
+        _INTEGRITY_COMPROMISED
+    )
     already_kinetic = state.hosts.system_integrity == jnp.int8(_INTEGRITY_KINETIC)
     new_red_impacts = red_writes_impact & ~already_compromised & ~already_kinetic
     new_red_kinetics = red_writes_kinetic & ~already_kinetic
@@ -299,9 +318,11 @@ def _single_env_step(
     )
 
     red_knowledge_writes = red_target_mask & red_is_recon[:, None]
-    blue_knowledge_writes = blue_target_mask & (blue_is_monitor | blue_is_analyze)[:, None]
+    blue_knowledge_writes = (
+        blue_target_mask & (blue_is_monitor | blue_is_analyze)[:, None]
+    )
     new_red_knowledge = state.knowledge_mask[: spec.n_red] | red_knowledge_writes
-    new_blue_knowledge = state.knowledge_mask[spec.n_red:] | blue_knowledge_writes
+    new_blue_knowledge = state.knowledge_mask[spec.n_red :] | blue_knowledge_writes
 
     any_red_shared = jnp.any(red_is_share)
     red_union = jnp.any(new_red_knowledge, axis=0)
@@ -328,17 +349,15 @@ def _single_env_step(
         & state.hosts.contains_honeytokens[None, :],
         axis=1,
     )
-    blue_new_intel = (~state.knowledge_mask[spec.n_red:]) & blue_knowledge_writes
+    blue_new_intel = (~state.knowledge_mask[spec.n_red :]) & blue_knowledge_writes
     red_new_intel = (~state.knowledge_mask[: spec.n_red]) & red_knowledge_writes
     n_cve_compromises = (
         red_is_bluekeep.sum() + red_is_eternalblue.sum() + red_is_http_rfi.sum()
     )
 
-    exfil_targets = (
-        red_target_mask & red_is_exfil[:, None] & host_is_root[None, :]
-    )
-    exfil_bytes_this_tick = (
-        EXFIL_PER_HOST * jnp.sum(jnp.any(exfil_targets, axis=0).astype(jnp.float32))
+    exfil_targets = red_target_mask & red_is_exfil[:, None] & host_is_root[None, :]
+    exfil_bytes_this_tick = EXFIL_PER_HOST * jnp.sum(
+        jnp.any(exfil_targets, axis=0).astype(jnp.float32)
     )
 
     # Gate farmable rewards on state transitions
@@ -350,12 +369,19 @@ def _single_env_step(
         + 1.5 * jnp.sum(blue_writes_remove.astype(jnp.float32))
         + 0.3 * jnp.sum(blue_writes_sat.astype(jnp.float32))
         + 0.2 * jnp.sum(blue_new_intel.astype(jnp.float32))
-        + 0.4 * jnp.sum((blue_writes_misinform_apache | blue_writes_misinform_tomcat | blue_writes_misinform_sshd).astype(jnp.float32))
+        + 0.4
+        * jnp.sum(
+            (
+                blue_writes_misinform_apache
+                | blue_writes_misinform_tomcat
+                | blue_writes_misinform_sshd
+            ).astype(jnp.float32)
+        )
         + 0.7 * jnp.sum(blue_writes_acl.astype(jnp.float32))
         + 4.0 * jnp.sum(blue_is_rotate.astype(jnp.float32))
     )
     blue_reward = jnp.tanh(raw_blue_reward / 10.0)
-    
+
     raw_red_team_reward = (
         jnp.sum(red_writes_user.astype(jnp.float32))
         + 0.5 * n_cve_compromises.astype(jnp.float32)
@@ -385,7 +411,9 @@ def _single_env_step(
     return new_state, jnp.concatenate([red_rewards, blue_rewards])
 
 
-def _default_action_types(actions: BatchedActions, spec: VectorEnvSpec) -> BatchedActions:
+def _default_action_types(
+    actions: BatchedActions, spec: VectorEnvSpec
+) -> BatchedActions:
     if actions.red_action_type is not None and actions.blue_action_type is not None:
         return actions
     batch = actions.red_target_idx.shape[0]
@@ -423,7 +451,9 @@ def make_vector_step(spec: VectorEnvSpec):
     return step_fn
 
 
-def random_actions(spec: VectorEnvSpec, batch_size: int, key: jax.Array) -> BatchedActions:
+def random_actions(
+    spec: VectorEnvSpec, batch_size: int, key: jax.Array
+) -> BatchedActions:
     k1, k2, k3, k4, k5, k6 = jax.random.split(key, 6)
     return BatchedActions(
         red_target_idx=jax.random.randint(

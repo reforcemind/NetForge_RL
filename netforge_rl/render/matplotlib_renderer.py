@@ -37,13 +37,21 @@ def render_rgb(snap: Snapshot, *, figsize=(6.0, 6.0), dpi=100, show_labels=False
 
     nx.draw_networkx_edges(g, pos, ax=ax, alpha=0.4, width=0.8)
     nx.draw_networkx_nodes(
-        g, pos, ax=ax, node_color=snap.colors, node_size=120, edgecolors='black',
+        g,
+        pos,
+        ax=ax,
+        node_color=snap.colors,
+        node_size=120,
+        edgecolors='black',
         linewidths=0.5,
     )
     if show_labels:
         nx.draw_networkx_labels(
-            g, pos, labels={i: s for i, s in enumerate(snap.labels)},
-            font_size=6, ax=ax,
+            g,
+            pos,
+            labels={i: s for i, s in enumerate(snap.labels)},
+            font_size=6,
+            ax=ax,
         )
 
     ax.set_title(f'NetForge — tick {snap.tick}', fontsize=10)

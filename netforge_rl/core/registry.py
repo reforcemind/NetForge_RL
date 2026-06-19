@@ -14,7 +14,6 @@ class ActionRegistry:
         }
 
     def register(self, team: str, group_id: int) -> Callable:
-
         def decorator(cls):
             self._actions.setdefault(team, {})[group_id] = cls
             return cls

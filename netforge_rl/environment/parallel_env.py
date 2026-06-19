@@ -99,7 +99,9 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
         self.global_state.docker_bridge = self.docker_bridge
         self.agents = self.possible_agents[:]
         self.ordered_hosts = sorted(self.global_state.all_hosts.keys())
-        self._cached_action_masks = {agent: self.action_mask(agent) for agent in self.agents}
+        self._cached_action_masks = {
+            agent: self.action_mask(agent) for agent in self.agents
+        }
         self.global_state.agent_energy = {agent: 50 for agent in self.agents}
         self.global_state.agent_funds = {
             agent: 10000 if 'blue' in agent else 5000 for agent in self.agents
@@ -206,7 +208,6 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
                     }
                 )
 
-
         for event in list(self.event_queue):
             if (
                 type(event['action']).__name__ == 'IsolateHost'
@@ -223,7 +224,6 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
                         self.global_state.agent_locked_until[red_event['agent']] = (
                             self.current_tick
                         )
-
 
         prev_tick = self.current_tick
         if self.event_queue:
@@ -264,7 +264,6 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
         resolved_effects = self.resolution_engine.resolve(intended_effects)
         self._apply_state_deltas(resolved_effects)
 
-
         self._update_episode_metrics(resolved_effects)
 
         for res_agent, res_effect in resolved_effects.items():
@@ -293,7 +292,12 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
             )
             if host and getattr(host, 'contains_honeytokens', False):
                 self.siem_logger._push_to_buffer(
-                    {"signature": "HONEYTOKEN_TRIGGERED", "target": target_ip, "agent": res_agent, "severity": 10},
+                    {
+                        'signature': 'HONEYTOKEN_TRIGGERED',
+                        'target': target_ip,
+                        'agent': res_agent,
+                        'severity': 10,
+                    },
                     subnet,
                     self.global_state,
                 )
@@ -314,7 +318,6 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
         agent_siem_vecs = {}
         for agent in self.agents:
             if 'blue' in agent.lower():
-
                 subnet_tag = agent.split('_')[1] if '_' in agent else 'dmz'
                 subset_logs = self.siem_logger.get_filtered_logs(
                     self.global_state, subnet_tag=subnet_tag, n=8
@@ -328,7 +331,6 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
             obs.update_from_state(self.global_state, resolved_effects)
 
             obs_array = obs.to_numpy(max_size=256)
-
 
             if 'blue' in agent.lower():
                 agent_siem_vec = agent_siem_vecs.get(
@@ -355,9 +357,7 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
             if not terminate[agent] and not truncate[agent]
         ]
 
-
         infos = self._extract_agent_infos(observations, resolved_effects)
-
 
         for agent in self.agents:
             if agent in infos:
@@ -387,14 +387,23 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
         for agent, effect in resolved_effects.items():
             if not effect.success:
                 continue
-                
+
             if isinstance(effect.state_deltas, list):
                 for cmd in effect.state_deltas:
                     cmd_type = type(cmd).__name__
-                    if cmd_type == 'UpdateHostStatusCommand' and getattr(cmd, 'status', None) == 'isolated':
-                        self.episode_metrics['isolation_times'].setdefault(cmd.target_ip, self.current_tick)
-                    elif cmd_type == 'UpdateHostPrivilegeCommand' and getattr(cmd, 'privilege', None) in ('User', 'Root'):
-                        self.episode_metrics['infection_times'].setdefault(cmd.target_ip, self.current_tick)
+                    if (
+                        cmd_type == 'UpdateHostStatusCommand'
+                        and getattr(cmd, 'status', None) == 'isolated'
+                    ):
+                        self.episode_metrics['isolation_times'].setdefault(
+                            cmd.target_ip, self.current_tick
+                        )
+                    elif cmd_type == 'UpdateHostPrivilegeCommand' and getattr(
+                        cmd, 'privilege', None
+                    ) in ('User', 'Root'):
+                        self.episode_metrics['infection_times'].setdefault(
+                            cmd.target_ip, self.current_tick
+                        )
 
             elif isinstance(effect.state_deltas, dict):
                 for delta_key, delta_val in effect.state_deltas.items():
@@ -413,7 +422,8 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
 
         total = max(len(self.global_state.all_hosts), 1)
         healthy = sum(
-            1 for h in self.global_state.all_hosts.values()
+            1
+            for h in self.global_state.all_hosts.values()
             if h.compromised_by == 'None' and h.status == 'online'
         )
         self.episode_metrics['sla_uptime_sum'] += healthy / total
@@ -468,7 +478,8 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
 
             target_ip = (
                 getattr(agent_effect.action, 'target_ip', None)
-                if agent_effect else None
+                if agent_effect
+                else None
             )
             self.ordered_hosts = sorted(self.global_state.all_hosts.keys())
             info['target_ip_index'] = (
@@ -510,7 +521,6 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
                     )
             info['MTTC'] = float(sum(mttc_vals) / len(mttc_vals)) if mttc_vals else 0.0
 
-
             info['Total_Exfiltrated_Data'] = float(
                 self.episode_metrics['exfiltrated_data']
             )
@@ -526,11 +536,13 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
         vec = []
         for ip in self.ordered_hosts[:100]:
             host = self.global_state.all_hosts[ip]
-            vec.extend([
-                priv_codes.get(host.privilege, 0.0),
-                1.0 if host.status == 'online' else 0.0,
-                1.0 if host.decoy != 'inactive' else 0.0,
-            ])
+            vec.extend(
+                [
+                    priv_codes.get(host.privilege, 0.0),
+                    1.0 if host.status == 'online' else 0.0,
+                    1.0 if host.decoy != 'inactive' else 0.0,
+                ]
+            )
         vec.append(self.global_state.business_downtime_score / 100.0)
         vec.append(float(self.current_tick) / float(self.max_ticks))
         for agent in self.possible_agents:

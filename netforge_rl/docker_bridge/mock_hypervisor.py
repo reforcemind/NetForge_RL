@@ -67,7 +67,6 @@ class MockHypervisor(BaseHypervisor):
         mean, std = _LATENCY_PROFILE.get(action_name, _DEFAULT_LATENCY)
         latency_ms = max(50.0, self._rng.gauss(mean, std))
 
-
         elapsed_ms = (time.perf_counter() - t_start) * 1000
         latency_ms = max(latency_ms, elapsed_ms)
 
@@ -97,7 +96,6 @@ class MockHypervisor(BaseHypervisor):
     def _sample_stdout(self, action_name: str, success: bool, target_ip: str) -> str:
         bucket = self._library.get(action_name)
         if bucket is None:
-
             if success:
                 return f'[*] {action_name} succeeded against {target_ip}\n[*] Session opened.'
             return (

@@ -53,7 +53,6 @@ def test_collision_resets_dict_deltas_to_empty_dict() -> None:
 
 @pytest.mark.fast
 def test_collision_resets_list_deltas_to_empty_list() -> None:
-
     class _Cmd:
         def __init__(self, ip):
             self.target_ip = ip

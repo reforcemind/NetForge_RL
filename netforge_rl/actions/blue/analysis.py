@@ -1,6 +1,7 @@
 from netforge_rl.core.action import BaseAction, ActionEffect
 from netforge_rl.core.registry import action_registry
 
+
 @action_registry.register('blue_operator', 2)
 class Monitor(BaseAction):
     """Scans subnet for EDR."""
@@ -25,7 +26,12 @@ class Monitor(BaseAction):
             for ip, host in subnet_hosts.items():
                 if host.edr_active:
                     knowledge_deltas[f'knowledge/{self.agent_id}/{ip}'] = 'True'
-        return ActionEffect(success=True, state_deltas=knowledge_deltas, observation_data={'monitoring': self.target_ip})
+        return ActionEffect(
+            success=True,
+            state_deltas=knowledge_deltas,
+            observation_data={'monitoring': self.target_ip},
+        )
+
 
 @action_registry.register('blue_operator', 3)
 class Analyze(BaseAction):
@@ -42,7 +48,11 @@ class Analyze(BaseAction):
         if self.target_ip in global_state.all_hosts:
             host = global_state.all_hosts[self.target_ip]
             if not host.edr_active:
-                return ActionEffect(success=False, state_deltas={}, observation_data={'error': 'EDR blindspot - telemetry unavailable'})
+                return ActionEffect(
+                    success=False,
+                    state_deltas={},
+                    observation_data={'error': 'EDR blindspot - telemetry unavailable'},
+                )
             if host.privilege in ['User', 'Root']:
                 obs_data['ioc_found'] = True
                 obs_data['compromised_by'] = host.compromised_by
@@ -50,4 +60,6 @@ class Analyze(BaseAction):
             else:
                 obs_data['ioc_found'] = False
         knowledge_deltas = {f'knowledge/{self.agent_id}/{self.target_ip}': 'True'}
-        return ActionEffect(success=True, state_deltas=knowledge_deltas, observation_data=obs_data)
+        return ActionEffect(
+            success=True, state_deltas=knowledge_deltas, observation_data=obs_data
+        )

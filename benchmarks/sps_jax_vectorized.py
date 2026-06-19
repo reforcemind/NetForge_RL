@@ -107,8 +107,7 @@ def main():
     print(f'{"batch":>8} {"agg SPS":>14} {"per-env SPS":>14}')
     for row in result.rows:
         print(
-            f'{row.batch_size:>8d} {row.aggregate_sps:>14.0f} '
-            f'{row.per_env_sps:>14.1f}'
+            f'{row.batch_size:>8d} {row.aggregate_sps:>14.0f} {row.per_env_sps:>14.1f}'
         )
 
 

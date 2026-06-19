@@ -78,7 +78,6 @@ class DockerHypervisor(BaseHypervisor):
         target_ip: str,
         target_os: str,
     ) -> HypervisorResult:
-
         image = _IMAGE_REGISTRY.get(action_name, _FALLBACK_IMAGE)
         script = _PAYLOAD_SCRIPTS.get(action_name, _FALLBACK_SCRIPT)
 

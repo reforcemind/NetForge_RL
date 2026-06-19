@@ -101,6 +101,10 @@ def random_action_dict(env, key):
         )
         attempt = jax.random.bernoulli(k2, p=0.5, shape=(env.batch_size,))
         n_act = 20 if 'red' in agent.lower() else 14
-        action_type = jax.random.randint(k3, (env.batch_size,), 0, n_act, dtype=jnp.int32)
-        out[agent] = jnp.stack([target, attempt.astype(jnp.int32), action_type], axis=-1)
+        action_type = jax.random.randint(
+            k3, (env.batch_size,), 0, n_act, dtype=jnp.int32
+        )
+        out[agent] = jnp.stack(
+            [target, attempt.astype(jnp.int32), action_type], axis=-1
+        )
     return out

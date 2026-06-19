@@ -1,14 +1,14 @@
 {
   "backend": "legacy-pytorch",
   "scenario": "ransomware",
-  "episodes": 3,
-  "max_ticks": 200,
-  "total_steps": 567,
-  "wall_seconds": 53.629888399969786,
-  "sps_mean": 10.592857217372401,
-  "sps_median": 10.526651051260409,
-  "sps_min": 10.422724511380867,
-  "sps_max": 10.829196089475928,
+  "episodes": 2,
+  "max_ticks": 50,
+  "total_steps": 100,
+  "wall_seconds": 7.145378999994136,
+  "sps_mean": 14.401013742326253,
+  "sps_median": 14.401013742326253,
+  "sps_min": 13.075012234304477,
+  "sps_max": 15.72701525034803,
   "python": "3.12.10",
   "platform": "Windows 11"
 }

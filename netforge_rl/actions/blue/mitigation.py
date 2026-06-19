@@ -1,6 +1,11 @@
 from netforge_rl.core.action import BaseAction, ActionEffect
 from netforge_rl.core.registry import action_registry
-from netforge_rl.core.commands import UpdateHostStatusCommand, DropSessionCommand, BlockPortCommand
+from netforge_rl.core.commands import (
+    UpdateHostStatusCommand,
+    DropSessionCommand,
+    BlockPortCommand,
+)
+
 
 @action_registry.register('blue', 0)
 class IsolateHost(BaseAction):
@@ -13,7 +18,15 @@ class IsolateHost(BaseAction):
         return True
 
     def execute(self, global_state) -> ActionEffect:
-        return ActionEffect(success=True, state_deltas=[UpdateHostStatusCommand(self.target_ip, 'isolated'), DropSessionCommand(self.target_ip)], observation_data={'alert': 'Host isolated securely.'})
+        return ActionEffect(
+            success=True,
+            state_deltas=[
+                UpdateHostStatusCommand(self.target_ip, 'isolated'),
+                DropSessionCommand(self.target_ip),
+            ],
+            observation_data={'alert': 'Host isolated securely.'},
+        )
+
 
 @action_registry.register('blue', 1)
 class RestoreHost(BaseAction):
@@ -26,7 +39,16 @@ class RestoreHost(BaseAction):
         return True
 
     def execute(self, global_state) -> ActionEffect:
-        return ActionEffect(success=True, state_deltas={f'hosts/{self.target_ip}/status': 'online', f'hosts/{self.target_ip}/privilege': 'None', f'hosts/{self.target_ip}/compromised_by': 'None'}, observation_data={'alert': 'Host restored and cleaned.'})
+        return ActionEffect(
+            success=True,
+            state_deltas={
+                f'hosts/{self.target_ip}/status': 'online',
+                f'hosts/{self.target_ip}/privilege': 'None',
+                f'hosts/{self.target_ip}/compromised_by': 'None',
+            },
+            observation_data={'alert': 'Host restored and cleaned.'},
+        )
+
 
 @action_registry.register('blue', 4)
 class Remove(BaseAction):
@@ -39,7 +61,15 @@ class Remove(BaseAction):
         return True
 
     def execute(self, global_state) -> ActionEffect:
-        return ActionEffect(success=True, state_deltas={f'hosts/{self.target_ip}/privilege': 'None', f'hosts/{self.target_ip}/compromised_by': 'None'}, observation_data={'alert': 'Unauthorized access removed.'})
+        return ActionEffect(
+            success=True,
+            state_deltas={
+                f'hosts/{self.target_ip}/privilege': 'None',
+                f'hosts/{self.target_ip}/compromised_by': 'None',
+            },
+            observation_data={'alert': 'Unauthorized access removed.'},
+        )
+
 
 @action_registry.register('blue', 5)
 class RestoreFromBackup(BaseAction):
@@ -52,13 +82,22 @@ class RestoreFromBackup(BaseAction):
         return True
 
     def execute(self, global_state) -> ActionEffect:
-        return ActionEffect(success=True, state_deltas={f'hosts/{self.target_ip}/privilege': 'None', f'hosts/{self.target_ip}/status': 'online', f'hosts/{self.target_ip}/system_integrity': 'clean'}, observation_data={'alert': 'Host restored from backup image.'})
+        return ActionEffect(
+            success=True,
+            state_deltas={
+                f'hosts/{self.target_ip}/privilege': 'None',
+                f'hosts/{self.target_ip}/status': 'online',
+                f'hosts/{self.target_ip}/system_integrity': 'clean',
+            },
+            observation_data={'alert': 'Host restored from backup image.'},
+        )
+
 
 @action_registry.register('blue', 6)
 class ConfigureACL(BaseAction):
     """Modifies firewall rules to block inbound traffic."""
 
-    def __init__(self, agent_id: str, target_subnet: str, port: int=445):
+    def __init__(self, agent_id: str, target_subnet: str, port: int = 445):
         super().__init__(agent_id, target_ip=target_subnet, cost=2)
         self.port = port
 
@@ -66,14 +105,23 @@ class ConfigureACL(BaseAction):
         return self.target_ip in global_state.subnets
 
     def execute(self, global_state) -> ActionEffect:
-        return ActionEffect(success=True, state_deltas=[BlockPortCommand(self.target_ip, self.port)], observation_data={'alert': f'ACL configured: Drop Port {self.port} to {self.target_ip}'})
+        return ActionEffect(
+            success=True,
+            state_deltas=[BlockPortCommand(self.target_ip, self.port)],
+            observation_data={
+                'alert': f'ACL configured: Drop Port {self.port} to {self.target_ip}'
+            },
+        )
+
 
 @action_registry.register('blue', 7)
 class SecurityAwarenessTraining(BaseAction):
     """Lowers human vulnerability score on subnet."""
 
     def __init__(self, agent_id: str, target_subnet: str):
-        super().__init__(agent_id, target_ip=target_subnet, cost=2, financial_cost=2000, duration=3)
+        super().__init__(
+            agent_id, target_ip=target_subnet, cost=2, financial_cost=2000, duration=3
+        )
 
     def validate(self, global_state) -> bool:
         return self.target_ip in global_state.subnets
@@ -88,4 +136,11 @@ class SecurityAwarenessTraining(BaseAction):
                 current_score = host.human_vulnerability_score
                 new_score = round(current_score * 0.2, 2)
                 deltas[f'hosts/{host.ip}/human_vulnerability_score'] = new_score
-        return ActionEffect(success=True, state_deltas=deltas, observation_data={'alert': f'Security Awareness Training completed on {self.target_ip}. Vulnerability drastically lowered.'}, eta=self.duration)
+        return ActionEffect(
+            success=True,
+            state_deltas=deltas,
+            observation_data={
+                'alert': f'Security Awareness Training completed on {self.target_ip}. Vulnerability drastically lowered.'
+            },
+            eta=self.duration,
+        )

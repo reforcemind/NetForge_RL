@@ -139,7 +139,8 @@ class GlobalNetworkState:
             return True
         has_dmz_pivot = any(
             (
-                h.privilege in ('User', 'Root') and self.get_subnet_name(h.subnet_cidr) == 'DMZ'
+                h.privilege in ('User', 'Root')
+                and self.get_subnet_name(h.subnet_cidr) == 'DMZ'
                 for h in self.all_hosts.values()
             )
         )
@@ -148,7 +149,8 @@ class GlobalNetworkState:
         if subnet_name == 'Secure':
             has_corp_pivot = any(
                 (
-                    h.privilege in ('User', 'Root') and self.get_subnet_name(h.subnet_cidr) == 'Corporate'
+                    h.privilege in ('User', 'Root')
+                    and self.get_subnet_name(h.subnet_cidr) == 'Corporate'
                     for h in self.all_hosts.values()
                 )
             )

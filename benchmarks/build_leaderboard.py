@@ -46,7 +46,9 @@ def main():
     for policy_name, policy_cls in POLICIES.items():
         for scen in SCENARIOS:
             controlled = (
-                'red_operator' if policy_name == 'heuristic-red' else args.controlled_agent
+                'red_operator'
+                if policy_name == 'heuristic-red'
+                else args.controlled_agent
             )
             for r in evaluate(
                 policy_cls(seed=0),
@@ -68,7 +70,9 @@ def main():
     )
     print(f'Results: {args.results}')
     print(f'Summary: {args.summary}\n')
-    print(f'{"model":<16} {"scenario":<16} {"n":>3} {"reward":>10} {"comp":>6} {"iso":>5}')
+    print(
+        f'{"model":<16} {"scenario":<16} {"n":>3} {"reward":>10} {"comp":>6} {"iso":>5}'
+    )
     for row in summary:
         print(
             f'{row["model_id"]:<16} {row["scenario"]:<16} '

@@ -1,11 +1,11 @@
 {
-  "batch": 128,
-  "num_steps": 16,
+  "batch": 2,
+  "num_steps": 256,
   "iters": 5,
-  "wall_seconds": 0.06598479999229312,
-  "sec_per_iter": 0.013196959998458624,
-  "rollout_sps": 155187.2552647884,
+  "wall_seconds": 0.0994152000057511,
+  "sec_per_iter": 0.01988304000115022,
+  "rollout_sps": 25750.589445596906,
   "device": "cpu:0",
-  "python": "3.14.4",
+  "python": "3.12.10",
   "platform": "Windows 11"
 }

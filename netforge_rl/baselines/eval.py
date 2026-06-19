@@ -51,12 +51,10 @@ def evaluate(
                 break
 
         compromised = sum(
-            1 for h in env.global_state.all_hosts.values()
-            if h.compromised_by != 'None'
+            1 for h in env.global_state.all_hosts.values() if h.compromised_by != 'None'
         )
         isolated = sum(
-            1 for h in env.global_state.all_hosts.values()
-            if h.status == 'isolated'
+            1 for h in env.global_state.all_hosts.values() if h.status == 'isolated'
         )
         results.append(
             EpisodeResult(
@@ -82,7 +80,9 @@ def main():
     p.add_argument('--max-steps', type=int, default=100)
     p.add_argument('--controlled-agent', default='blue_dmz')
     p.add_argument(
-        '--out', type=Path, default=Path('leaderboard/baselines.json'),
+        '--out',
+        type=Path,
+        default=Path('leaderboard/baselines.json'),
     )
     args = p.parse_args()
 

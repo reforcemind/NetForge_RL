@@ -29,6 +29,7 @@ from netforge_rl.siem.event_templates import (
 try:
     import torch
     from sentence_transformers import SentenceTransformer
+
     HAS_TRANSFORMERS = True
 except ImportError:
     HAS_TRANSFORMERS = False
@@ -48,7 +49,8 @@ class LogEncoder:
         self._cache: dict[str, np.ndarray] = {}
         self._cache_size = cache_size
         self._encoder = (
-            self._build_transformer() if backend == 'transformer'
+            self._build_transformer()
+            if backend == 'transformer'
             else self._build_tfidf()
         )
 
@@ -78,7 +80,6 @@ class LogEncoder:
         return vecs.mean(axis=0).astype(np.float32)
 
     def _build_tfidf(self):
-
         corpus = self._build_training_corpus()
         pipeline = Pipeline(
             [
@@ -98,7 +99,8 @@ class LogEncoder:
         pipeline.fit(corpus)
         logger.info(
             'LogEncoder[tfidf]: fitted on %d docs -> %d-dim LSA.',
-            len(corpus), EMBEDDING_DIM,
+            len(corpus),
+            EMBEDDING_DIM,
         )
 
         def encode_fn(text: str) -> np.ndarray:
@@ -136,7 +138,9 @@ class LogEncoder:
     def _build_training_corpus(self) -> list:
         corpus: list = []
 
-        lib_path = Path(__file__).parent.parent / 'docker_bridge' / 'payload_library.json'
+        lib_path = (
+            Path(__file__).parent.parent / 'docker_bridge' / 'payload_library.json'
+        )
         if lib_path.exists():
             lib = json.loads(lib_path.read_text())
             for action_data in lib.values():
@@ -147,7 +151,13 @@ class LogEncoder:
         for src, tgt in zip(sample_ips, reversed(sample_ips)):
             for fn in (evid_4624, evid_4625, evid_4648, evid_4776):
                 corpus.append(fn(src, tgt))
-            for proc in ('cmd.exe', 'powershell.exe', 'mimikatz.exe', 'procdump.exe', 'net.exe'):
+            for proc in (
+                'cmd.exe',
+                'powershell.exe',
+                'mimikatz.exe',
+                'procdump.exe',
+                'net.exe',
+            ):
                 corpus.append(evid_4688(src, process=proc))
                 corpus.append(sysmon_1(src, process=proc))
             corpus.append(evid_4768(src, tgt))

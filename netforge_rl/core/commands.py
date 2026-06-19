@@ -12,6 +12,7 @@ class IStateDeltaCommand(ABC):
     @abstractmethod
     def target_ip(self) -> Optional[str]: ...
 
+
 class UpdateHostPrivilegeCommand(IStateDeltaCommand):
     def __init__(self, ip: str, privilege: str, compromised_by: Optional[str] = None):
         self._target_ip = ip
@@ -46,9 +47,6 @@ class UpdateHostStatusCommand(IStateDeltaCommand):
             host.status = self.status
 
 
-
-
-
 class BlockPortCommand(IStateDeltaCommand):
     def __init__(self, subnet: str, port: int):
         self.subnet = subnet
@@ -64,12 +62,6 @@ class BlockPortCommand(IStateDeltaCommand):
         global_state.firewalls.setdefault('global', Firewall('global')).block_port(
             self.subnet, self.port
         )
-
-
-
-
-
-
 
 
 class EstablishSessionCommand(IStateDeltaCommand):

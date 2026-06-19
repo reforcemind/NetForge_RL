@@ -10,7 +10,7 @@ from netforge_rl.core.functional import EnvState, HostArrays, HostMeta
 @jax.tree_util.register_dataclass
 @dataclass(frozen=True)
 class JaxHostArrays:
-    status: jax.Array              # int8[N_HOSTS]
+    status: jax.Array  # int8[N_HOSTS]
     privilege: jax.Array
     decoy: jax.Array
     edr_active: jax.Array
@@ -18,11 +18,11 @@ class JaxHostArrays:
     contains_honeytokens: jax.Array
     human_vulnerability: jax.Array  # float32[N_HOSTS]
     cvss_score: jax.Array
-    compromised_by_id: jax.Array   # int8[N_HOSTS], -1 == None
+    compromised_by_id: jax.Array  # int8[N_HOSTS], -1 == None
     system_integrity: jax.Array
-    vuln_mask: jax.Array           # bool[N_HOSTS, N_CVE]
-    host_tokens: jax.Array         # bool[N_HOSTS, N_TOKEN]
-    os_family: jax.Array           # int8[N_HOSTS]
+    vuln_mask: jax.Array  # bool[N_HOSTS, N_CVE]
+    host_tokens: jax.Array  # bool[N_HOSTS, N_TOKEN]
+    os_family: jax.Array  # int8[N_HOSTS]
 
 
 @jax.tree_util.register_dataclass
@@ -35,9 +35,9 @@ class JaxEnvState:
     agent_locked_until: jax.Array
     current_tick: jax.Array
     business_downtime_score: jax.Array
-    knowledge_mask: jax.Array      # bool[N_AGENTS, N_HOSTS]
-    exfiltrated_bytes: jax.Array   # float32 scalar — cumulative Red exfil
-    agent_credentials: jax.Array   # bool[N_AGENTS, N_TOKEN] — looted tokens
+    knowledge_mask: jax.Array  # bool[N_AGENTS, N_HOSTS]
+    exfiltrated_bytes: jax.Array  # float32 scalar — cumulative Red exfil
+    agent_credentials: jax.Array  # bool[N_AGENTS, N_TOKEN] — looted tokens
 
 
 def to_jax(state: EnvState) -> JaxEnvState:
@@ -90,7 +90,9 @@ def to_jax(state: EnvState) -> JaxEnvState:
     )
 
 
-def to_numpy(jstate, meta: HostMeta, agent_ids, knowledge=None, inventory=None) -> EnvState:
+def to_numpy(
+    jstate, meta: HostMeta, agent_ids, knowledge=None, inventory=None
+) -> EnvState:
     """Convert JaxEnvState to numpy EnvState."""
     if knowledge is None:
         knowledge = []
@@ -103,6 +105,7 @@ def to_numpy(jstate, meta: HostMeta, agent_ids, knowledge=None, inventory=None) 
 
     if inventory is None:
         from netforge_rl.core.functional import TOKEN_CODES
+
         inventory = []
         for j in range(len(agent_ids)):
             agent_inv = []

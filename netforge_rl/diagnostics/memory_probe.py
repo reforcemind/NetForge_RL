@@ -1,5 +1,6 @@
 from netforge_rl.diagnostics.base import Diagnostic, DiagnosticResult
 
+
 class MemoryProbe(Diagnostic):
     """Plant a Red foothold at reset; score Blue on isolating that host fast."""
 
