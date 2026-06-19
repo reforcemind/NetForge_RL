@@ -90,11 +90,27 @@ def to_jax(state: EnvState) -> JaxEnvState:
     )
 
 
-def to_numpy(jstate, meta: HostMeta, agent_ids, knowledge=(), inventory=()) -> EnvState:
-    """Materialize a numpy-backed EnvState from a JaxEnvState.
+def to_numpy(jstate, meta: HostMeta, agent_ids, knowledge=None, inventory=None) -> EnvState:
+    """Convert JaxEnvState to numpy EnvState."""
+    if knowledge is None:
+        knowledge = []
+        for j in range(len(agent_ids)):
+            agent_know = set()
+            for i, ip in enumerate(meta.ip):
+                if jstate.knowledge_mask[j, i]:
+                    agent_know.add(ip)
+            knowledge.append(agent_know)
 
-    String metadata isn't carried by the PyTree — supply it explicitly.
-    """
+    if inventory is None:
+        from netforge_rl.core.functional import TOKEN_CODES
+        inventory = []
+        for j in range(len(agent_ids)):
+            agent_inv = []
+            for i, tok in enumerate(TOKEN_CODES):
+                if jstate.agent_credentials[j, i]:
+                    agent_inv.append(tok)
+            inventory.append(agent_inv)
+
     h = jstate.hosts
     hosts = HostArrays(
         status=np.asarray(h.status),

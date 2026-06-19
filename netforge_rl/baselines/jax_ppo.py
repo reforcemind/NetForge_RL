@@ -101,7 +101,7 @@ class PPOConfig:
     clip: float = 0.2
     vf_coef: float = 0.5
     n_hosts: int = 100
-    n_action_types: int = 16
+    n_action_types: int = 20
     n_red: int = 1
     n_blue: int = 3
     controlled_agent: str = 'blue_dmz'
@@ -115,8 +115,8 @@ def _build_actions(target_idx, action_type, env_agents, controlled, n_red, n_blu
     k_rt, k_bt, k_rat, k_bat = jax.random.split(key, 4)
     red_t = jax.random.randint(k_rt, (target_idx.shape[0], n_red), 0, n_hosts, dtype=jnp.int32)
     blue_t = jax.random.randint(k_bt, (target_idx.shape[0], n_blue), 0, n_hosts, dtype=jnp.int32)
-    red_at = jax.random.randint(k_rat, (target_idx.shape[0], n_red), 0, 16, dtype=jnp.int8)
-    blue_at = jax.random.randint(k_bat, (target_idx.shape[0], n_blue), 0, 10, dtype=jnp.int8)
+    red_at = jax.random.randint(k_rat, (target_idx.shape[0], n_red), 0, 20, dtype=jnp.int8)
+    blue_at = jax.random.randint(k_bat, (target_idx.shape[0], n_blue), 0, 14, dtype=jnp.int8)
 
     red_names = [a for a in env_agents if 'red' in a.lower()]
     blue_names = [a for a in env_agents if 'blue' in a.lower()]
