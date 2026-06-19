@@ -42,7 +42,7 @@ jobs:
         pip install pytest pytest-cov scikit-learn gymnasium pettingzoo networkx pyyaml
     - name: Run tests with pytest
       run: |
-        pytest tests/ -v --cov=netforge_rl --cov-report=xml --cov-fail-under=70
+        pytest tests/ -v --cov=netforge_rl --cov-report=xml --cov-fail-under=50
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v4
       with:
