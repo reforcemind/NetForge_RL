@@ -84,7 +84,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#training-with-rllib" class="md-skip">
+        <a href="#training-with-ray-rllib" class="md-skip">
           Skip to content
         </a>
       
@@ -360,26 +360,6 @@
 
       </a>
     </li>
-  
-
-      
-        
-  
-  
-  
-  
-    
-    
-      <li class="md-tabs__item">
-        <a href="../../ACTION_COVERAGE/" class="md-tabs__link">
-          
-  
-  
-  Project Documents
-
-        </a>
-      </li>
-    
   
 
       
@@ -1080,6 +1060,24 @@
         
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RLlib + LSTM
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
@@ -1096,6 +1094,69 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-the-rllib-environment-wrapper" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. The RLlib Environment Wrapper
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-registering-the-environment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Registering the Environment
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-configuring-the-training-loop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Configuring the Training Loop
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-recurrent-neural-networks-lstms" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Recurrent Neural Networks (LSTMs)
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -1164,235 +1225,6 @@
   
 
     
-      
-      
-  
-  
-  
-  
-    
-    
-    
-    
-      
-      
-        
-      
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-          
-        
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
-        
-          
-          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
-            
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Project Documents
-  
-
-    
-  </span>
-  
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_8">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
-    Project Documents
-  
-
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../ACTION_COVERAGE/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Action Coverage
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../AUDIT/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Audit
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../DATASHEET/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Datasheet
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../NetForge_Audit/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    External Audit
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../NetForge_Novelty_Analysis/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Novelty Analysis
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../ROADMAP/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Roadmap
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-    
   </ul>
 </nav>
                   </div>
@@ -1413,6 +1245,58 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-the-rllib-environment-wrapper" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. The RLlib Environment Wrapper
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-registering-the-environment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Registering the Environment
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-configuring-the-training-loop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Configuring the Training Loop
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-recurrent-neural-networks-lstms" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Recurrent Neural Networks (LSTMs)
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -1431,8 +1315,70 @@
   
 
 
-<h1 id="training-with-rllib">Training with RLlib<a class="headerlink" href="#training-with-rllib" title="Permanent link">&para;</a></h1>
-<p>How to use Ray RLlib for MARL.</p>
+<h1 id="training-with-ray-rllib">Training with Ray RLlib<a class="headerlink" href="#training-with-ray-rllib" title="Permanent link">&para;</a></h1>
+<p>NetForge provides a seamless wrapper for integrating with Ray RLlib, allowing you to train highly scalable Multi-Agent Reinforcement Learning (MARL) policies across distributed clusters.</p>
+<h2 id="1-the-rllib-environment-wrapper">1. The RLlib Environment Wrapper<a class="headerlink" href="#1-the-rllib-environment-wrapper" title="Permanent link">&para;</a></h2>
+<p>NetForge implements the <code>MultiAgentEnv</code> interface via <code>NetForgeRLlibEnv</code>. This handles the conversion of NetForge's core <code>EnvState</code> into observation spaces RLlib algorithms expect (e.g., flattened dictionaries, MultiDiscrete spaces).</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">netforge_rl.bridges.rllib_bridge</span><span class="w"> </span><span class="kn">import</span> <span class="n">NetForgeRLlibEnv</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="c1"># The environment can be instantiated directly or via the registry</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="n">env</span> <span class="o">=</span> <span class="n">NetForgeRLlibEnv</span><span class="p">({</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="s2">&quot;scenario_type&quot;</span><span class="p">:</span> <span class="s2">&quot;ransomware&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="s2">&quot;max_ticks&quot;</span><span class="p">:</span> <span class="mi">100</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="p">})</span>
+</code></pre></div>
+<h2 id="2-registering-the-environment">2. Registering the Environment<a class="headerlink" href="#2-registering-the-environment" title="Permanent link">&para;</a></h2>
+<p>Before training, register the environment with Ray's global registry so worker nodes can instantiate it:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">ray</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">ray.tune.registry</span><span class="w"> </span><span class="kn">import</span> <span class="n">register_env</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">netforge_rl.bridges.rllib_bridge</span><span class="w"> </span><span class="kn">import</span> <span class="n">NetForgeRLlibEnv</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="n">ray</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="k">def</span><span class="w"> </span><span class="nf">env_creator</span><span class="p">(</span><span class="n">env_config</span><span class="p">):</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>    <span class="k">return</span> <span class="n">NetForgeRLlibEnv</span><span class="p">(</span><span class="n">env_config</span><span class="p">)</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="n">register_env</span><span class="p">(</span><span class="s2">&quot;netforge-v0&quot;</span><span class="p">,</span> <span class="n">env_creator</span><span class="p">)</span>
+</code></pre></div>
+<h2 id="3-configuring-the-training-loop">3. Configuring the Training Loop<a class="headerlink" href="#3-configuring-the-training-loop" title="Permanent link">&para;</a></h2>
+<p>You can train NetForge using PPO, MAPPO, or QMIX. Below is an example configuration for multi-agent PPO where the Red and Blue teams learn separate policies.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">ray.rllib.algorithms.ppo</span><span class="w"> </span><span class="kn">import</span> <span class="n">PPOConfig</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="c1"># Define policy mappings</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="k">def</span><span class="w"> </span><span class="nf">policy_mapping_fn</span><span class="p">(</span><span class="n">agent_id</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>    <span class="k">if</span> <span class="s2">&quot;red&quot;</span> <span class="ow">in</span> <span class="n">agent_id</span><span class="p">:</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>        <span class="k">return</span> <span class="s2">&quot;red_policy&quot;</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>    <span class="k">else</span><span class="p">:</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>        <span class="k">return</span> <span class="s2">&quot;blue_policy&quot;</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="n">config</span> <span class="o">=</span> <span class="p">(</span>
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>    <span class="n">PPOConfig</span><span class="p">()</span>
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>    <span class="o">.</span><span class="n">environment</span><span class="p">(</span><span class="s2">&quot;netforge-v0&quot;</span><span class="p">,</span> <span class="n">env_config</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;scenario_type&quot;</span><span class="p">:</span> <span class="s2">&quot;ransomware&quot;</span><span class="p">})</span>
+<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>    <span class="o">.</span><span class="n">multi_agent</span><span class="p">(</span>
+<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a>        <span class="n">policies</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;red_policy&quot;</span><span class="p">,</span> <span class="s2">&quot;blue_policy&quot;</span><span class="p">},</span>
+<a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a>        <span class="n">policy_mapping_fn</span><span class="o">=</span><span class="n">policy_mapping_fn</span><span class="p">,</span>
+<a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a>    <span class="p">)</span>
+<a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a>    <span class="o">.</span><span class="n">resources</span><span class="p">(</span><span class="n">num_gpus</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a>    <span class="o">.</span><span class="n">rollouts</span><span class="p">(</span><span class="n">num_rollout_workers</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+<a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a><span class="p">)</span>
+<a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a>
+<a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a><span class="n">algo</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">build</span><span class="p">()</span>
+<a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a>
+<a id="__codelineno-2-23" name="__codelineno-2-23" href="#__codelineno-2-23"></a><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">100</span><span class="p">):</span>
+<a id="__codelineno-2-24" name="__codelineno-2-24" href="#__codelineno-2-24"></a>    <span class="n">result</span> <span class="o">=</span> <span class="n">algo</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
+<a id="__codelineno-2-25" name="__codelineno-2-25" href="#__codelineno-2-25"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Iteration </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">: Red Reward: </span><span class="si">{</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;policy_reward_mean&#39;</span><span class="p">][</span><span class="s1">&#39;red_policy&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+<h2 id="4-recurrent-neural-networks-lstms">4. Recurrent Neural Networks (LSTMs)<a class="headerlink" href="#4-recurrent-neural-networks-lstms" title="Permanent link">&para;</a></h2>
+<p>Cybersecurity is a highly Partially Observable Markov Decision Process (POMDP). Both Red and Blue agents must maintain memory of past states. You can enable LSTMs natively in RLlib:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">config</span><span class="o">.</span><span class="n">training</span><span class="p">(</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>    <span class="n">model</span><span class="o">=</span><span class="p">{</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>        <span class="s2">&quot;use_lstm&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>        <span class="s2">&quot;max_seq_len&quot;</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>        <span class="s2">&quot;lstm_cell_size&quot;</span><span class="p">:</span> <span class="mi">256</span><span class="p">,</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>    <span class="p">}</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="p">)</span>
+</code></pre></div>
+<p>For advanced users, you can bypass Ray RLlib entirely and use the JAX-native <code>JaxMARL</code> backend for maximum throughput. See the JAX vectorization guides in the benchmarks folder.</p>
 
 
 
