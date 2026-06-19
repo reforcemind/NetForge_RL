@@ -1,5 +1,8 @@
 import numpy as np
 import pytest
+
+pytest.importorskip("PIL")
+
 from netforge_rl.baselines.policies import RandomPolicy
 from netforge_rl.diagnostics import (
     DiagnosticResult,
