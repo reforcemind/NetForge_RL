@@ -1,16 +1,3 @@
-"""
-DockerHypervisor — live container execution driver.
-
-Requires:
-    pip install docker
-
-Spins up ephemeral Vulhub containers for each exploit action, executes
-realistic payload scripts inside the container, captures stdout/exit_code,
-then destroys the container immediately.
-
-Falls back gracefully to MockHypervisor if Docker daemon is unreachable.
-"""
-
 from __future__ import annotations
 
 import logging
@@ -76,13 +63,7 @@ _FALLBACK_SCRIPT = 'echo "[*] Payload dispatched." && sleep 0.5'
 
 
 class DockerHypervisor(BaseHypervisor):
-    """
-    Live Docker hypervisor driver.
-
-    Spawns ephemeral Vulhub containers for each exploit, executes benign
-    payload echo-scripts inside them, then destroys containers immediately.
-    All containers run on the isolated 'netforge_isolated' bridge network.
-    """
+    """Live Docker hypervisor driver for ephemeral Vulhub containers."""
 
     NETWORK_NAME = 'netforge_isolated'
 
@@ -153,7 +134,7 @@ class DockerHypervisor(BaseHypervisor):
         )
 
     def teardown_all(self) -> None:
-        """Stop and remove all containers still running from this episode."""
+        """Stop and remove all active containers."""
         for container in list(self._active_containers):
             try:
                 container.stop(timeout=3)
@@ -168,6 +149,7 @@ class DockerHypervisor(BaseHypervisor):
     def _connect(self) -> bool:
         try:
             import docker
+
             self._client = docker.from_env()
             self._client.ping()
             self._ensure_network()
@@ -184,7 +166,7 @@ class DockerHypervisor(BaseHypervisor):
             return False
 
     def _ensure_network(self) -> None:
-        """Create the isolated bridge network if it does not already exist."""
+        """Create the isolated bridge network if it does not exist."""
         if self._client is None:
             return
         existing = [n.name for n in self._client.networks.list()]

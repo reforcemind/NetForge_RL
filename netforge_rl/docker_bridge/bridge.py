@@ -1,13 +1,3 @@
-"""
-DockerBridge — single integration point between the action system and hypervisors.
-
-Responsibilities:
-  1. Instantiate the correct driver based on mode ('sim' / 'real').
-  2. Expose dispatch() to action execute() methods.
-  3. Translate HypervisorResult into a reward delta for the ConflictResolutionEngine.
-  4. Expose teardown_all() for episode resets.
-"""
-
 from __future__ import annotations
 from netforge_rl.docker_bridge.docker_hypervisor import DockerHypervisor
 from netforge_rl.docker_bridge.mock_hypervisor import MockHypervisor
@@ -20,14 +10,9 @@ from netforge_rl.docker_bridge.hypervisor_base import BaseHypervisor, Hypervisor
 logger = logging.getLogger(__name__)
 
 _REWARD_DELTA: dict[str, float] = {
-    # Successful shell — standard scenario reward handles the bulk;
-    # small bonus here to separate true exploitation from lucky rolls.
     'success': +5.0,
-    # Clean failure — exploit attempted but target not vulnerable / patched.
     'failure_clean': -10.0,
-    # Noisy failure with high latency — burn time and increase SIEM visibility.
     'failure_noisy': -20.0,
-    # Container/infrastructure error — punishment for choosing an incompatible action.
     'failure_error': -25.0,
 }
 
@@ -35,16 +20,7 @@ _NOISY_LATENCY_THRESHOLD_MS = 5000.0  # Longer than this = "noisy" failure
 
 
 class DockerBridge:
-    """
-    Dual-mode bridge connecting MARL actions to the hypervisor backend.
-
-    Usage:
-        bridge = DockerBridge(mode='sim')   # training default
-        bridge = DockerBridge(mode='real')  # evaluation with Docker
-
-        result = bridge.dispatch('ExploitEternalBlue', '10.0.1.3', 'Windows_Server_2016')
-        reward_delta = bridge.reward_delta(result)
-    """
+    """Bridge connecting actions to the hypervisor backend."""
 
     def __init__(self, mode: Literal['sim', 'real'] = 'sim') -> None:
         self.mode = mode
@@ -62,12 +38,7 @@ class DockerBridge:
         return result
 
     def reward_delta(self, result: HypervisorResult) -> float:
-        """
-        Map a HypervisorResult to an immediate scalar reward delta.
-
-        This is *additive* on top of the scenario's standard reward — it
-        represents additional friction from real-world exploit reliability.
-        """
+        """Map a HypervisorResult to an immediate scalar reward delta."""
         if result.success:
             return _REWARD_DELTA['success']
         elif result.return_code == 2:
