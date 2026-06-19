@@ -3,7 +3,7 @@
 All notable changes to the `netforge_rl` project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [4.0.0] — 2026-06 — NeurIPS Datasets & Benchmarks candidate
+## [2.0.0] — 2026-06 — NeurIPS Datasets & Benchmarks candidate
 
 Dual-backend architecture + Foundation-Model-Native MARL pillar. See [ROADMAP.md](ROADMAP.md) for the full plan; per-phase audit findings in [AUDIT.md](AUDIT.md).
 

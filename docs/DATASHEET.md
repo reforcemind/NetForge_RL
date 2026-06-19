@@ -14,7 +14,7 @@ Following [Gebru et al., 2021](https://arxiv.org/abs/1803.09010) — required fo
 
 **What do the instances that comprise the dataset represent?** Procedurally generated three-tier enterprise networks (DMZ / Corporate / Secure ± OT) of exactly 100 host slots (active topology spans 15–30 nodes; the remainder are pinned link-local padding for tensor-shape stability). Each scenario is a Python class with reward and termination logic.
 
-**How many instances are there in total?** Infinite — the topology generator produces a new instance per `(scenario, seed)`. The repo ships **2 reference scenarios** (`ransomware`, `apt_espionage`) at v4.0; Phase 5 will expand to 5 standardized scenarios.
+**How many instances are there in total?** Infinite — the topology generator produces a new instance per `(scenario, seed)`. The repo ships **2 reference scenarios** (`ransomware`, `apt_espionage`) at v2.0; Phase 5 will expand to 5 standardized scenarios.
 
 **What data does each instance consist of?** A `GlobalNetworkState` (or its frozen `EnvState` mirror) containing host attributes (status, privilege, OS, services, vulnerabilities, ZTNA tokens, decoy flags, honeytokens), subnet topology, firewall rules, agent inventories / fog-of-war, and per-tick action history.
 
@@ -34,7 +34,7 @@ Following [Gebru et al., 2021](https://arxiv.org/abs/1803.09010) — required fo
 
 ## Preprocessing / cleaning / labeling
 
-**Was any preprocessing of the data done?** Padding hosts (`169.254.0.0/16`) are appended to every instance to keep the host tensor at exactly 100 rows. The frozen `EnvState` representation encodes categorical attributes (`status`, `privilege`, `decoy`) against pinned codebooks documented in `netforge_rl/core/functional.py`.
+**Was any preprocessing of the data done?** Padding hosts (`169.252.0.0/16`) are appended to every instance to keep the host tensor at exactly 100 rows. The frozen `EnvState` representation encodes categorical attributes (`status`, `privilege`, `decoy`) against pinned codebooks documented in `netforge_rl/core/functional.py`.
 
 ## Uses
 
@@ -52,7 +52,7 @@ Following [Gebru et al., 2021](https://arxiv.org/abs/1803.09010) — required fo
 
 **Will the dataset be distributed to third parties outside of the entity?** Yes — open source under the MIT License.
 
-**How will the dataset be distributed?** Source via GitHub (`reforcemind/NetForge_RL`); a frozen v4.0.0 release archive will be deposited to Zenodo with a DOI for the NeurIPS submission.
+**How will the dataset be distributed?** Source via GitHub (`reforcemind/NetForge_RL`); a frozen v2.0.0 release archive will be deposited to Zenodo with a DOI for the NeurIPS submission.
 
 ## Maintenance
 

@@ -174,7 +174,7 @@ Each line is roughly one PR. Tight scope, hash-preserving (legacy untouched).
 | Phase 5 scenarios | ✅ 4 of 5 (ransomware / apt / iot_grid / ot_stuxnet) — `cloud_hybrid` deferred |
 | Phase 5 leaderboard | ✅ shipped (`leaderboard/baselines{,_summary}.json`) |
 | Phase 6 notebooks 01-06 | ✅ shipped |
-| Phase 7 CHANGELOG / DATASHEET | ✅ shipped (CHANGELOG has post-v4.0 commits to backfill) |
+| Phase 7 CHANGELOG / DATASHEET | ✅ shipped (CHANGELOG has post-v2.0 commits to backfill) |
 | Phase 8 M1 LA + VLA wrappers | ✅ shipped |
 | Phase 8 M2 zero-shot leaderboard | ✅ shipped (real Anthropic + OpenAI client adapters) |
 | Phase 8 M3 LoRA + PPO fine-tune scaffold + Colab | ✅ shipped (notebook 07) |
@@ -192,7 +192,7 @@ Each line is roughly one PR. Tight scope, hash-preserving (legacy untouched).
 1. CVE-gated Red exploit variants (§3.1, §4-1).
 2. OS-gated Red privesc (§3.1, §4-2).
 3. Knowledge mask + reconnaissance trio (§3.2, §4-3).
-4. CHANGELOG sync for post-v4.0 commits.
+4. CHANGELOG sync for post-v2.0 commits.
 5. MkDocs nav refresh.
 6. Phase 8 grammar-constrained decoding hooks (Anthropic tool_use schema first).
 7. Credential mask + LSASS / PassTheTicket (§3.3, §4-4).

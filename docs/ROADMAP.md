@@ -17,7 +17,7 @@ Phase 0 audit findings, measured SPS deltas, and regression locks live in
 | 5 Baselines (random, heuristic, JAX PPO) + leaderboard JSON | ✅ | |
 | 5 scenarios | ✅ 5/5 | ransomware, apt_espionage, iot_grid, ot_stuxnet, cloud_hybrid |
 | 6 Notebooks 01–07 | ✅ | |
-| 7 CHANGELOG / DATASHEET / CITATION | ✅ | v4.0.0 tag not yet pushed |
+| 7 CHANGELOG / DATASHEET / CITATION | ✅ | v2.0.0 tag not yet pushed |
 | 8-M1 LA + VLA wrappers + parser | ✅ | |
 | 8-M2 zero-shot leaderboard + Anthropic + OpenAI + Google clients | ✅ | 3/3 closed-source providers |
 | 8-M3 LoRA + PPO adapter + Colab | ✅ | flagship notebook 07 |
@@ -35,7 +35,7 @@ Phase 0 audit findings, measured SPS deltas, and regression locks live in
 1. **NeurIPS submission package** — `paper/` LaTeX skeleton + figures, README hero animation, CI workflow stub.
 2. Remaining ~11 JAX action ports (KillProcess, SpearPhishing — needs PRNG threading, RestoreFromBackup variants).
 3. **MkDocs nav refresh + missing pages** (Architecture / Cybersecurity / API stub pages currently break `mkdocs build --strict`). Last because it needs ~8 new doc pages written to satisfy the existing nav structure.
-4. `v4.0.0` git tag + Zenodo DOI deposit — user-driven.
+4. `v2.0.0` git tag + Zenodo DOI deposit — user-driven.
 
 ---
 
@@ -120,9 +120,9 @@ end of Phase 7 because it needs ~8 stub pages.
 [docs/DATASHEET.md](DATASHEET.md), `CITATION.cff`.
 
 ## Phase 7 — Submission hardening ⚠️ (in flight)
-**Branch:** `release/v4.0-neurips` (release branch, not yet tagged)
+**Branch:** `release/v2.0-neurips` (release branch, not yet tagged)
 
-`v4.0.0` git tag not pushed; Zenodo deposit pending; paper LaTeX
+`v2.0.0` git tag not pushed; Zenodo deposit pending; paper LaTeX
 skeleton not started. **Open work:** `paper/` directory + figures,
 README hero animation, CI workflow, push tag + mint DOI.
 
@@ -301,7 +301,7 @@ of MARL cybersecurity research.*
 
 ```
 main                                   protected, signed tags only
-├── release/v4.0-neurips               release candidates
+├── release/v2.0-neurips               release candidates
 ├── refactor/*                         internal restructure
 ├── feat/jax-*                         JAX backend
 ├── feat/torch-*                       PyTorch backend

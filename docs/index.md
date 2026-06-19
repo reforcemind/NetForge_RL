@@ -15,7 +15,7 @@
 
 ---
 
-## What's new in v4.0
+## What's new in v2.0
 
 - **JAX backend**: `jax.vmap` + `jax.jit` vectorized step delivering **1,082,255 aggregate SPS at 4096 parallel envs on CPU** — 103,500× the single-env legacy baseline. GPU/TPU pushes this further.
 - **JaxMARL-shape API + DLPack zero-copy**: ride the JAX rollouts from CleanRL / Stable-Baselines3 / RLlib without leaving the device.
