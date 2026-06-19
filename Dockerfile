@@ -1,11 +1,9 @@
-FROM ubuntu:22.10
-FROM python:3.12.6
+FROM python:3.14-slim
 
-WORKDIR /cage
+WORKDIR /netforge
 
-COPY . /cage
+COPY . /netforge
 
-RUN pip install -e .
+RUN pip install --no-cache-dir -e .
 
-ENTRYPOINT ["python", "/cage/CybORG/Evaluation/validation.py"]
-
+CMD ["python", "-c", "from netforge_rl.environment.parallel_env import NetForgeRLEnv"]

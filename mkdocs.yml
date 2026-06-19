@@ -1,9 +1,9 @@
 site_name: NetForge RL
 site_description: Multi-Agent Cybersecurity Reinforcement Learning Environment
 site_author: Igor Jankowski
-site_url: https://xaiqo.github.io/NetForge_RL/
-repo_url: https://github.com/xaiqo/NetForge_RL
-repo_name: xaiqo/NetForge_RL
+site_url: https://reforcemind.github.io/NetForge_RL/
+repo_url: https://github.com/reforcemind/NetForge_RL
+repo_name: reforcemind/NetForge_RL
 edit_uri: edit/main/docs/
 
 theme:
