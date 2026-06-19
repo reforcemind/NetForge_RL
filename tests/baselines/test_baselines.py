@@ -1,3 +1,5 @@
+import pytest
+pytest.importorskip("PIL")
 import json
 import numpy as np
 import pytest

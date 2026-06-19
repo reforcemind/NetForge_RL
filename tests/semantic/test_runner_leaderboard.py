@@ -1,4 +1,6 @@
 import pytest
+pytest.importorskip("PIL")
+import pytest
 from netforge_rl.semantic import EpisodeResult, append_result, run_episode, summarize
 from netforge_rl.semantic.clients import MockLLMClient
 

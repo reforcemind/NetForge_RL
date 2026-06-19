@@ -1,4 +1,6 @@
 import pytest
+pytest.importorskip("PIL")
+import pytest
 from netforge_rl.semantic.grammars import (
     anthropic_tool_schema,
     openai_tool_schema,
