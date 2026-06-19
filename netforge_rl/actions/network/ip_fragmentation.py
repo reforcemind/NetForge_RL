@@ -14,19 +14,22 @@ class IPFragmentationAction(BaseAction):
         self.fragment_size = 8
 
     def validate(self, global_state: 'GlobalNetworkState') -> bool:
-        return global_state.routing_table.has_route(self.agent_id, self.target_ip)
+        return global_state.can_route_to(self.target_ip, agent_id=self.agent_id)
 
     def execute(self, global_state: 'GlobalNetworkState') -> ActionEffect:
-        target_host = global_state.get_host(self.target_ip)
-        ids_present = target_host.has_service('IDS')
-        ids_reassembles_packets = global_state.get_service_config('IDS').get('deep_packet_inspection', False)
+        target_host = global_state.all_hosts.get(self.target_ip)
+        if not target_host:
+            return ActionEffect(success=False, state_deltas={}, observation_data={'error': 'Host not found'})
+
+        ids_present = 'IDS' in target_host.services
         success = False
         state_deltas = {}
         observation_data = {}
-        if ids_present and ids_reassembles_packets:
+        if ids_present:
             observation_data['alert'] = 'IDS_SIGNATURE_IP_FRAGMENTATION_DETECTED'
             success = False
         else:
-            state_deltas[f'hosts.{self.target_ip}.sessions'] = {'add': {'agent_id': self.agent_id, 'privilege': 'user'}}
+            state_deltas[f'hosts/{self.target_ip}/privilege'] = 'User'
+            state_deltas[f'hosts/{self.target_ip}/compromised_by'] = self.agent_id
             success = True
         return ActionEffect(success=success, state_deltas=state_deltas, observation_data=observation_data)
