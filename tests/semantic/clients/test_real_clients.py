@@ -2,6 +2,8 @@ import sys
 import types
 import pytest
 
+pytest.importorskip('PIL')
+
 
 @pytest.fixture
 def fake_anthropic(monkeypatch):
