@@ -33,6 +33,10 @@
          <lastmod>2026-06-20</lastmod>
     </url>
     <url>
+         <loc>https://reforcemind.github.io/NetForge_RL/architecture/dynamic_topology/</loc>
+         <lastmod>2026-06-20</lastmod>
+    </url>
+    <url>
          <loc>https://reforcemind.github.io/NetForge_RL/architecture/nlp_siem/</loc>
          <lastmod>2026-06-20</lastmod>
     </url>
@@ -62,6 +66,14 @@
     </url>
     <url>
          <loc>https://reforcemind.github.io/NetForge_RL/cybersec/threat_model/</loc>
+         <lastmod>2026-06-20</lastmod>
+    </url>
+    <url>
+         <loc>https://reforcemind.github.io/NetForge_RL/training/benchmarks/</loc>
+         <lastmod>2026-06-20</lastmod>
+    </url>
+    <url>
+         <loc>https://reforcemind.github.io/NetForge_RL/training/curriculum/</loc>
          <lastmod>2026-06-20</lastmod>
     </url>
     <url>

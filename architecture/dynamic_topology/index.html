@@ -12,13 +12,13 @@
         <meta name="author" content="Igor Jankowski">
       
       
-        <link rel="canonical" href="https://reforcemind.github.io/NetForge_RL/architecture/nlp_siem/">
+        <link rel="canonical" href="https://reforcemind.github.io/NetForge_RL/architecture/dynamic_topology/">
       
       
-        <link rel="prev" href="../sim2real/">
+        <link rel="prev" href="../overview/">
       
       
-        <link rel="next" href="../../cybersec/overview/">
+        <link rel="next" href="../zero_trust/">
       
       
         
@@ -29,7 +29,7 @@
     
     
       
-        <title>NLP-SIEM Pipeline - NetForge RL</title>
+        <title>Dynamic Topologies - NetForge RL</title>
       
     
     
@@ -84,7 +84,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#nlp-siem-pipeline" class="md-skip">
+        <a href="#dynamic-non-stationary-topologies" class="md-skip">
           Skip to content
         </a>
       
@@ -120,7 +120,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              NLP-SIEM Pipeline
+              Dynamic Topologies
             
           </span>
         </div>
@@ -557,10 +557,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../dynamic_topology/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dynamic Topologies
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -576,6 +603,65 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#the-topology-event-engine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Topology Event Engine
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The Topology Event Engine">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#topology-events" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Topology Events
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -641,37 +727,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    NLP-SIEM Pipeline
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../nlp_siem/" class="md-nav__link">
         
   
   
@@ -687,37 +746,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#mechanics" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Mechanics
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -1303,10 +1331,38 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#mechanics" class="md-nav__link">
+  <a href="#the-topology-event-engine" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Mechanics
+        The Topology Event Engine
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The Topology Event Engine">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#topology-events" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Topology Events
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration
       
     </span>
   </a>
@@ -1333,15 +1389,33 @@
   
 
 
-<h1 id="nlp-siem-pipeline">NLP-SIEM Pipeline<a class="headerlink" href="#nlp-siem-pipeline" title="Permanent link">&para;</a></h1>
-<p>The NLP-SIEM Pipeline translates raw network telemetry strings into vectorized observation spaces or natural language prompts specifically for Blue agents.</p>
-<h2 id="mechanics">Mechanics<a class="headerlink" href="#mechanics" title="Permanent link">&para;</a></h2>
+<h1 id="dynamic-non-stationary-topologies">Dynamic &amp; Non-Stationary Topologies<a class="headerlink" href="#dynamic-non-stationary-topologies" title="Permanent link">&para;</a></h1>
+<p>NetForge RL implements non-stationary network topologies to force reinforcement learning agents to learn robust, generalizable policies rather than overfitting to static routing tables. Real-world enterprise networks are dynamic—devices connect, disconnect, and migrate between subnets constantly. </p>
+<p>This behavior is governed by the <code>TopologyEventEngine</code>.</p>
+<h2 id="the-topology-event-engine">The Topology Event Engine<a class="headerlink" href="#the-topology-event-engine" title="Permanent link">&para;</a></h2>
+<p>The <code>TopologyEventEngine</code> sits within the core environment loop and emits topology state-change events mid-episode. It governs three primary dynamics:</p>
+<ol>
+<li><strong>Churn (Node Status)</strong>: Nodes randomly transition between <code>online</code> and <code>offline</code> (isolated) states, simulating devices going to sleep or being rebooted.</li>
+<li><strong>Migration (Node Movement)</strong>: Active nodes may randomly migrate from one subnet to another (e.g., a corporate laptop moving from a WiFi VLAN to a wired connection).</li>
+<li><strong>Arrival (BYOD Injection)</strong>: Zero-padded "phantom" nodes are dynamically instantiated into active subnets as new "Bring Your Own Device" (BYOD) endpoints with randomized OS profiles and running services.</li>
+</ol>
+<h3 id="topology-events">Topology Events<a class="headerlink" href="#topology-events" title="Permanent link">&para;</a></h3>
+<p>When the engine alters the state, it emits a <code>TopologyEvent</code> to the event queue. These events are parsed by the simulation to invalidate stale agent knowledge.</p>
 <ul>
-<li><strong>Event Generation</strong>: The <code>ConflictResolutionEngine</code> processes successful and failed state modifications, emitting raw text signatures matching Sysmon/Windows Event Logs (e.g., Event ID 4624 for <code>Logon</code>).</li>
-<li><strong>Log Buffer</strong>: These raw strings are appended to a rolling global event queue (<code>siem_log_buffer</code>), which simulates the real-time logging pipeline.</li>
-<li><strong>Vectorization (RL Agents)</strong>: For standard neural architectures, the most recent $N$ logs in the buffer are mapped through a static TF-IDF encoder or dense embedding layer, transforming the strings into a fixed-size <code>BlueAgentObservationVector</code>.</li>
-<li><strong>Text Translation (LLM Agents)</strong>: For foundation models, the <code>state_to_text</code> function directly pulls raw text from the buffer and injects it into a structured natural language prompt, bypassing the vectorization phase entirely.</li>
+<li><code>host_offline</code>: A previously active host is marked as isolated.</li>
+<li><code>host_online</code>: An isolated host is brought back online.</li>
+<li><code>host_migrate</code>: A host changes its IP address and <code>subnet_cidr</code>. The old IP is wiped from the <code>GlobalNetworkState</code> and agent knowledge bases.</li>
+<li><code>host_arrive</code>: A new BYOD endpoint joins a subnet with a newly leased IP address.</li>
 </ul>
+<h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h2>
+<p>The rates for these events are controlled via environment initialization parameters (which are also dynamically scaled by the <a href="../../training/curriculum/">Curriculum Wrapper</a>):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">cfg</span> <span class="o">=</span> <span class="p">{</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="s1">&#39;topology_churn_rate&#39;</span><span class="p">:</span> <span class="mf">0.02</span><span class="p">,</span>     <span class="c1"># 2% chance per tick for node status flip</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="s1">&#39;topology_migration_rate&#39;</span><span class="p">:</span> <span class="mf">0.01</span><span class="p">,</span> <span class="c1"># 1% chance per tick for subnet migration</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="s1">&#39;topology_arrival_rate&#39;</span><span class="p">:</span> <span class="mf">0.005</span><span class="p">,</span>  <span class="c1"># 0.5% chance per tick for new BYOD</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="p">}</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="n">env</span> <span class="o">=</span> <span class="n">NetForgeRLEnv</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
+</code></pre></div>
 
 
 
@@ -1379,7 +1453,7 @@
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../sim2real/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Sim2Real Bridge">
+          <a href="../overview/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Overview">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -1389,20 +1463,20 @@
                 Previous
               </span>
               <div class="md-ellipsis">
-                Sim2Real Bridge
+                Overview
               </div>
             </div>
           </a>
         
         
           
-          <a href="../../cybersec/overview/" class="md-footer__link md-footer__link--next" aria-label="Next: Environment Overview">
+          <a href="../zero_trust/" class="md-footer__link md-footer__link--next" aria-label="Next: Zero-Trust Identity">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Environment Overview
+                Zero-Trust Identity
               </div>
             </div>
             <div class="md-footer__button md-icon">

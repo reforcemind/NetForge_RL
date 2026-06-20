@@ -332,7 +332,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../training/rllib/" class="md-tabs__link">
+        <a href="../../training/curriculum/" class="md-tabs__link">
           
   
   
@@ -560,6 +560,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../dynamic_topology/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dynamic Topologies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../zero_trust/" class="md-nav__link">
         
   
@@ -597,6 +625,24 @@
         
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sim2Real Bridge
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
@@ -613,6 +659,36 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#mechanics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mechanics
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -1061,6 +1137,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../training/curriculum/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Curriculum Learning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../training/rllib/" class="md-nav__link">
         
   
@@ -1097,6 +1201,34 @@
     
   
     Scenarios
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../training/benchmarks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Benchmarks & Competition
   
 
     
@@ -1164,6 +1296,25 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#mechanics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mechanics
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -1183,7 +1334,13 @@
 
 
 <h1 id="sim2real-bridge">Sim2Real Bridge<a class="headerlink" href="#sim2real-bridge" title="Permanent link">&para;</a></h1>
-<p>Interface mapping internal RL action tensors into executable network commands for Docker/live environments.</p>
+<p>The Sim2Real Bridge interfaces internal RL action tensors into executable network commands for live environments, such as Docker containers (e.g., Vulhub).</p>
+<h2 id="mechanics">Mechanics<a class="headerlink" href="#mechanics" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Translation Mapping</strong>: Maps discrete RL action integers (e.g., <code>ActionType.ExploitEternalBlue</code>) to standardized payload sequences (e.g., Metasploit RPC commands).</li>
+<li><strong>Execution Engine</strong>: Interacts with the live target via a strictly typed execution wrapper. It captures the physical stdout/stderr output resulting from the payload injection.</li>
+<li><strong>State Feedback</strong>: Evaluates the output against expected success signatures. If validation passes, the corresponding simulated <code>GlobalNetworkState</code> tensor is updated to reflect the physical reality (e.g., escalating privilege to <code>Root</code>).</li>
+</ul>
 
 
 

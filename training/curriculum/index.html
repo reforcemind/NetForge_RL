@@ -12,13 +12,13 @@
         <meta name="author" content="Igor Jankowski">
       
       
-        <link rel="canonical" href="https://reforcemind.github.io/NetForge_RL/architecture/nlp_siem/">
+        <link rel="canonical" href="https://reforcemind.github.io/NetForge_RL/training/curriculum/">
       
       
-        <link rel="prev" href="../sim2real/">
+        <link rel="prev" href="../../api/nlp/">
       
       
-        <link rel="next" href="../../cybersec/overview/">
+        <link rel="next" href="../rllib/">
       
       
         
@@ -29,7 +29,7 @@
     
     
       
-        <title>NLP-SIEM Pipeline - NetForge RL</title>
+        <title>Curriculum Learning - NetForge RL</title>
       
     
     
@@ -84,7 +84,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#nlp-siem-pipeline" class="md-skip">
+        <a href="#curriculum-learning-framework" class="md-skip">
           Skip to content
         </a>
       
@@ -120,7 +120,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              NLP-SIEM Pipeline
+              Curriculum Learning
             
           </span>
         </div>
@@ -266,13 +266,11 @@
   
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
-        <a href="../overview/" class="md-tabs__link">
+      <li class="md-tabs__item">
+        <a href="../../architecture/overview/" class="md-tabs__link">
           
   
   
@@ -328,11 +326,13 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="../../training/curriculum/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="./" class="md-tabs__link">
           
   
   
@@ -472,31 +472,28 @@
       
   
   
-    
   
   
-  
     
     
     
     
-      
-        
-        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
         
           
-          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
             
   
   
@@ -514,7 +511,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             
@@ -532,7 +529,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../overview/" class="md-nav__link">
+      <a href="../../architecture/overview/" class="md-nav__link">
         
   
   
@@ -560,7 +557,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../dynamic_topology/" class="md-nav__link">
+      <a href="../../architecture/dynamic_topology/" class="md-nav__link">
         
   
   
@@ -588,7 +585,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../zero_trust/" class="md-nav__link">
+      <a href="../../architecture/zero_trust/" class="md-nav__link">
         
   
   
@@ -616,7 +613,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../sim2real/" class="md-nav__link">
+      <a href="../../architecture/sim2real/" class="md-nav__link">
         
   
   
@@ -641,37 +638,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    NLP-SIEM Pipeline
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../architecture/nlp_siem/" class="md-nav__link">
         
   
   
@@ -687,37 +657,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#mechanics" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Mechanics
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -1080,28 +1019,31 @@
       
   
   
+    
   
   
+  
     
     
     
     
+      
+        
+        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
         
           
-        
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
-        
-          
-          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
             
   
   
@@ -1119,7 +1061,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_6">
             <span class="md-nav__icon md-icon"></span>
             
@@ -1134,10 +1076,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../../training/curriculum/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Curriculum Learning
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -1153,6 +1122,82 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#the-curriculum-wrapper" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Curriculum Wrapper
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The Curriculum Wrapper">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#phase-progression" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase Progression
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Usage
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Usage">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#observation-info-dictionary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Observation Info Dictionary
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1165,7 +1210,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../training/rllib/" class="md-nav__link">
+      <a href="../rllib/" class="md-nav__link">
         
   
   
@@ -1193,7 +1238,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../training/scenarios/" class="md-nav__link">
+      <a href="../scenarios/" class="md-nav__link">
         
   
   
@@ -1221,7 +1266,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../training/benchmarks/" class="md-nav__link">
+      <a href="../benchmarks/" class="md-nav__link">
         
   
   
@@ -1303,13 +1348,58 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#mechanics" class="md-nav__link">
+  <a href="#the-curriculum-wrapper" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Mechanics
+        The Curriculum Wrapper
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="The Curriculum Wrapper">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#phase-progression" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase Progression
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Usage
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Usage">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#observation-info-dictionary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Observation Info Dictionary
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1333,15 +1423,62 @@
   
 
 
-<h1 id="nlp-siem-pipeline">NLP-SIEM Pipeline<a class="headerlink" href="#nlp-siem-pipeline" title="Permanent link">&para;</a></h1>
-<p>The NLP-SIEM Pipeline translates raw network telemetry strings into vectorized observation spaces or natural language prompts specifically for Blue agents.</p>
-<h2 id="mechanics">Mechanics<a class="headerlink" href="#mechanics" title="Permanent link">&para;</a></h2>
-<ul>
-<li><strong>Event Generation</strong>: The <code>ConflictResolutionEngine</code> processes successful and failed state modifications, emitting raw text signatures matching Sysmon/Windows Event Logs (e.g., Event ID 4624 for <code>Logon</code>).</li>
-<li><strong>Log Buffer</strong>: These raw strings are appended to a rolling global event queue (<code>siem_log_buffer</code>), which simulates the real-time logging pipeline.</li>
-<li><strong>Vectorization (RL Agents)</strong>: For standard neural architectures, the most recent $N$ logs in the buffer are mapped through a static TF-IDF encoder or dense embedding layer, transforming the strings into a fixed-size <code>BlueAgentObservationVector</code>.</li>
-<li><strong>Text Translation (LLM Agents)</strong>: For foundation models, the <code>state_to_text</code> function directly pulls raw text from the buffer and injects it into a structured natural language prompt, bypassing the vectorization phase entirely.</li>
-</ul>
+<h1 id="curriculum-learning-framework">Curriculum Learning Framework<a class="headerlink" href="#curriculum-learning-framework" title="Permanent link">&para;</a></h1>
+<p>Deep Multi-Agent Reinforcement Learning (MARL) algorithms like PPO and MAPPO notoriously struggle with sparse rewards in massive state spaces. Attempting to train an agent directly on a 100-node enterprise network often results in failure to converge.</p>
+<p>To solve this, NetForge RL includes a native <code>CurriculumWrapper</code> that scales the difficulty of the environment progressively as the policy improves.</p>
+<h2 id="the-curriculum-wrapper">The Curriculum Wrapper<a class="headerlink" href="#the-curriculum-wrapper" title="Permanent link">&para;</a></h2>
+<p>The <code>CurriculumWrapper</code> wraps the core <code>NetForgeRLEnv</code>. It monitors the episodic reward and automatically advances the environment to the next "phase" of complexity once a moving average threshold is met.</p>
+<h3 id="phase-progression">Phase Progression<a class="headerlink" href="#phase-progression" title="Permanent link">&para;</a></h3>
+<p>The curriculum is divided into stages (<code>PhaseConfig</code>), gradually expanding the state space and introducing complex mechanics.</p>
+<ol>
+<li><strong>Novice Phase</strong>: </li>
+<li><strong>Scale</strong>: 5 maximum active hosts.</li>
+<li><strong>Scenarios</strong>: <code>ransomware</code> only.</li>
+<li><strong>Mechanics</strong>: Static topology, no DHCP shuffling, high reward scaling (<code>3.0x</code>).</li>
+<li>
+<p><em>Goal</em>: Teach the agent the basic mechanics of scanning, exploiting, and lateral movement.</p>
+</li>
+<li>
+<p><strong>Intermediate Phase</strong>:</p>
+</li>
+<li><strong>Scale</strong>: 25 maximum active hosts.</li>
+<li><strong>Scenarios</strong>: <code>ransomware</code>, <code>apt_espionage</code>.</li>
+<li><strong>Mechanics</strong>: Periodic DHCP IP reshuffling (every 80 ticks), standard reward scaling (<code>1.5x</code>).</li>
+<li>
+<p><em>Goal</em>: Introduce subnet routing and invalidate overfit IP-address memorization.</p>
+</li>
+<li>
+<p><strong>Expert Phase</strong>:</p>
+</li>
+<li><strong>Scale</strong>: 100 maximum active hosts.</li>
+<li><strong>Scenarios</strong>: <code>ransomware</code>, <code>apt_espionage</code>, <code>iot_grid</code>.</li>
+<li><strong>Mechanics</strong>: Fast DHCP IP reshuffling (every 40 ticks), active <a href="../../architecture/dynamic_topology/">Dynamic Topologies</a> (churn, migration, arrival), unscaled rewards (<code>1.0x</code>).</li>
+<li><em>Goal</em>: Full mastery of zero-trust environments with high non-stationarity.</li>
+</ol>
+<h2 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">&para;</a></h2>
+<p>Wrapping your environment in the curriculum is straightforward:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">netforge_rl.environment.curriculum</span><span class="w"> </span><span class="kn">import</span> <span class="n">CurriculumWrapper</span><span class="p">,</span> <span class="n">PHASES</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="c1"># Initialize the curriculum with the predefined phases</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="n">env</span> <span class="o">=</span> <span class="n">CurriculumWrapper</span><span class="p">(</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">phases</span><span class="o">=</span><span class="n">PHASES</span><span class="p">,</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">base_cfg</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;nlp_backend&#39;</span><span class="p">:</span> <span class="s1">&#39;tfidf&#39;</span><span class="p">},</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n">start_phase</span><span class="o">=</span><span class="mi">0</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="p">)</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="n">obs</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+</code></pre></div>
+<h3 id="observation-info-dictionary">Observation Info Dictionary<a class="headerlink" href="#observation-info-dictionary" title="Permanent link">&para;</a></h3>
+<p>The wrapper injects a special <code>__curriculum__</code> key into the <code>info</code> dictionary returned by <code>env.step()</code> and <code>env.reset()</code>. This allows you to log curriculum progression to W&amp;B or TensorBoard natively:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">info</span><span class="p">[</span><span class="s1">&#39;red_operator&#39;</span><span class="p">][</span><span class="s1">&#39;__curriculum__&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>    <span class="s1">&#39;phase&#39;</span><span class="p">:</span> <span class="s1">&#39;novice&#39;</span><span class="p">,</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>    <span class="s1">&#39;phase_index&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    <span class="s1">&#39;advance_threshold&#39;</span><span class="p">:</span> <span class="mf">60.0</span><span class="p">,</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>    <span class="s1">&#39;mean_reward&#39;</span><span class="p">:</span> <span class="mf">45.2</span><span class="p">,</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>    <span class="s1">&#39;window_fill&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>         <span class="c1"># 1.0 means the rolling window is full</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>    <span class="s1">&#39;phase_advanced&#39;</span><span class="p">:</span> <span class="kc">False</span>     <span class="c1"># True if the phase upgraded on this step</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="p">}</span>
+</code></pre></div>
 
 
 
@@ -1379,7 +1516,7 @@
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../sim2real/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Sim2Real Bridge">
+          <a href="../../api/nlp/" class="md-footer__link md-footer__link--prev" aria-label="Previous: NLP Encoder">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -1389,20 +1526,20 @@
                 Previous
               </span>
               <div class="md-ellipsis">
-                Sim2Real Bridge
+                NLP Encoder
               </div>
             </div>
           </a>
         
         
           
-          <a href="../../cybersec/overview/" class="md-footer__link md-footer__link--next" aria-label="Next: Environment Overview">
+          <a href="../rllib/" class="md-footer__link md-footer__link--next" aria-label="Next: RLlib + LSTM">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Environment Overview
+                RLlib + LSTM
               </div>
             </div>
             <div class="md-footer__button md-icon">

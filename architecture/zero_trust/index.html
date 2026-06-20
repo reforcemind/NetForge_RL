@@ -15,7 +15,7 @@
         <link rel="canonical" href="https://reforcemind.github.io/NetForge_RL/architecture/zero_trust/">
       
       
-        <link rel="prev" href="../overview/">
+        <link rel="prev" href="../dynamic_topology/">
       
       
         <link rel="next" href="../sim2real/">
@@ -332,7 +332,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../training/rllib/" class="md-tabs__link">
+        <a href="../../training/curriculum/" class="md-tabs__link">
           
   
   
@@ -557,6 +557,34 @@
                 
   
   
+  
+  
+    <li class="md-nav__item">
+      <a href="../dynamic_topology/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dynamic Topologies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
     
   
   
@@ -568,6 +596,24 @@
       
         
       
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Zero-Trust Identity
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
       
       <a href="./" class="md-nav__link md-nav__link--active">
         
@@ -585,6 +631,36 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#mechanics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mechanics
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -1061,6 +1137,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../training/curriculum/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Curriculum Learning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../training/rllib/" class="md-nav__link">
         
   
@@ -1097,6 +1201,34 @@
     
   
     Scenarios
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../training/benchmarks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Benchmarks & Competition
   
 
     
@@ -1164,6 +1296,25 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#mechanics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mechanics
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -1183,7 +1334,13 @@
 
 
 <h1 id="zero-trust-identity">Zero-Trust Identity<a class="headerlink" href="#zero-trust-identity" title="Permanent link">&para;</a></h1>
-<p>Interface governing authorization tokens and their alignment with the GlobalNetworkState access vectors.</p>
+<p>The Zero-Trust Identity module governs authorization tokens and their alignment with <code>GlobalNetworkState</code> access vectors.</p>
+<h2 id="mechanics">Mechanics<a class="headerlink" href="#mechanics" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Token Arrays</strong>: Each active node possesses a continuous token array representing authorized privilege contexts.</li>
+<li><strong>Verification</strong>: Red agents executing identity-based lateral movement (e.g., <code>PassTheHash</code>, <code>PassTheTicket</code>) are validated strictly against this array rather than service vulnerability flags.</li>
+<li><strong>Invalidation</strong>: Blue agents execute actions like <code>RotateKerberos</code> to forcefully clear token arrays globally. If a Red agent attempts to utilize an invalidated token for authentication, the action <code>success</code> flag returns <code>False</code> and a failed authentication event is passed to the SIEM buffer.</li>
+</ul>
 
 
 
@@ -1221,7 +1378,7 @@
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../overview/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Overview">
+          <a href="../dynamic_topology/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Dynamic Topologies">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -1231,7 +1388,7 @@
                 Previous
               </span>
               <div class="md-ellipsis">
-                Overview
+                Dynamic Topologies
               </div>
             </div>
           </a>
