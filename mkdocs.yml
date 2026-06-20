@@ -113,20 +113,20 @@ edit_uri: edit/main/docs/
 theme:
   name: material
   palette:
-    - scheme: slate
-      primary: cyan
-      accent: teal
-      toggle:
-        icon: material/brightness-4
-        name: Switch to light mode
     - scheme: default
-      primary: cyan
-      accent: teal
+      primary: teal
+      accent: deep orange
       toggle:
         icon: material/brightness-7
         name: Switch to dark mode
+    - scheme: slate
+      primary: teal
+      accent: deep orange
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
   font:
-    text: Inter
+    text: Libre Franklin
     code: JetBrains Mono
   features:
     - navigation.tabs
