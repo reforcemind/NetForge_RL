@@ -45,8 +45,16 @@ class BaseObservation:
                 arrival = log.get('arrival_tick', 0) if isinstance(log, dict) else 0
                 if arrival <= current_tick:
                     self.siem_alerts.append(log)
-            self.network_telemetry['global_alert_level'] = np.random.uniform(0, 1)
-            self.network_telemetry['total_isolated_subnets'] = np.random.randint(0, 5)
+            self.network_telemetry['global_alert_level'] = min(len(self.siem_alerts) / 20.0, 1.0)
+            if global_state:
+                isolated_subnets = len({
+                    h.subnet_cidr
+                    for h in global_state.all_hosts.values()
+                    if h.status == 'isolated'
+                })
+            else:
+                isolated_subnets = 0
+            self.network_telemetry['total_isolated_subnets'] = isolated_subnets
             self.network_telemetry['active_alerts'] = len(self.siem_alerts)
         if is_operator:
             self.objective_vector[2] = 1.0
