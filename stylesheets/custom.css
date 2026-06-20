@@ -1,57 +1,107 @@
+/* ReforceMind Target Site Emulation */
+
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Libre+Franklin:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600;6..72,700&display=swap');
+
 :root {
-  --md-primary-fg-color: #00e5ff;
-  --md-accent-fg-color: #1de9b6;
-  --md-code-bg-color: #0f172a;
+  /* Colors based on the reforcemind.github.io parchment/ink palette */
+  --md-primary-fg-color: #1a4231; /* forest-intellect */
+  --md-accent-fg-color: #8b2635; /* crimson-authority */
+  
+  --md-default-bg-color: #F8F5F0; /* parchment-base */
+  --md-default-fg-color: #1A1D20; /* ink-black */
+  
+  --md-code-bg-color: #e9e5de;
+  --md-code-fg-color: #1A1D20;
 }
 
 [data-md-color-scheme="slate"] {
   --md-default-bg-color: #0b0f19;
   --md-default-fg-color: #e2e8f0;
-  --md-typeset-color: #cbd5e1;
-  --md-typeset-a-color: #00e5ff;
+  --md-code-bg-color: #0f172a;
+  --md-primary-fg-color: #2ab88a;
+  --md-accent-fg-color: #ff6b6b;
+}
+
+/* Background overlay mimicking the target site gradients */
+body[data-md-color-scheme="default"] {
+  background-image: 
+    radial-gradient(ellipse at top left, rgba(26, 66, 49, 0.1) 0%, transparent 50%),
+    radial-gradient(ellipse at bottom right, rgba(139, 38, 53, 0.08) 0%, transparent 50%);
+  background-attachment: fixed;
+}
+
+/* Typography Overrides */
+.md-typeset h1, .md-typeset h2, .md-typeset h3, .md-typeset h4, .md-typeset h5, .md-typeset h6 {
+  font-family: 'Newsreader', serif;
+  font-weight: 600;
+  color: #1a4231;
+}
+
+[data-md-color-scheme="slate"] .md-typeset h1, 
+[data-md-color-scheme="slate"] .md-typeset h2 {
+  color: #2ab88a;
 }
 
 /* Header Overlay */
 .md-header {
-  background: rgba(11, 15, 25, 0.7) !important;
+  background: rgba(248, 245, 240, 0.8) !important;
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(0, 229, 255, 0.1);
+  border-bottom: 1px solid rgba(26, 66, 49, 0.1);
+  color: #1a4231 !important;
 }
 
-/* Typography Overrides */
-.md-typeset h1, .md-typeset h2 {
-  background: linear-gradient(90deg, #00e5ff, #1de9b6);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  text-shadow: 0 0 20px rgba(0, 229, 255, 0.2);
+[data-md-color-scheme="slate"] .md-header {
+  background: rgba(11, 15, 25, 0.7) !important;
+  border-bottom: 1px solid rgba(42, 184, 138, 0.2);
+  color: #2ab88a !important;
+}
+
+/* Force header links to be visible on the light parchment background */
+.md-header__button.md-logo, 
+.md-header__button.md-icon, 
+.md-header__title, 
+.md-search__input,
+.md-tabs__link {
+  color: #1A1D20 !important;
+}
+
+[data-md-color-scheme="slate"] .md-header__button.md-logo, 
+[data-md-color-scheme="slate"] .md-header__button.md-icon, 
+[data-md-color-scheme="slate"] .md-header__title, 
+[data-md-color-scheme="slate"] .md-tabs__link {
+  color: #e2e8f0 !important;
 }
 
 /* Code Block Styling */
 .md-typeset pre > code {
   border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.02);
   font-family: 'JetBrains Mono', monospace;
 }
 
 /* Admonition Overrides */
 .md-typeset .admonition {
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(0, 0, 0, 0.02);
+  border: 1px solid rgba(0, 0, 0, 0.05);
   border-left: 4px solid var(--md-admonition-fg-color);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .md-typeset .admonition:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
 }
 
 /* Active Navigation Item */
 .md-nav__item--active > .md-nav__link {
-  color: #00e5ff !important;
-  text-shadow: 0 0 10px rgba(0, 229, 255, 0.5);
+  color: #8b2635 !important;
+  font-weight: 600;
+}
+
+[data-md-color-scheme="slate"] .md-nav__item--active > .md-nav__link {
+  color: #ff6b6b !important;
 }
