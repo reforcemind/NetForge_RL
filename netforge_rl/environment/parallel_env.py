@@ -151,9 +151,8 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
         else:
             primary = 'blue_commander' if 'commander' in lower else 'blue'
             base = 'blue_operator' if 'operator' in lower else 'blue'
-        valid_type_ids = (
-            set(action_registry._actions.get(primary, {}).keys())
-            | set(action_registry._actions.get(base, {}).keys())
+        valid_type_ids = set(action_registry._actions.get(primary, {}).keys()) | set(
+            action_registry._actions.get(base, {}).keys()
         )
         for action_id in valid_type_ids:
             if action_id < 32:
@@ -328,7 +327,8 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
             self.global_state.reallocate_dhcp()
             valid_ips = set(self.global_state.all_hosts.keys())
             self.event_queue = [
-                e for e in self.event_queue
+                e
+                for e in self.event_queue
                 if e.get('target_ip') is None or e['target_ip'] in valid_ips
             ]
 
