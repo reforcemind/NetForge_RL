@@ -84,7 +84,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#cybersecurity-overview" class="md-skip">
+        <a href="#environment-overview" class="md-skip">
           Skip to content
         </a>
       
@@ -765,10 +765,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#the-red-team" class="md-nav__link">
+  <a href="#red-policy-characteristics" class="md-nav__link">
     <span class="md-ellipsis">
       
-        The Red Team
+        Red Policy Characteristics
       
     </span>
   </a>
@@ -776,10 +776,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#the-blue-team" class="md-nav__link">
+  <a href="#blue-policy-characteristics" class="md-nav__link">
     <span class="md-ellipsis">
       
-        The Blue Team
+        Blue Policy Characteristics
       
     </span>
   </a>
@@ -787,10 +787,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#kinetic-impacts-otics" class="md-nav__link">
+  <a href="#kinetic-impacts" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Kinetic Impacts (OT/ICS)
+        Kinetic Impacts
       
     </span>
   </a>
@@ -1241,10 +1241,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#the-red-team" class="md-nav__link">
+  <a href="#red-policy-characteristics" class="md-nav__link">
     <span class="md-ellipsis">
       
-        The Red Team
+        Red Policy Characteristics
       
     </span>
   </a>
@@ -1252,10 +1252,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#the-blue-team" class="md-nav__link">
+  <a href="#blue-policy-characteristics" class="md-nav__link">
     <span class="md-ellipsis">
       
-        The Blue Team
+        Blue Policy Characteristics
       
     </span>
   </a>
@@ -1263,10 +1263,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#kinetic-impacts-otics" class="md-nav__link">
+  <a href="#kinetic-impacts" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Kinetic Impacts (OT/ICS)
+        Kinetic Impacts
       
     </span>
   </a>
@@ -1293,24 +1293,22 @@
   
 
 
-<h1 id="cybersecurity-overview">Cybersecurity Overview<a class="headerlink" href="#cybersecurity-overview" title="Permanent link">&para;</a></h1>
-<p>NetForge RL simulates realistic enterprise networks where autonomous AI agents compete in a dynamic, zero-sum environment. The environment is asymmetric, capturing the true "Fog of War" experienced during cyber operations.</p>
-<h2 id="the-red-team">The Red Team<a class="headerlink" href="#the-red-team" title="Permanent link">&para;</a></h2>
-<p>The <strong>Red Team</strong> acts as the Advanced Persistent Threat (APT). Their objective is to compromise hosts, escalate privileges, and execute a final impact objective (such as deploying ransomware or exfiltrating data). </p>
+<h1 id="environment-overview">Environment Overview<a class="headerlink" href="#environment-overview" title="Permanent link">&para;</a></h1>
+<p>NetForge RL defines a zero-sum, asymmetric, multi-agent environment with partial observability. </p>
+<h2 id="red-policy-characteristics">Red Policy Characteristics<a class="headerlink" href="#red-policy-characteristics" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>Starting State</strong>: Red agents begin with no initial network access. They must discover the perimeter via scanning or spearphishing.</li>
-<li><strong>Progression</strong>: They operate via the Cyber Kill Chain: Reconnaissance -&gt; Initial Access -&gt; Privilege Escalation -&gt; Lateral Movement -&gt; Impact.</li>
-<li><strong>Visibility</strong>: Red agents only see what they explicitly discover through active scanning (<code>NetworkScan</code>, <code>DiscoverRemoteSystems</code>) or what is passed to them via allied intelligence sharing.</li>
+<li><strong>Objective</strong>: Maximize scalar reward by successfully executing impact actions (e.g., data exfiltration, service disruption) on designated target nodes.</li>
+<li><strong>Initial State</strong>: Zero network visibility. <code>GlobalNetworkState</code> is fully masked.</li>
+<li><strong>Mechanics</strong>: Agents must sequentially execute discovery, exploit, and privilege escalation actions to modify node states. Success probabilities are calculated deterministically against the target's vulnerability array and current access level.</li>
 </ul>
-<h2 id="the-blue-team">The Blue Team<a class="headerlink" href="#the-blue-team" title="Permanent link">&para;</a></h2>
-<p>The <strong>Blue Team</strong> acts as the Security Operations Center (SOC). Their objective is to maintain network uptime, preserve system integrity, and eliminate Red team presence.</p>
+<h2 id="blue-policy-characteristics">Blue Policy Characteristics<a class="headerlink" href="#blue-policy-characteristics" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>Starting State</strong>: Blue agents possess a baseline understanding of their assigned subnets.</li>
-<li><strong>Progression</strong>: They monitor SIEM (Security Information and Event Management) logs. When anomalous behavior is detected, they can isolate compromised hosts (<code>IsolateHost</code>), block traffic (<code>ConfigureACL</code>), deploy honeypots (<code>DeployDecoy</code>), or restore machines (<code>RestoreFromBackup</code>).</li>
-<li><strong>Visibility</strong>: Blue agents rely heavily on the SIEM. If a Red agent bypasses endpoint detection, the Blue agent remains blind to the intrusion until an observable action generates a log.</li>
+<li><strong>Objective</strong>: Maximize scalar reward by maintaining service uptime and minimizing compromised host counts across the episode.</li>
+<li><strong>Initial State</strong>: Full visibility of the uncompromised network baseline.</li>
+<li><strong>Mechanics</strong>: Agents observe the environment strictly through SIEM event logs. Actions consist of isolation, firewall ACL modification, and host restoration. Detection capabilities are dependent on Red action signatures; stealthy actions may bypass event log generation.</li>
 </ul>
-<h2 id="kinetic-impacts-otics">Kinetic Impacts (OT/ICS)<a class="headerlink" href="#kinetic-impacts-otics" title="Permanent link">&para;</a></h2>
-<p>Unlike traditional IT networks, NetForge simulates Cyber-Physical Systems (CPS). Red agents can compromise SCADA frameworks to cause physical kinetic destruction (e.g., <code>OverloadPLC</code>). If a PLC is physically destroyed, it is a terminal fail-state for the Blue Team.</p>
+<h2 id="kinetic-impacts">Kinetic Impacts<a class="headerlink" href="#kinetic-impacts" title="Permanent link">&para;</a></h2>
+<p>The environment supports Cyber-Physical System (CPS) nodes. Specific Red actions (<code>OverloadPLC</code>) can transition CPS nodes into a <code>kinetic_destruction</code> state. This represents a terminal fail-state for Blue agents, immediately ending the episode.</p>
 
 
 

@@ -84,7 +84,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#netforge-architecture" class="md-skip">
+        <a href="#execution-architecture" class="md-skip">
           Skip to content
         </a>
       
@@ -592,10 +592,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#1-simulation-execution-loop" class="md-nav__link">
+  <a href="#1-simulation-loop" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1. Simulation Execution Loop
+        1. Simulation Loop
       
     </span>
   </a>
@@ -603,10 +603,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#2-communications-and-observability-siem" class="md-nav__link">
+  <a href="#2-telemetry-pipeline" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2. Communications and Observability (SIEM)
+        2. Telemetry Pipeline
       
     </span>
   </a>
@@ -614,15 +614,15 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#component-details" class="md-nav__link">
+  <a href="#3-component-details" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Component Details
+        3. Component Details
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Component Details">
+    <nav class="md-nav" aria-label="3. Component Details">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1280,10 +1280,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#1-simulation-execution-loop" class="md-nav__link">
+  <a href="#1-simulation-loop" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1. Simulation Execution Loop
+        1. Simulation Loop
       
     </span>
   </a>
@@ -1291,10 +1291,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#2-communications-and-observability-siem" class="md-nav__link">
+  <a href="#2-telemetry-pipeline" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2. Communications and Observability (SIEM)
+        2. Telemetry Pipeline
       
     </span>
   </a>
@@ -1302,15 +1302,15 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#component-details" class="md-nav__link">
+  <a href="#3-component-details" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Component Details
+        3. Component Details
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Component Details">
+    <nav class="md-nav" aria-label="3. Component Details">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1371,43 +1371,27 @@
   
 
 
-<h1 id="netforge-architecture">NetForge Architecture<a class="headerlink" href="#netforge-architecture" title="Permanent link">&para;</a></h1>
-<p>This document provides a technical overview of how the NetForge Multi-Agent Reinforcement Learning (MARL) simulator operates, focusing on the execution loop and communication architecture between the environment and its agents.</p>
-<h2 id="1-simulation-execution-loop">1. Simulation Execution Loop<a class="headerlink" href="#1-simulation-execution-loop" title="Permanent link">&para;</a></h2>
-<p>The simulation loop is highly parallelized for MARL agents. At each tick (<code>parallel_env.step()</code>), all agents submit their chosen actions. The environment processes these concurrently, determines hardware/state effects, resolves temporal conflicts (e.g., Red attacking exactly when Blue mitigates), and applies the changes to the <code>GlobalNetworkState</code>.</p>
+<h1 id="execution-architecture">Execution Architecture<a class="headerlink" href="#execution-architecture" title="Permanent link">&para;</a></h1>
+<h2 id="1-simulation-loop">1. Simulation Loop<a class="headerlink" href="#1-simulation-loop" title="Permanent link">&para;</a></h2>
+<p>The simulation loop is fully parallelized via the PettingZoo API (<code>parallel_env.step()</code>) and JAX vectorization (<code>jax.vmap</code>).</p>
 <pre class="mermaid"><code>sequenceDiagram
     participant Agents
-    participant Environment (parallel_env)
-    participant Action Registry
+    participant Environment
+    participant ActionRegistry
     participant ConflictResolutionEngine
     participant GlobalNetworkState
 
-    Agents-&gt;&gt;Environment (parallel_env): step({agent_id: action_str})
-
-    Environment (parallel_env)-&gt;&gt;Action Registry: Parse action strings to Action Objects
-    Action Registry--&gt;&gt;Environment (parallel_env): list of BaseAction
-
-    rect rgb(30, 40, 50)
-        Note right of Environment (parallel_env): Action Execution Phase
-        Environment (parallel_env)-&gt;&gt;Environment (parallel_env): action.execute(GlobalNetworkState)
-        Environment (parallel_env)--&gt;&gt;Environment (parallel_env): Dictionary of ActionEffects
-    end
-
-    Environment (parallel_env)-&gt;&gt;ConflictResolutionEngine: resolve(effects_dict)
-    Note right of ConflictResolutionEngine: Suppresses Red ActionEffects&lt;br/&gt;if temporal collision with Blue defense
-    ConflictResolutionEngine--&gt;&gt;Environment (parallel_env): Filtered effects_dict
-
-    Environment (parallel_env)-&gt;&gt;GlobalNetworkState: Apply ActionEffect.state_deltas
-    GlobalNetworkState--&gt;&gt;Environment (parallel_env): State updated (Privilege, Topology)
-
-    Environment (parallel_env)--&gt;&gt;Agents: Return new observations, rewards, terminations</code></pre>
-<h2 id="2-communications-and-observability-siem">2. Communications and Observability (SIEM)<a class="headerlink" href="#2-communications-and-observability-siem" title="Permanent link">&para;</a></h2>
-<p>Blue agents do not see the entire network state natively. Instead, they rely on a simulated Security Information and Event Management (SIEM) pipeline. Red actions generate noise, which is captured by the <code>SIEMLogger</code> and fed into a Natural Language Processing (NLP) encoder.</p>
+    Agents-&gt;&gt;Environment: step({agent_id: action_str})
+    Environment-&gt;&gt;ActionRegistry: Parse actions
+    Environment-&gt;&gt;Environment: action.execute(GlobalNetworkState)
+    Environment-&gt;&gt;ConflictResolutionEngine: resolve(effects_dict)
+    ConflictResolutionEngine-&gt;&gt;GlobalNetworkState: Apply ActionEffect.state_deltas
+    Environment--&gt;&gt;Agents: Return new observations, rewards, terminations</code></pre>
+<h2 id="2-telemetry-pipeline">2. Telemetry Pipeline<a class="headerlink" href="#2-telemetry-pipeline" title="Permanent link">&para;</a></h2>
+<p>Blue agent observations are generated exclusively through the simulated Security Information and Event Management (SIEM) pipeline. </p>
 <pre class="mermaid"><code>flowchart TD
-    subgraph Red Team Actions
-        R1[Exploit Remote Service]
-        R2[Privilege Escalation]
-        R3[Impact / Wiper]
+    subgraph Action Execution
+        R1[Red Actions]
     end
 
     subgraph Simulation Core
@@ -1416,33 +1400,28 @@
         SL[SIEMLogger]
     end
 
-    subgraph Blue Team Observability
+    subgraph Blue Observability
         LB[(siem_log_buffer)]
         NLP[NLP Log Encoder]
         BO[Blue Agent Observation Vector]
     end
 
     R1 --&gt;|ActionEffect| CRE
-    R2 --&gt;|ActionEffect| CRE
-    R3 --&gt;|ActionEffect| CRE
-
     CRE --&gt;|Valid Effects| GNS
     CRE --&gt;|Action Metrics| SL
 
     SL -.-&gt;|Stochastic Noise Injection| SL
     SL --&gt;|Generates Sysmon/Windows Logs| LB
 
-    GNS --- LB
-
     LB --&gt;|N Most Recent Logs| NLP
     NLP --&gt;|TF-IDF / Dense Embeddings| BO</code></pre>
-<h2 id="component-details">Component Details<a class="headerlink" href="#component-details" title="Permanent link">&para;</a></h2>
+<h2 id="3-component-details">3. Component Details<a class="headerlink" href="#3-component-details" title="Permanent link">&para;</a></h2>
 <h3 id="baseaction-and-actioneffect"><code>BaseAction</code> and <code>ActionEffect</code><a class="headerlink" href="#baseaction-and-actioneffect" title="Permanent link">&para;</a></h3>
-<p>All capabilities inherited by agents descend from <code>BaseAction</code>. When <code>execute()</code> is called, the logic determines the probability of success, checks vulnerability preconditions, and returns an <code>ActionEffect</code>. This effect contains explicit <code>state_deltas</code> (like changing a host's privilege to 'Root').</p>
+<p>All agent capabilities inherit from <code>BaseAction</code>. <code>execute()</code> returns an <code>ActionEffect</code> containing <code>state_deltas</code> determining specific state tensor modifications.</p>
 <h3 id="conflictresolutionengine"><code>ConflictResolutionEngine</code><a class="headerlink" href="#conflictresolutionengine" title="Permanent link">&para;</a></h3>
-<p>Because MARL environments process steps simultaneously, a Red agent might exploit a host on the exact same tick a Blue agent patches it. The Conflict Resolution Engine enforces "Blue Supremacy" on temporal collisions — if a Blue action targets the same IP as a Red action in the same tick, the Red action is neutralized.</p>
+<p>Resolves temporal collisions occurring in the same parallel tick. If a Blue action targets the same IP as a Red action simultaneously, the Red action is neutralized to enforce defense precedence.</p>
 <h3 id="siemlogger-and-logencoder"><code>SIEMLogger</code> and <code>LogEncoder</code><a class="headerlink" href="#siemlogger-and-logencoder" title="Permanent link">&para;</a></h3>
-<p>Real-world defenders parse raw telemetry. To mirror this, the <code>SIEMLogger</code> translates successful and failed actions into raw text strings matching standard Windows/Sysmon formats (e.g. <code>Event ID 4624</code>). It also injects benign background noise. The <code>LogEncoder</code> then vectorizes these string logs so the Blue agent's neural network can ingest them as dense observations.</p>
+<p><code>SIEMLogger</code> translates state deltas into standardized string logs matching Windows/Sysmon syntax, injecting stochastic benign noise. <code>LogEncoder</code> vectorizes the buffer into dense observations.</p>
 
 
 

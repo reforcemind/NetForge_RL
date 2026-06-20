@@ -11,7 +11,7 @@
   --md-typeset-a-color: #00e5ff;
 }
 
-/* Glassmorphism Header */
+/* Header Overlay */
 .md-header {
   background: rgba(11, 15, 25, 0.7) !important;
   backdrop-filter: blur(10px);
@@ -19,7 +19,7 @@
   border-bottom: 1px solid rgba(0, 229, 255, 0.1);
 }
 
-/* Glowing text effects */
+/* Typography Overrides */
 .md-typeset h1, .md-typeset h2 {
   background: linear-gradient(90deg, #00e5ff, #1de9b6);
   -webkit-background-clip: text;
@@ -27,7 +27,7 @@
   text-shadow: 0 0 20px rgba(0, 229, 255, 0.2);
 }
 
-/* Modern clean code blocks */
+/* Code Block Styling */
 .md-typeset pre > code {
   border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.05);
@@ -35,7 +35,7 @@
   font-family: 'JetBrains Mono', monospace;
 }
 
-/* Premium Admonitions */
+/* Admonition Overrides */
 .md-typeset .admonition {
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.02);
@@ -50,7 +50,7 @@
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
 }
 
-/* Sleek navigation highlight */
+/* Active Navigation Item */
 .md-nav__item--active > .md-nav__link {
   color: #00e5ff !important;
   text-shadow: 0 0 10px rgba(0, 229, 255, 0.5);

@@ -1139,10 +1139,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#the-basescenario-interface" class="md-nav__link">
+  <a href="#basescenario-interface" class="md-nav__link">
     <span class="md-ellipsis">
       
-        The BaseScenario Interface
+        BaseScenario Interface
       
     </span>
   </a>
@@ -1150,21 +1150,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#example-building-a-ransomware-scenario" class="md-nav__link">
+  <a href="#implementation-example" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Example: Building a Ransomware Scenario
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#integrating-the-scenario" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Integrating the Scenario
+        Implementation Example
       
     </span>
   </a>
@@ -1241,10 +1230,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#the-basescenario-interface" class="md-nav__link">
+  <a href="#basescenario-interface" class="md-nav__link">
     <span class="md-ellipsis">
       
-        The BaseScenario Interface
+        BaseScenario Interface
       
     </span>
   </a>
@@ -1252,21 +1241,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#example-building-a-ransomware-scenario" class="md-nav__link">
+  <a href="#implementation-example" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Example: Building a Ransomware Scenario
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#integrating-the-scenario" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Integrating the Scenario
+        Implementation Example
       
     </span>
   </a>
@@ -1294,15 +1272,13 @@
 
 
 <h1 id="custom-scenarios">Custom Scenarios<a class="headerlink" href="#custom-scenarios" title="Permanent link">&para;</a></h1>
-<p>NetForge RL is highly extensible. The core mechanics (e.g., resolving an exploit against a vulnerability) are handled by the functional core, but you define the <strong>win conditions</strong> and <strong>rewards</strong> via Scenarios.</p>
-<h2 id="the-basescenario-interface">The BaseScenario Interface<a class="headerlink" href="#the-basescenario-interface" title="Permanent link">&para;</a></h2>
-<p>All custom scenarios must inherit from <code>netforge_rl.scenarios.base_scenario.BaseScenario</code>. You are required to implement two core methods:</p>
+<h2 id="basescenario-interface">BaseScenario Interface<a class="headerlink" href="#basescenario-interface" title="Permanent link">&para;</a></h2>
+<p>Custom scenarios must inherit from <code>netforge_rl.scenarios.base_scenario.BaseScenario</code> and implement the following methods:</p>
 <ol>
-<li><code>calculate_reward</code>: Calculates the scalar reward signal for a specific agent after a step.</li>
-<li><code>check_termination</code>: Determines if the episode has ended (Win/Loss).</li>
+<li><code>calculate_reward</code>: Returns a scalar reward float per agent after a step.</li>
+<li><code>check_termination</code>: Returns a boolean dictionary indicating episode completion.</li>
 </ol>
-<h2 id="example-building-a-ransomware-scenario">Example: Building a Ransomware Scenario<a class="headerlink" href="#example-building-a-ransomware-scenario" title="Permanent link">&para;</a></h2>
-<p>Here is an abbreviated example of how you can build a scenario where the Red team's goal is to compromise the Corporate subnet, and the Blue team's goal is to maintain uptime.</p>
+<h2 id="implementation-example">Implementation Example<a class="headerlink" href="#implementation-example" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dict</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">netforge_rl.scenarios.base_scenario</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseScenario</span>
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">netforge_rl.core.state</span><span class="w"> </span><span class="kn">import</span> <span class="n">GlobalNetworkState</span>
@@ -1317,43 +1293,37 @@
 <a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>        <span class="n">reward</span> <span class="o">=</span> <span class="mf">0.0</span>
 <a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>
-<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>        <span class="c1"># Penalize agents for taking computationally expensive actions</span>
-<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>        <span class="k">if</span> <span class="n">effect</span> <span class="ow">and</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">effect</span><span class="p">,</span> <span class="s1">&#39;cost&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>            <span class="n">reward</span> <span class="o">-=</span> <span class="n">effect</span><span class="o">.</span><span class="n">cost</span> <span class="o">*</span> <span class="mf">0.05</span>
-<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>
-<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>        <span class="k">if</span> <span class="s1">&#39;red&#39;</span> <span class="ow">in</span> <span class="n">agent_id</span><span class="p">:</span>
-<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_red_reward</span><span class="p">(</span><span class="n">global_state</span><span class="p">,</span> <span class="n">effect</span><span class="p">)</span>
-<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>        <span class="k">else</span><span class="p">:</span>
-<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_blue_reward</span><span class="p">(</span><span class="n">global_state</span><span class="p">,</span> <span class="n">effect</span><span class="p">)</span>
-<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>
-<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_red_reward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">global_state</span><span class="p">,</span> <span class="n">effect</span><span class="p">):</span>
-<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>        <span class="n">reward</span> <span class="o">=</span> <span class="mf">0.0</span>
-<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>        <span class="k">if</span> <span class="n">effect</span> <span class="ow">and</span> <span class="n">effect</span><span class="o">.</span><span class="n">success</span> <span class="ow">and</span> <span class="n">effect</span><span class="o">.</span><span class="n">state_deltas</span><span class="p">:</span>
-<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>            <span class="c1"># Reward successful privilege escalation</span>
-<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>            <span class="k">for</span> <span class="n">delta_key</span><span class="p">,</span> <span class="n">delta_val</span> <span class="ow">in</span> <span class="n">effect</span><span class="o">.</span><span class="n">state_deltas</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-<a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>                <span class="k">if</span> <span class="s1">&#39;privilege&#39;</span> <span class="ow">in</span> <span class="n">delta_key</span> <span class="ow">and</span> <span class="n">delta_val</span> <span class="o">==</span> <span class="s1">&#39;Root&#39;</span><span class="p">:</span>
-<a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>                    <span class="n">reward</span> <span class="o">+=</span> <span class="mf">5.0</span>
-<a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>                <span class="k">if</span> <span class="s1">&#39;system_integrity&#39;</span> <span class="ow">in</span> <span class="n">delta_key</span> <span class="ow">and</span> <span class="n">delta_val</span> <span class="o">==</span> <span class="s1">&#39;kinetic_destruction&#39;</span><span class="p">:</span>
-<a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>                    <span class="n">reward</span> <span class="o">+=</span> <span class="mf">10000.0</span>  <span class="c1"># Massive payout for critical impact</span>
-<a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>        <span class="k">return</span> <span class="n">reward</span>
-<a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>
-<a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_blue_reward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">global_state</span><span class="p">,</span> <span class="n">effect</span><span class="p">):</span>
-<a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a>        <span class="c1"># Reward proportional to healthy, unisolated hosts</span>
-<a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a>        <span class="n">healthy</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span>
-<a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a>            <span class="mi">1</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">global_state</span><span class="o">.</span><span class="n">all_hosts</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
-<a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a>            <span class="k">if</span> <span class="n">h</span><span class="o">.</span><span class="n">compromised_by</span> <span class="o">==</span> <span class="s1">&#39;None&#39;</span> <span class="ow">and</span> <span class="n">h</span><span class="o">.</span><span class="n">status</span> <span class="o">!=</span> <span class="s1">&#39;isolated&#39;</span>
-<a id="__codelineno-0-40" name="__codelineno-0-40" href="#__codelineno-0-40"></a>        <span class="p">)</span>
-<a id="__codelineno-0-41" name="__codelineno-0-41" href="#__codelineno-0-41"></a>        <span class="k">return</span> <span class="n">healthy</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">global_state</span><span class="o">.</span><span class="n">all_hosts</span><span class="p">)</span>
-<a id="__codelineno-0-42" name="__codelineno-0-42" href="#__codelineno-0-42"></a>
-<a id="__codelineno-0-43" name="__codelineno-0-43" href="#__codelineno-0-43"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">check_termination</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">global_state</span><span class="p">:</span> <span class="n">GlobalNetworkState</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]:</span>
-<a id="__codelineno-0-44" name="__codelineno-0-44" href="#__codelineno-0-44"></a>        <span class="c1"># End episode if any SCADA PLC is destroyed</span>
-<a id="__codelineno-0-45" name="__codelineno-0-45" href="#__codelineno-0-45"></a>        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">h</span><span class="o">.</span><span class="n">system_integrity</span> <span class="o">==</span> <span class="s1">&#39;kinetic_destruction&#39;</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">global_state</span><span class="o">.</span><span class="n">all_hosts</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
-<a id="__codelineno-0-46" name="__codelineno-0-46" href="#__codelineno-0-46"></a>            <span class="k">return</span> <span class="p">{</span><span class="n">agent</span><span class="p">:</span> <span class="kc">True</span> <span class="k">for</span> <span class="n">agent</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">agents</span><span class="p">}</span>
-<a id="__codelineno-0-47" name="__codelineno-0-47" href="#__codelineno-0-47"></a>
-<a id="__codelineno-0-48" name="__codelineno-0-48" href="#__codelineno-0-48"></a>        <span class="k">return</span> <span class="p">{</span><span class="n">agent</span><span class="p">:</span> <span class="kc">False</span> <span class="k">for</span> <span class="n">agent</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">agents</span><span class="p">}</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>        <span class="k">if</span> <span class="n">effect</span> <span class="ow">and</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">effect</span><span class="p">,</span> <span class="s1">&#39;cost&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>            <span class="n">reward</span> <span class="o">-=</span> <span class="n">effect</span><span class="o">.</span><span class="n">cost</span> <span class="o">*</span> <span class="mf">0.05</span>
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>        <span class="k">if</span> <span class="s1">&#39;red&#39;</span> <span class="ow">in</span> <span class="n">agent_id</span><span class="p">:</span>
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_red_reward</span><span class="p">(</span><span class="n">global_state</span><span class="p">,</span> <span class="n">effect</span><span class="p">)</span>
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>        <span class="k">else</span><span class="p">:</span>
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_blue_reward</span><span class="p">(</span><span class="n">global_state</span><span class="p">,</span> <span class="n">effect</span><span class="p">)</span>
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>
+<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_red_reward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">global_state</span><span class="p">,</span> <span class="n">effect</span><span class="p">):</span>
+<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a>        <span class="n">reward</span> <span class="o">=</span> <span class="mf">0.0</span>
+<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>        <span class="k">if</span> <span class="n">effect</span> <span class="ow">and</span> <span class="n">effect</span><span class="o">.</span><span class="n">success</span> <span class="ow">and</span> <span class="n">effect</span><span class="o">.</span><span class="n">state_deltas</span><span class="p">:</span>
+<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>            <span class="k">for</span> <span class="n">delta_key</span><span class="p">,</span> <span class="n">delta_val</span> <span class="ow">in</span> <span class="n">effect</span><span class="o">.</span><span class="n">state_deltas</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>                <span class="k">if</span> <span class="s1">&#39;privilege&#39;</span> <span class="ow">in</span> <span class="n">delta_key</span> <span class="ow">and</span> <span class="n">delta_val</span> <span class="o">==</span> <span class="s1">&#39;Root&#39;</span><span class="p">:</span>
+<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>                    <span class="n">reward</span> <span class="o">+=</span> <span class="mf">5.0</span>
+<a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>                <span class="k">if</span> <span class="s1">&#39;system_integrity&#39;</span> <span class="ow">in</span> <span class="n">delta_key</span> <span class="ow">and</span> <span class="n">delta_val</span> <span class="o">==</span> <span class="s1">&#39;kinetic_destruction&#39;</span><span class="p">:</span>
+<a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>                    <span class="n">reward</span> <span class="o">+=</span> <span class="mf">10000.0</span>
+<a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>        <span class="k">return</span> <span class="n">reward</span>
+<a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>
+<a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_blue_reward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">global_state</span><span class="p">,</span> <span class="n">effect</span><span class="p">):</span>
+<a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a>        <span class="n">healthy</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span>
+<a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a>            <span class="mi">1</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">global_state</span><span class="o">.</span><span class="n">all_hosts</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+<a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a>            <span class="k">if</span> <span class="n">h</span><span class="o">.</span><span class="n">compromised_by</span> <span class="o">==</span> <span class="s1">&#39;None&#39;</span> <span class="ow">and</span> <span class="n">h</span><span class="o">.</span><span class="n">status</span> <span class="o">!=</span> <span class="s1">&#39;isolated&#39;</span>
+<a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a>        <span class="p">)</span>
+<a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a>        <span class="k">return</span> <span class="n">healthy</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">global_state</span><span class="o">.</span><span class="n">all_hosts</span><span class="p">)</span>
+<a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a>
+<a id="__codelineno-0-40" name="__codelineno-0-40" href="#__codelineno-0-40"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">check_termination</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">global_state</span><span class="p">:</span> <span class="n">GlobalNetworkState</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]:</span>
+<a id="__codelineno-0-41" name="__codelineno-0-41" href="#__codelineno-0-41"></a>        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">h</span><span class="o">.</span><span class="n">system_integrity</span> <span class="o">==</span> <span class="s1">&#39;kinetic_destruction&#39;</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">global_state</span><span class="o">.</span><span class="n">all_hosts</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
+<a id="__codelineno-0-42" name="__codelineno-0-42" href="#__codelineno-0-42"></a>            <span class="k">return</span> <span class="p">{</span><span class="n">agent</span><span class="p">:</span> <span class="kc">True</span> <span class="k">for</span> <span class="n">agent</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">agents</span><span class="p">}</span>
+<a id="__codelineno-0-43" name="__codelineno-0-43" href="#__codelineno-0-43"></a>
+<a id="__codelineno-0-44" name="__codelineno-0-44" href="#__codelineno-0-44"></a>        <span class="k">return</span> <span class="p">{</span><span class="n">agent</span><span class="p">:</span> <span class="kc">False</span> <span class="k">for</span> <span class="n">agent</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">agents</span><span class="p">}</span>
 </code></pre></div>
-<h2 id="integrating-the-scenario">Integrating the Scenario<a class="headerlink" href="#integrating-the-scenario" title="Permanent link">&para;</a></h2>
-<p>Once your scenario is built, you can pass its type name into the environment configuration dictionary if registered, or instantiate it directly and pass it into your custom loop.</p>
 
 
 
