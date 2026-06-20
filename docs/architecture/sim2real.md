@@ -1,3 +1,3 @@
 # Sim2Real Bridge
 
-Translating RL actions into real network commands.
+Interface mapping internal RL action tensors into executable network commands for Docker/live environments.

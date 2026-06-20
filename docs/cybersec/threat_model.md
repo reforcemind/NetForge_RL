@@ -1,29 +1,29 @@
-# Threat Model & MITRE ATT&CK Alignment
+# Action Taxonomy Mapping
 
-NetForge RL is heavily mapped to the **MITRE ATT&CK framework**, enforcing realistic constraints on agent behavior. Exploits are not abstract probabilities; they are bound to specific CVEs and infrastructure configurations.
+NetForge RL actions are mapped to specific execution mechanics rather than abstract probabilities.
 
-## MITRE ATT&CK Tactics Simulated
+## Implemented Vectors
 
-### 1. Initial Access & Execution
-- **Spearphishing**: Targets corporate endpoints, bypassing external firewalls. Success is governed by human vulnerability scores.
-- **Remote Exploits**: Simulates CVE-2019-0708 (BlueKeep) against RDP and MS17-010 (EternalBlue) against SMB.
-- **Web Exploits**: Simulates HTTP Remote File Inclusions (RFI) against DMZ web servers.
+### Initial Access & Execution
+- **Spearphishing**: Evaluated against the `human_vulnerability_score` scalar of the target end-user node. Bypasses routing constraints.
+- **Remote Exploits**: 
+  - `ExploitBlueKeep` (CVE-2019-0708): Modifies access state on RDP.
+  - `ExploitEternalBlue` (MS17-010): Modifies access state on SMB.
+  - `ExploitHTTP_RFI`: Modifies access state on HTTP/HTTPS.
 
-### 2. Privilege Escalation
-Agents frequently gain access as standard `User` and must escalate to `Root` / `SYSTEM`.
-- **JuicyPotato**: Abuses DCOM on Windows (`SeImpersonatePrivilege`).
-- **V4L2 Exploit**: Targets memory corruption in outdated Linux kernel modules.
+### Privilege Escalation
+Agents transitioning from `User` to `Root`/`SYSTEM` state requirements:
+- **JuicyPotato**: Exploits DCOM (`SeImpersonatePrivilege`) on Windows nodes.
+- **V4L2 Kernel Exploit**: Targets specific kernel array flags on Linux nodes.
 
-### 3. Lateral Movement
-- **Pass the Hash**: Once Active Directory or a Domain Controller is compromised, Red agents can extract NTLM/Kerberos hashes and move laterally without needing to trigger noisy CVE-based exploits.
+### Lateral Movement
+- **Pass the Hash**: Validates token exchanges against Domain Controller state vectors, allowing state modification without exploiting service CVEs.
 
-### 4. Defense Evasion & Deception
-Blue agents proactively counter Red movement using the MITRE Engage framework:
-- **Honeytokens**: Blue injects fake, highly monitored credentials. If Red dumps `LSASS` and consumes the token, an immediate, unmaskable 100% confidence SIEM alert is generated.
-- **Decoys**: Deployment of fake Apache/Tomcat/SSH daemons to sinkhole port scans and waste Red agent action economy.
+### Defense Evasion & Deception
+Blue agent countermeasures:
+- **DeployHoneytoken**: Injects a monitored token state into the target host. Ingestion by a Red agent generates an unmaskable SIEM event alert.
+- **Decoys**: Instantiates isolated nodes mimicking Apache/Tomcat/SSH services to intercept and sinkhole Red discovery actions.
 
-## Partial Observability Constraints
-
-Both teams suffer from severe **Partial Observability**:
-- **Red Team**: Cannot see host vulnerabilities until a successful discovery action is executed.
-- **Blue Team**: Only sees Red actions if they generate a SIEM log. If Red uses stealthy techniques or exploits unmonitored ports, Blue remains unaware until later stages of the attack lifecycle.
+## Visibility Masks
+- **Red Policy**: Local knowledge graph updated only via successful discovery actions (`NetworkScan`, `DiscoverRemoteSystems`).
+- **Blue Policy**: Graph updated only when an executed action triggers a SIEM log event according to its predefined signature.

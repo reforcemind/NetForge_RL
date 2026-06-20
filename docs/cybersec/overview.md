@@ -1,23 +1,19 @@
-# Cybersecurity Overview
+# Environment Overview
 
-NetForge RL simulates realistic enterprise networks where autonomous AI agents compete in a dynamic, zero-sum environment. The environment is asymmetric, capturing the true "Fog of War" experienced during cyber operations.
+NetForge RL defines a zero-sum, asymmetric, multi-agent environment with partial observability. 
 
-## The Red Team
+## Red Policy Characteristics
 
-The **Red Team** acts as the Advanced Persistent Threat (APT). Their objective is to compromise hosts, escalate privileges, and execute a final impact objective (such as deploying ransomware or exfiltrating data). 
+- **Objective**: Maximize scalar reward by successfully executing impact actions (e.g., data exfiltration, service disruption) on designated target nodes.
+- **Initial State**: Zero network visibility. `GlobalNetworkState` is fully masked.
+- **Mechanics**: Agents must sequentially execute discovery, exploit, and privilege escalation actions to modify node states. Success probabilities are calculated deterministically against the target's vulnerability array and current access level.
 
-- **Starting State**: Red agents begin with no initial network access. They must discover the perimeter via scanning or spearphishing.
-- **Progression**: They operate via the Cyber Kill Chain: Reconnaissance -> Initial Access -> Privilege Escalation -> Lateral Movement -> Impact.
-- **Visibility**: Red agents only see what they explicitly discover through active scanning (`NetworkScan`, `DiscoverRemoteSystems`) or what is passed to them via allied intelligence sharing.
+## Blue Policy Characteristics
 
-## The Blue Team
+- **Objective**: Maximize scalar reward by maintaining service uptime and minimizing compromised host counts across the episode.
+- **Initial State**: Full visibility of the uncompromised network baseline.
+- **Mechanics**: Agents observe the environment strictly through SIEM event logs. Actions consist of isolation, firewall ACL modification, and host restoration. Detection capabilities are dependent on Red action signatures; stealthy actions may bypass event log generation.
 
-The **Blue Team** acts as the Security Operations Center (SOC). Their objective is to maintain network uptime, preserve system integrity, and eliminate Red team presence.
+## Kinetic Impacts
 
-- **Starting State**: Blue agents possess a baseline understanding of their assigned subnets.
-- **Progression**: They monitor SIEM (Security Information and Event Management) logs. When anomalous behavior is detected, they can isolate compromised hosts (`IsolateHost`), block traffic (`ConfigureACL`), deploy honeypots (`DeployDecoy`), or restore machines (`RestoreFromBackup`).
-- **Visibility**: Blue agents rely heavily on the SIEM. If a Red agent bypasses endpoint detection, the Blue agent remains blind to the intrusion until an observable action generates a log.
-
-## Kinetic Impacts (OT/ICS)
-
-Unlike traditional IT networks, NetForge simulates Cyber-Physical Systems (CPS). Red agents can compromise SCADA frameworks to cause physical kinetic destruction (e.g., `OverloadPLC`). If a PLC is physically destroyed, it is a terminal fail-state for the Blue Team.
+The environment supports Cyber-Physical System (CPS) nodes. Specific Red actions (`OverloadPLC`) can transition CPS nodes into a `kinetic_destruction` state. This represents a terminal fail-state for Blue agents, immediately ending the episode.

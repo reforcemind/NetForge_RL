@@ -1,24 +1,21 @@
 # Training with Ray RLlib
 
-NetForge provides a seamless wrapper for integrating with Ray RLlib, allowing you to train highly scalable Multi-Agent Reinforcement Learning (MARL) policies across distributed clusters.
+## Environment Wrapper
 
-## 1. The RLlib Environment Wrapper
-
-NetForge implements the `MultiAgentEnv` interface via `NetForgeRLlibEnv`. This handles the conversion of NetForge's core `EnvState` into observation spaces RLlib algorithms expect (e.g., flattened dictionaries, MultiDiscrete spaces).
+NetForge implements the RLlib `MultiAgentEnv` interface via `NetForgeRLlibEnv`. This wrapper automatically maps the `EnvState` PyTree into RLlib-compatible observation spaces (flattened dictionaries, MultiDiscrete spaces).
 
 ```python
 from netforge_rl.bridges.rllib_bridge import NetForgeRLlibEnv
 
-# The environment can be instantiated directly or via the registry
 env = NetForgeRLlibEnv({
     "scenario_type": "ransomware",
     "max_ticks": 100
 })
 ```
 
-## 2. Registering the Environment
+## Global Registry
 
-Before training, register the environment with Ray's global registry so worker nodes can instantiate it:
+Register the environment for distributed worker nodes:
 
 ```python
 import ray
@@ -33,14 +30,13 @@ def env_creator(env_config):
 register_env("netforge-v0", env_creator)
 ```
 
-## 3. Configuring the Training Loop
+## PPO Training Configuration
 
-You can train NetForge using PPO, MAPPO, or QMIX. Below is an example configuration for multi-agent PPO where the Red and Blue teams learn separate policies.
+Example configuration for Multi-Agent PPO mapping independent policies to Red and Blue agents.
 
 ```python
 from ray.rllib.algorithms.ppo import PPOConfig
 
-# Define policy mappings
 def policy_mapping_fn(agent_id, *args, **kwargs):
     if "red" in agent_id:
         return "red_policy"
@@ -65,9 +61,9 @@ for i in range(100):
     print(f"Iteration {i}: Red Reward: {result['policy_reward_mean']['red_policy']:.2f}")
 ```
 
-## 4. Recurrent Neural Networks (LSTMs)
+## RNN Integration
 
-Cybersecurity is a highly Partially Observable Markov Decision Process (POMDP). Both Red and Blue agents must maintain memory of past states. You can enable LSTMs natively in RLlib:
+POMDP characteristics require memory. Enable LSTMs within the RLlib model configuration:
 
 ```python
 config.training(
@@ -78,5 +74,3 @@ config.training(
     }
 )
 ```
-
-For advanced users, you can bypass Ray RLlib entirely and use the JAX-native `JaxMARL` backend for maximum throughput. See the JAX vectorization guides in the benchmarks folder.

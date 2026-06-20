@@ -1,68 +1,53 @@
 # Blue Team Actions
 
-## Blue Team Actions
-
 ### `ConfigureACL`
 - **Module:** `mitigation.py`
-- **Description:** Dynamically modifies the implicit routing Firewall to block specific port traffic inbound to a protected subnet.
+- **Description:** Modifies the firewall state to drop traffic targeting specific ports on a subnet.
 
 ### `IsolateHost`
 - **Module:** `mitigation.py`
-- **Description:** Disconnects a compromised host completely from the network infrastructure.
+- **Description:** Sets target host status to isolated, dropping all inbound and outbound traffic capabilities.
 
 ### `Remove`
 - **Module:** `mitigation.py`
-- **Description:** Evicts unauthorized threat actors from a compromised element.
+- **Description:** Resets the compromised state of a target host, terminating executing Red policies on that node.
 
 ### `RestoreFromBackup`
 - **Module:** `mitigation.py`
-- **Description:** Executes a bare-metal imaging recovery to purge advanced persistent threats (APTs).
+- **Description:** Reverts target host state vector to baseline initial configuration.
 
 ### `RestoreHost`
 - **Module:** `mitigation.py`
-- **Description:** Re-establishes network connectivity for a previously isolated host.
+- **Description:** Reverts host status from isolated, re-establishing network connectivity.
 
 ### `SecurityAwarenessTraining`
 - **Module:** `mitigation.py`
-- **Description:** Deploys rapid, intensive anti-phishing training to a targeted subnet.
+- **Description:** Decreases the `human_vulnerability_score` scalar for all nodes in a target subnet.
 
-## Blue_commander Team Actions
-
-### `DecoyApache`
+### `DecoyApache` / `DecoySSHD` / `DecoyTomcat`
 - **Module:** `deception.py`
-- **Description:** Deploys a specifically profiled Apache Web Server (Port 80) honeypot.
-
-### `DecoySSHD`
-- **Module:** `deception.py`
-- **Description:** Deploys a fake SSH daemon (Port 22) honeypot specifically designed to bait brute force actions.
-
-### `DecoyTomcat`
-- **Module:** `deception.py`
-- **Description:** Deploys a fake Tomcat server (Port 8080) to deceive application port scans.
+- **Description:** Instantiates a decoy service node matching specific port signatures (80, 22, 8080) to intercept discovery requests.
 
 ### `DeployDecoy`
 - **Module:** `deception.py`
-- **Description:** Deploys a generic high-interaction honeypot/decoy service to a target host.
+- **Description:** Instantiates a generic decoy service node.
 
 ### `DeployHoneytoken`
 - **Module:** `deception.py`
-- **Description:** Injects fake, highly-monitored credentials into the memory space of a real host. <br><br> If a Red agent successfully compromises this host and attempts to perform post-exploitation (e.g., Pass-the-Hash, credential dumping), they ingest the Honeytoken instead. This triggers an immediate, 100% confidence SIEM Alert exposing the Red agent's exact location natively.
+- **Description:** Injects a honeytoken state into a host. Subsequent token extraction actions by Red agents trigger an explicit SIEM event with perfect confidence mapping to the executor's ID.
 
 ### `Misinform`
 - **Module:** `deception.py`
-- **Description:** Injects false host telemetry or alters logging infrastructure to feed Red agents fake data.
+- **Description:** Alters telemetry states to return falsified observation arrays to Red agent discovery actions.
 
 ### `RotateKerberos`
 - **Module:** `identity.py`
-- **Description:** Rotates Domain Kerberos TGT Keys globally to invalidate stolen Enterprise Admin tokens.
-
-## Blue_operator Team Actions
+- **Description:** Invalidates existing Domain Controller token arrays globally.
 
 ### `Analyze`
 - **Module:** `analysis.py`
-- **Description:** Executes a forensic deep scan of a specific host for malware indicators.
+- **Description:** Queries the complete unmasked state of a specific host node.
 
 ### `Monitor`
 - **Module:** `analysis.py`
-- **Description:** Deploys active traffic analysis scanning on a specific subnet or host.
-
+- **Description:** Increases the SIEM event generation probability scalar for actions executing on a target subnet.

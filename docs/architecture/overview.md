@@ -1,50 +1,31 @@
-# NetForge Architecture
+# Execution Architecture
 
-This document provides a technical overview of how the NetForge Multi-Agent Reinforcement Learning (MARL) simulator operates, focusing on the execution loop and communication architecture between the environment and its agents.
-
-## 1. Simulation Execution Loop
-
-The simulation loop is highly parallelized for MARL agents. At each tick (`parallel_env.step()`), all agents submit their chosen actions. The environment processes these concurrently, determines hardware/state effects, resolves temporal conflicts (e.g., Red attacking exactly when Blue mitigates), and applies the changes to the `GlobalNetworkState`.
+## 1. Simulation Loop
+The simulation loop is fully parallelized via the PettingZoo API (`parallel_env.step()`) and JAX vectorization (`jax.vmap`).
 
 ```mermaid
 sequenceDiagram
     participant Agents
-    participant Environment (parallel_env)
-    participant Action Registry
+    participant Environment
+    participant ActionRegistry
     participant ConflictResolutionEngine
     participant GlobalNetworkState
 
-    Agents->>Environment (parallel_env): step({agent_id: action_str})
-    
-    Environment (parallel_env)->>Action Registry: Parse action strings to Action Objects
-    Action Registry-->>Environment (parallel_env): list of BaseAction
-    
-    rect rgb(30, 40, 50)
-        Note right of Environment (parallel_env): Action Execution Phase
-        Environment (parallel_env)->>Environment (parallel_env): action.execute(GlobalNetworkState)
-        Environment (parallel_env)-->>Environment (parallel_env): Dictionary of ActionEffects
-    end
-    
-    Environment (parallel_env)->>ConflictResolutionEngine: resolve(effects_dict)
-    Note right of ConflictResolutionEngine: Suppresses Red ActionEffects<br/>if temporal collision with Blue defense
-    ConflictResolutionEngine-->>Environment (parallel_env): Filtered effects_dict
-    
-    Environment (parallel_env)->>GlobalNetworkState: Apply ActionEffect.state_deltas
-    GlobalNetworkState-->>Environment (parallel_env): State updated (Privilege, Topology)
-    
-    Environment (parallel_env)-->>Agents: Return new observations, rewards, terminations
+    Agents->>Environment: step({agent_id: action_str})
+    Environment->>ActionRegistry: Parse actions
+    Environment->>Environment: action.execute(GlobalNetworkState)
+    Environment->>ConflictResolutionEngine: resolve(effects_dict)
+    ConflictResolutionEngine->>GlobalNetworkState: Apply ActionEffect.state_deltas
+    Environment-->>Agents: Return new observations, rewards, terminations
 ```
 
-## 2. Communications and Observability (SIEM)
-
-Blue agents do not see the entire network state natively. Instead, they rely on a simulated Security Information and Event Management (SIEM) pipeline. Red actions generate noise, which is captured by the `SIEMLogger` and fed into a Natural Language Processing (NLP) encoder.
+## 2. Telemetry Pipeline
+Blue agent observations are generated exclusively through the simulated Security Information and Event Management (SIEM) pipeline. 
 
 ```mermaid
 flowchart TD
-    subgraph Red Team Actions
-        R1[Exploit Remote Service]
-        R2[Privilege Escalation]
-        R3[Impact / Wiper]
+    subgraph Action Execution
+        R1[Red Actions]
     end
 
     subgraph Simulation Core
@@ -53,35 +34,30 @@ flowchart TD
         SL[SIEMLogger]
     end
 
-    subgraph Blue Team Observability
+    subgraph Blue Observability
         LB[(siem_log_buffer)]
         NLP[NLP Log Encoder]
         BO[Blue Agent Observation Vector]
     end
 
     R1 -->|ActionEffect| CRE
-    R2 -->|ActionEffect| CRE
-    R3 -->|ActionEffect| CRE
-
     CRE -->|Valid Effects| GNS
     CRE -->|Action Metrics| SL
-
+    
     SL -.->|Stochastic Noise Injection| SL
     SL -->|Generates Sysmon/Windows Logs| LB
-    
-    GNS --- LB
     
     LB -->|N Most Recent Logs| NLP
     NLP -->|TF-IDF / Dense Embeddings| BO
 ```
 
-## Component Details
+## 3. Component Details
 
 ### `BaseAction` and `ActionEffect`
-All capabilities inherited by agents descend from `BaseAction`. When `execute()` is called, the logic determines the probability of success, checks vulnerability preconditions, and returns an `ActionEffect`. This effect contains explicit `state_deltas` (like changing a host's privilege to 'Root').
+All agent capabilities inherit from `BaseAction`. `execute()` returns an `ActionEffect` containing `state_deltas` determining specific state tensor modifications.
 
 ### `ConflictResolutionEngine`
-Because MARL environments process steps simultaneously, a Red agent might exploit a host on the exact same tick a Blue agent patches it. The Conflict Resolution Engine enforces "Blue Supremacy" on temporal collisions — if a Blue action targets the same IP as a Red action in the same tick, the Red action is neutralized.
+Resolves temporal collisions occurring in the same parallel tick. If a Blue action targets the same IP as a Red action simultaneously, the Red action is neutralized to enforce defense precedence.
 
 ### `SIEMLogger` and `LogEncoder`
-Real-world defenders parse raw telemetry. To mirror this, the `SIEMLogger` translates successful and failed actions into raw text strings matching standard Windows/Sysmon formats (e.g. `Event ID 4624`). It also injects benign background noise. The `LogEncoder` then vectorizes these string logs so the Blue agent's neural network can ingest them as dense observations.
+`SIEMLogger` translates state deltas into standardized string logs matching Windows/Sysmon syntax, injecting stochastic benign noise. `LogEncoder` vectorizes the buffer into dense observations.

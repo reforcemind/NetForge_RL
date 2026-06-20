@@ -1,3 +1,3 @@
 # Zero-Trust Identity
 
-How zero trust is mapped to the RL state.
+Interface governing authorization tokens and their alignment with the GlobalNetworkState access vectors.
