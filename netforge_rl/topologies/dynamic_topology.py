@@ -15,8 +15,7 @@ class TopologyEvent:
 
 
 class TopologyEventEngine:
-    """Emits mid-episode topology changes: churn, migration, and device arrival.
-    """
+    """Emits mid-episode topology changes: churn, migration, and device arrival."""
 
     def __init__(
         self,

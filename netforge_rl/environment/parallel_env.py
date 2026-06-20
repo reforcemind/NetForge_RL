@@ -29,7 +29,10 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
 
     def __init__(self, scenario_config: dict):
         cfg = scenario_config or {}
-        self.network_generator = NetworkGenerator(config_path=cfg.get('topology_path'))
+        self.network_generator = NetworkGenerator(
+            config_path=cfg.get('topology_path'),
+            max_active_hosts=cfg.get('max_active_hosts'),
+        )
         self.log_latency = cfg.get('log_latency', 2)
         self.green_agent = GreenAgent()
         self.possible_agents = [

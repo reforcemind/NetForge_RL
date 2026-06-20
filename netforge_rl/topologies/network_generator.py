@@ -9,8 +9,11 @@ from netforge_rl.core.state import GlobalNetworkState, Subnet, Host
 class NetworkGenerator:
     """Procedurally generates dynamic network topologies for MARL training."""
 
-    def __init__(self, config_path: Optional[str] = None):
+    def __init__(
+        self, config_path: Optional[str] = None, max_active_hosts: Optional[int] = None
+    ):
         self.config_path = config_path
+        self.max_active_hosts = max_active_hosts
 
     def generate(self, seed: Optional[int] = None) -> GlobalNetworkState:
         """Generates the architecture.
@@ -46,9 +49,15 @@ class NetworkGenerator:
 
         active_hosts = []
         domain_controllers = []
+        active_count = 0
+        limit = self.max_active_hosts
 
         # Build Subnets and distribute hosts
         for i, name in enumerate(subnet_names):
+            if limit is not None and active_count >= limit:
+                cidr = f'{base_ips[i]}.0/24'
+                state.add_subnet(Subnet(cidr=cidr, name=name))
+                continue
             cidr = f'{base_ips[i]}.0/24'
             subnet = Subnet(cidr=cidr, name=name)
             state.add_subnet(subnet)
@@ -59,6 +68,8 @@ class NetworkGenerator:
                 if name in ['Corporate', 'Secure']
                 else rng.randint(2, 5)
             )
+            if limit is not None:
+                num_hosts = min(num_hosts, limit - active_count)
 
             for j in range(1, num_hosts + 1):
                 host_ip = f'{base_ips[i]}.{j * rng.randint(1, 3)}'
@@ -129,6 +140,7 @@ class NetworkGenerator:
                             domain_controllers.append(host)
 
                 active_hosts.append(host)
+                active_count += 1
                 state.register_host(host)
                 G.add_node(host.ip, type=name)
 
