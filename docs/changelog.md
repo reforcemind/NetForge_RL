@@ -3,6 +3,18 @@
 All notable changes to the `netforge_rl` project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [2.1.0] — 2026-06
+
+### Added
+- **Environment**: Added `TopologyEventEngine` to `netforge_rl/environment/parallel_env.py` to support dynamic topologies.
+- **Environment**: Implemented curriculum learning framework.
+- **Training**: Added RLlib integration and RMAPPO vs RMAPPO baseline.
+
+### Fixed
+- **Core**: Fixed decoy recon replacing hosts, static action mask issues, and stale DHCP targeting.
+
+---
+
 ## [2.0.0] — 2026-06
 
 ### Added
