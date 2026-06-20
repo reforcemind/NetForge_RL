@@ -11,6 +11,7 @@ from netforge_rl.core.registry import action_registry
 from netforge_rl.core.physics import ConflictResolutionEngine
 from netforge_rl.environment.base_env import BaseNetForgeRLEnv
 from netforge_rl.topologies.network_generator import NetworkGenerator
+from netforge_rl.topologies.dynamic_topology import TopologyEventEngine
 from netforge_rl.agents.green_agent import GreenAgent
 from netforge_rl.docker_bridge.bridge import DockerBridge
 from netforge_rl.siem.siem_logger import SIEMLogger
@@ -52,6 +53,11 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
 
         self.siem_logger = SIEMLogger()
         self.log_encoder = LogEncoder(backend=cfg.get('nlp_backend', 'tfidf'))
+        self.topology_engine = TopologyEventEngine(
+            churn_rate=cfg.get('topology_churn_rate', 0.0),
+            migration_rate=cfg.get('topology_migration_rate', 0.0),
+            arrival_rate=cfg.get('topology_arrival_rate', 0.0),
+        )
 
         self.observation_spaces = {
             agent: gym.spaces.Dict(
@@ -132,6 +138,7 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
             }
         self.current_tick = 0
         self.event_queue = []
+        self.topology_engine.reset(seed=seed)
 
         return observations, {agent: {} for agent in self.agents}
 
@@ -331,6 +338,28 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
                 for e in self.event_queue
                 if e.get('target_ip') is None or e['target_ip'] in valid_ips
             ]
+
+        topo_events = self.topology_engine.tick(self.global_state)
+        if topo_events:
+            valid_ips = set(self.global_state.all_hosts.keys())
+            self.event_queue = [
+                e
+                for e in self.event_queue
+                if e.get('target_ip') is None or e['target_ip'] in valid_ips
+            ]
+            for ev in topo_events:
+                self.siem_logger._push_to_buffer(
+                    {
+                        'signature': f'TOPOLOGY_{ev.kind.upper()}',
+                        'detail': ev.detail,
+                        'severity': 3,
+                    },
+                    ev.detail.get('subnet', ev.detail.get('new_subnet', 'unknown')),
+                    self.global_state,
+                )
+            self._cached_action_masks = {
+                agent: self.action_mask(agent) for agent in self.agents
+            }
 
         is_truncated = self.current_tick >= self.max_ticks
         truncate = {agent: is_truncated for agent in self.agents}
