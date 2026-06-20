@@ -41,7 +41,7 @@ class DiscoverRemoteSystems(BaseAction):
                     fake_data = True
         obs_data = {'ping_sweep': self.target_ip, 'hosts': active_hosts}
         if fake_data:
-            obs_data['hosts'] = ['10.x.x.99', '10.x.x.100']
+            obs_data['hosts'] = active_hosts + ['10.x.x.99', '10.x.x.100']
         knowledge_deltas = {
             f'knowledge/{self.agent_id}/{ip}': 'True' for ip in obs_data['hosts']
         }

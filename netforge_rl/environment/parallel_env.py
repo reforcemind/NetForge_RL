@@ -142,11 +142,27 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
         return self.action_spaces[agent]
 
     def action_mask(self, agent: str) -> np.ndarray:
-        """Generate a binary action mask (132,)."""
+        """Generate a binary action mask (132,) reflecting registered actions and live hosts."""
         mask = np.zeros(132, dtype=np.int8)
-        valid_action_types = 17 if 'red' in agent.lower() else 15
-        mask[:valid_action_types] = 1
-        mask[32 : 32 + 100] = 1
+        lower = agent.lower()
+        if 'red' in lower:
+            primary = 'red_commander' if 'commander' in lower else 'red'
+            base = 'red_operator' if 'operator' in lower else 'red'
+        else:
+            primary = 'blue_commander' if 'commander' in lower else 'blue'
+            base = 'blue_operator' if 'operator' in lower else 'blue'
+        valid_type_ids = (
+            set(action_registry._actions.get(primary, {}).keys())
+            | set(action_registry._actions.get(base, {}).keys())
+        )
+        for action_id in valid_type_ids:
+            if action_id < 32:
+                mask[action_id] = 1
+        ordered = sorted(self.global_state.all_hosts.keys())
+        for i, ip in enumerate(ordered[:100]):
+            host = self.global_state.all_hosts.get(ip)
+            if host and host.status != 'isolated':
+                mask[32 + i] = 1
         return mask
 
     def step(
@@ -310,6 +326,11 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
 
         if self.current_tick % 40 == 0:
             self.global_state.reallocate_dhcp()
+            valid_ips = set(self.global_state.all_hosts.keys())
+            self.event_queue = [
+                e for e in self.event_queue
+                if e.get('target_ip') is None or e['target_ip'] in valid_ips
+            ]
 
         is_truncated = self.current_tick >= self.max_ticks
         truncate = {agent: is_truncated for agent in self.agents}
