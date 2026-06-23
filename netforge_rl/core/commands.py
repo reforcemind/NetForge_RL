@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Any, Optional
+from netforge_rl.core.state import Firewall
 
 
 class IStateDeltaCommand(ABC):
@@ -57,8 +58,6 @@ class BlockPortCommand(IStateDeltaCommand):
         return None
 
     def execute(self, global_state):
-        from netforge_rl.core.state import Firewall
-
         global_state.firewalls.setdefault('global', Firewall('global')).block_port(
             self.subnet, self.port
         )
@@ -93,6 +92,23 @@ class DropSessionCommand(IStateDeltaCommand):
             global_state.active_sessions[agent_id] = [
                 s for s in sessions if s['ip'] != self._target_ip
             ]
+
+
+class PushSIEMEntryCommand(IStateDeltaCommand):
+    """Pushes a structured log entry into the SIEM buffer from an action effect."""
+
+    def __init__(self, log_line: str, subnet_cidr: str):
+        self.log_line = log_line
+        self.subnet_cidr = subnet_cidr
+
+    @property
+    def target_ip(self):
+        return None
+
+    def execute(self, global_state):
+        global_state.siem_log_buffer.append((self.log_line, self.subnet_cidr))
+        if len(global_state.siem_log_buffer) > 64:
+            global_state.siem_log_buffer.pop(0)
 
 
 class ConsumeBandwidthCommand(IStateDeltaCommand):

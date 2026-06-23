@@ -87,7 +87,7 @@ class Misinform(BaseAction):
     def execute(self, global_state) -> ActionEffect:
         return ActionEffect(
             success=True,
-            state_deltas={f'hosts/{self.target_ip}/misinformation': 'active'},
+            state_deltas={f'hosts/{self.target_ip}/misinformation': True},
             observation_data={
                 'alert': f'Misinformation campaign active on {self.target_ip}.'
             },

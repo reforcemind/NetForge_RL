@@ -1,8 +1,6 @@
 import random
-import yaml
 from pathlib import Path
 from typing import Optional
-import networkx as nx
 from netforge_rl.core.state import GlobalNetworkState, Subnet, Host
 
 
@@ -35,7 +33,6 @@ class NetworkGenerator:
         Active topology spans 15-30 nodes; the rest are instantiated as inactive padding.
         """
         state = GlobalNetworkState()
-        G = nx.DiGraph()
 
         # Generate hierarchy parameters
         num_subnets = rng.randint(3, 4)
@@ -71,12 +68,10 @@ class NetworkGenerator:
             if limit is not None:
                 num_hosts = min(num_hosts, limit - active_count)
 
-            for j in range(1, num_hosts + 1):
-                host_ip = f'{base_ips[i]}.{j * rng.randint(1, 3)}'
-
-                # Check for duplicates due to random gap intervals
-                while host_ip in [h.ip for h in active_hosts]:
-                    host_ip = f'{base_ips[i]}.{j * rng.randint(1, 10)}'
+            available_octets = list(range(2, 250))
+            rng.shuffle(available_octets)
+            for j in range(num_hosts):
+                host_ip = f'{base_ips[i]}.{available_octets[j]}'
 
                 host = Host(ip=host_ip, hostname=f'{name}_Node_{j}', subnet_cidr=cidr)
 
@@ -150,7 +145,6 @@ class NetworkGenerator:
                 active_hosts.append(host)
                 active_count += 1
                 state.register_host(host)
-                G.add_node(host.ip, type=name)
 
         # Assure at least 1 Domain Controller exists
         if domain_controllers:
@@ -197,10 +191,4 @@ class NetworkGenerator:
                 state.update_knowledge('blue_operator', host.ip)
 
     def _load_from_yaml(self, path: str, rng: random.Random) -> GlobalNetworkState:
-        """Loads a deterministic graph from a YAML configuration."""
-        with open(path, 'r') as f:
-            _ = yaml.safe_load(f)
-
-        # Implementation left for future expansion if YAML is required.
-        # Defaults to procedural if parsing fails.
-        return self._generate_procedural(rng)
+        raise NotImplementedError(f'YAML topology loading not implemented; got {path}')

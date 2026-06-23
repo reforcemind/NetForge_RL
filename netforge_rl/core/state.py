@@ -19,6 +19,7 @@ class Host:
         self.is_domain_controller = False
         self.human_vulnerability_score = 0.5
         self.contains_honeytokens = False
+        self.misinformation = False
         self.cached_credentials: list = []
         self.system_tokens: list = []
 
@@ -107,20 +108,6 @@ class GlobalNetworkState:
     def get_subnet_name(self, cidr: str) -> str:
         subnet = self.subnets.get(cidr)
         return subnet.name if subnet else 'Unknown'
-
-    def copy(self) -> 'GlobalNetworkState':
-        """Deep copy for MCTS/AlphaZero planning."""
-        from copy import deepcopy
-
-        return deepcopy(self)
-
-    def apply_delta_pure(
-        self, delta_key: Any, delta_value: Any = None
-    ) -> 'GlobalNetworkState':
-        """Return a new GlobalNetworkState with the delta applied, preserving the original."""
-        new_state = self.copy()
-        new_state.apply_delta(delta_key, delta_value)
-        return new_state
 
     def can_route_to(
         self, target_ip: str, port: int = None, agent_id: str = None

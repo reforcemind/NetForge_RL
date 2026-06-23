@@ -36,6 +36,8 @@ except ImportError:
 
 EMBEDDING_DIM = 128
 
+_tfidf_pipeline: 'Pipeline | None' = None
+
 
 class LogEncoder:
     """Encode SIEM log strings to fixed-dim float32 vectors."""
@@ -80,28 +82,33 @@ class LogEncoder:
         return vecs.mean(axis=0).astype(np.float32)
 
     def _build_tfidf(self):
-        corpus = self._build_training_corpus()
-        pipeline = Pipeline(
-            [
-                (
-                    'tfidf',
-                    TfidfVectorizer(
-                        analyzer='char_wb',
-                        ngram_range=(3, 5),
-                        max_features=4096,
-                        sublinear_tf=True,
+        global _tfidf_pipeline
+        if _tfidf_pipeline is None:
+            corpus = self._build_training_corpus()
+            pipeline = Pipeline(
+                [
+                    (
+                        'tfidf',
+                        TfidfVectorizer(
+                            analyzer='char_wb',
+                            ngram_range=(3, 5),
+                            max_features=4096,
+                            sublinear_tf=True,
+                        ),
                     ),
-                ),
-                ('svd', TruncatedSVD(n_components=EMBEDDING_DIM, random_state=42)),
-                ('norm', Normalizer(norm='l2')),
-            ]
-        )
-        pipeline.fit(corpus)
-        logger.info(
-            'LogEncoder[tfidf]: fitted on %d docs -> %d-dim LSA.',
-            len(corpus),
-            EMBEDDING_DIM,
-        )
+                    ('svd', TruncatedSVD(n_components=EMBEDDING_DIM, random_state=42)),
+                    ('norm', Normalizer(norm='l2')),
+                ]
+            )
+            pipeline.fit(corpus)
+            _tfidf_pipeline = pipeline
+            logger.info(
+                'LogEncoder[tfidf]: fitted on %d docs -> %d-dim LSA.',
+                len(corpus),
+                EMBEDDING_DIM,
+            )
+
+        pipeline = _tfidf_pipeline
 
         def encode_fn(text: str) -> np.ndarray:
             vec = pipeline.transform([text])[0]

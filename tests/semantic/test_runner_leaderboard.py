@@ -12,7 +12,7 @@ def test_run_episode_with_scripted_client(env_sim) -> None:
         (ip for ip in env_sim.global_state.all_hosts if not ip.startswith('169.254.'))
     )
     blue_client = MockLLMClient(replies=[f'ACTION 0 TARGET {target_ip}'])
-    res = run_episode(env_sim, {'blue_dmz': blue_client}, max_steps=3)
+    res = run_episode(env_sim, {'blue_dmz': blue_client}, max_steps=3, seed=42)
     assert isinstance(res, EpisodeResult)
     assert res.steps <= 3
     assert res.invalid_replies['blue_dmz'] == 0

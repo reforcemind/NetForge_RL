@@ -1,6 +1,13 @@
 from typing import Any
 import random
 import numpy as np
+from netforge_rl.actions import (
+    DiscoverRemoteSystems,
+    DiscoverNetworkServices,
+    ExploitRemoteService,
+    PrivilegeEscalate,
+    Impact,
+)
 
 
 class BLineAgent:
@@ -27,14 +34,6 @@ class BLineAgent:
         return None
 
     def get_action(self, _observation: np.ndarray, global_state) -> Any:
-        from netforge_rl.actions import (
-            DiscoverRemoteSystems,
-            DiscoverNetworkServices,
-            ExploitRemoteService,
-            PrivilegeEscalate,
-            Impact,
-        )
-
         self.step_count += 1
 
         if not self.known_hosts or self.step_count < 3:

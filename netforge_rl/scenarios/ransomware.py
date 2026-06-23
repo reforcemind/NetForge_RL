@@ -8,6 +8,8 @@ from netforge_rl.core.action import ActionEffect
 class RansomwareScenario(BaseScenario):
     """Ransomware scenario."""
 
+    MAX_STEP_REWARD = 5.0
+
     def __init__(self, agents):
         self.agents = agents
 

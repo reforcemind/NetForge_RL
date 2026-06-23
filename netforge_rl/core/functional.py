@@ -1,6 +1,8 @@
 from dataclasses import dataclass, field, replace
 
 import numpy as np
+from netforge_rl.core.state import GlobalNetworkState, Subnet, Host
+from netforge_rl.core.action import ActionEffect
 
 N_HOSTS = 100
 STATUS_CODES = ('online', 'isolated', 'kernel_panic')
@@ -222,8 +224,6 @@ def from_global_state(legacy, agent_ids):
 
 def to_global_state(snap: EnvState):
     """Inverse of from_global_state. Discards action_history / SIEM buffer fields."""
-    from netforge_rl.core.state import GlobalNetworkState, Subnet, Host
-
     legacy = GlobalNetworkState()
     seen = {}
     for cidr in snap.meta.subnet_cidr:
@@ -380,8 +380,6 @@ def _extract_targeted_ips(state_deltas):
 
 def resolve_conflicts(effects):
     """Pure variant of ConflictResolutionEngine.resolve — does NOT mutate input."""
-    from netforge_rl.core.action import ActionEffect
-
     blue_defended = set()
     for agent_id, eff in effects.items():
         if eff is None or not eff.success:

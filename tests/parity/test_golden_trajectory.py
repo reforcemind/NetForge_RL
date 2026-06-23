@@ -1,7 +1,7 @@
 import pytest
 from tests.parity.trajectory_fingerprint import roll_trajectory
 
-GOLDEN_FINGERPRINT = '69c3dd91a5a54b9a2800e412f9aa389bb0ea74a36329ec899993e551edfa7092'
+GOLDEN_FINGERPRINT = 'e5887932f981bd4997cd86d0da2ec27d2a06b4450acfc26b549a9900fde1bcb6'
 GOLDEN_SEED = 42
 GOLDEN_MAX_TICKS = 25
 GOLDEN_SCENARIO = 'ransomware'

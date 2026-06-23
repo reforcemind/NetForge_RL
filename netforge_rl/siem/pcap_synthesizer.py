@@ -16,8 +16,7 @@ _COMMON_PORTS = [22, 80, 443, 445, 3389, 502, 102]
 
 
 class PcapSynthesizer:
-    """Synthesizes PCAP-like packet observations from GlobalNetworkState each tick.
-    """
+    """Synthesizes PCAP-like packet observations from GlobalNetworkState each tick."""
 
     def __init__(self):
         self._rng = random.Random()
@@ -35,9 +34,12 @@ class PcapSynthesizer:
         packets = []
 
         c2_gateway = next(
-            (h.ip for h in global_state.all_hosts.values()
-             if global_state.get_subnet_name(h.subnet_cidr) == 'DMZ'
-             and h.status == 'online'),
+            (
+                h.ip
+                for h in global_state.all_hosts.values()
+                if global_state.get_subnet_name(h.subnet_cidr) == 'DMZ'
+                and h.status == 'online'
+            ),
             None,
         )
         for ip, host in global_state.all_hosts.items():
@@ -46,12 +48,19 @@ class PcapSynthesizer:
             if host.compromised_by == 'None':
                 continue
             dst_ip = c2_gateway or ip
-            packets.append(self._packet(
-                ip, dst_ip, global_state, ip_to_idx, tick_norm,
-                proto='TCP', port=443,
-                payload_kb=self._rng.uniform(0.1, 2.0),
-                is_c2=True,
-            ))
+            packets.append(
+                self._packet(
+                    ip,
+                    dst_ip,
+                    global_state,
+                    ip_to_idx,
+                    tick_norm,
+                    proto='TCP',
+                    port=443,
+                    payload_kb=self._rng.uniform(0.1, 2.0),
+                    is_c2=True,
+                )
+            )
 
         # Hosts with elevated privilege generate lateral movement / exploit packets
         for ip, host in global_state.all_hosts.items():
@@ -59,32 +68,51 @@ class PcapSynthesizer:
                 break
             if host.privilege not in ('User', 'Root'):
                 continue
-            live = [h for h in global_state.all_hosts.values()
-                    if h.status == 'online' and h.ip != ip]
+            live = [
+                h
+                for h in global_state.all_hosts.values()
+                if h.status == 'online' and h.ip != ip
+            ]
             if not live:
                 continue
             dst = self._rng.choice(live)
             proto = self._rng.choice(['TCP', 'ICMP'])
             port = self._rng.choice(_COMMON_PORTS)
-            packets.append(self._packet(
-                ip, dst.ip, global_state, ip_to_idx, tick_norm,
-                proto=proto, port=port,
-                payload_kb=self._rng.uniform(0.5, 50.0) if proto == 'TCP' else 0.08,
-                is_recon=(proto == 'ICMP'),
-                is_exploit=(proto == 'TCP' and port in (445, 3389)),
-            ))
+            packets.append(
+                self._packet(
+                    ip,
+                    dst.ip,
+                    global_state,
+                    ip_to_idx,
+                    tick_norm,
+                    proto=proto,
+                    port=port,
+                    payload_kb=self._rng.uniform(0.5, 50.0) if proto == 'TCP' else 0.08,
+                    is_recon=(proto == 'ICMP'),
+                    is_exploit=(proto == 'TCP' and port in (445, 3389)),
+                )
+            )
 
         # Fill remaining with benign background traffic
-        live_hosts = [h for h in global_state.all_hosts.values()
-                      if h.status == 'online' and '169.254' not in h.ip]
+        live_hosts = [
+            h
+            for h in global_state.all_hosts.values()
+            if h.status == 'online' and '169.254' not in h.ip
+        ]
         while len(packets) < N_PACKETS and len(live_hosts) >= 2:
             src, dst = self._rng.sample(live_hosts, 2)
-            packets.append(self._packet(
-                src.ip, dst.ip, global_state, ip_to_idx, tick_norm,
-                proto=self._rng.choice(['TCP', 'UDP']),
-                port=self._rng.choice([80, 443, 22]),
-                payload_kb=self._rng.uniform(0.1, 10.0),
-            ))
+            packets.append(
+                self._packet(
+                    src.ip,
+                    dst.ip,
+                    global_state,
+                    ip_to_idx,
+                    tick_norm,
+                    proto=self._rng.choice(['TCP', 'UDP']),
+                    port=self._rng.choice([80, 443, 22]),
+                    payload_kb=self._rng.uniform(0.1, 10.0),
+                )
+            )
 
         out = np.zeros((N_PACKETS, PACKET_DIM), dtype=np.float32)
         for i, pkt in enumerate(packets[:N_PACKETS]):
@@ -92,11 +120,7 @@ class PcapSynthesizer:
         return out
 
     def node_features(self, global_state: 'GlobalNetworkState') -> np.ndarray:
-        """Returns (100, NODE_DIM) float32 host attribute matrix for GNN models.
-
-        Columns: privilege, is_online, is_compromised, is_decoy, is_dc,
-                 subnet_type, cvss_norm, edr_active.
-        """
+        """Returns (100, NODE_DIM) float32 host attribute matrix for GNN models."""
         sorted_ips = sorted(global_state.all_hosts.keys())
         feat = np.zeros((100, NODE_DIM), dtype=np.float32)
         for i, ip in enumerate(sorted_ips[:100]):
@@ -137,14 +161,14 @@ class PcapSynthesizer:
         pkt[2] = _PROTO_ENC.get(proto, 0.2)
         pkt[3] = min(port, 65535) / 65535.0
         pkt[4] = min(payload_kb / 100.0, 1.0)
-        pkt[5] = 1.0 if (proto == 'TCP' and not is_c2) else 0.0   # SYN
-        pkt[6] = 0.0                                                # RST
-        pkt[7] = 1.0 if is_c2 else 0.0                             # ACK
-        pkt[8] = 1.0 if payload_kb > 0.5 else 0.0                  # PSH
-        pkt[9] = 1.0 if src_sn != dst_sn else 0.0                  # lateral
+        pkt[5] = 1.0 if (proto == 'TCP' and not is_c2) else 0.0  # SYN
+        pkt[6] = 0.0  # RST
+        pkt[7] = 1.0 if is_c2 else 0.0  # ACK
+        pkt[8] = 1.0 if payload_kb > 0.5 else 0.0  # PSH
+        pkt[9] = 1.0 if src_sn != dst_sn else 0.0  # lateral
         pkt[10] = float(is_c2)
         pkt[11] = float(is_recon)
-        pkt[12] = 1.0 if (is_c2 and payload_kb > 5.0) else 0.0    # exfil
+        pkt[12] = 1.0 if (is_c2 and payload_kb > 5.0) else 0.0  # exfil
         pkt[13] = float(is_exploit)
         pkt[14] = 1.0 if dst_sn in ('Secure', 'OT_Subnet') else 0.0
         pkt[15] = _PRIV_ENC.get(getattr(sh, 'privilege', 'None'), 0.0)

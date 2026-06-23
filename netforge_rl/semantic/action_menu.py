@@ -6,9 +6,11 @@ def _team_keys_for(agent_id):
     lower = agent_id.lower()
     if 'red' in lower:
         primary = 'red_commander' if 'commander' in lower else 'red'
+        base = 'red_operator' if 'operator' in lower else 'red_operator'
     else:
         primary = 'blue_commander' if 'commander' in lower else 'blue'
-    return [primary, lower]
+        base = 'blue_operator' if 'operator' in lower else 'blue_operator'
+    return [primary, base]
 
 
 def action_menu(agent_id):

@@ -6,6 +6,7 @@ from netforge_rl.scenarios.base_scenario import BaseScenario
 class IoTGridScenario(BaseScenario):
     name = 'iot_grid'
 
+    MAX_STEP_REWARD = 250.0
     CONTROLLER_LOSS_PENALTY = -250.0
     HEALTH_BONUS_SCALE = 0.5
 

@@ -7,6 +7,7 @@ class CloudHybridScenario(BaseScenario):
 
     name = 'cloud_hybrid'
 
+    MAX_STEP_REWARD = 30.0
     SECURE_BREACH_REWARD = 25.0
     SECURE_LOSS_PENALTY = -30.0
     SLA_BONUS_SCALE = 1.0

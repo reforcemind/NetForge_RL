@@ -1,19 +1,19 @@
 from netforge_rl.core.action import BaseAction, ActionEffect
 from netforge_rl.core.registry import action_registry
+from netforge_rl.core.commands import PushSIEMEntryCommand
 
 
 @action_registry.register('blue_operator', 2)
 class Monitor(BaseAction):
-    """Scans subnet for EDR."""
+    """Forensic subnet sweep: emits SIEM alerts for elevated-privilege or compromised hosts."""
 
     def __init__(self, agent_id: str, target_ip: str):
-        super().__init__(agent_id, target_ip=target_ip)
+        super().__init__(agent_id, target_ip=target_ip, cost=2, duration=2)
 
     def validate(self, global_state) -> bool:
         return True
 
     def execute(self, global_state) -> ActionEffect:
-        knowledge_deltas = {}
         target_subnet_cidr = None
         if '/' in self.target_ip:
             target_subnet_cidr = self.target_ip
@@ -21,15 +21,37 @@ class Monitor(BaseAction):
             host = global_state.all_hosts.get(self.target_ip)
             if host:
                 target_subnet_cidr = host.subnet_cidr
+
+        deltas = []
+        found = []
         if target_subnet_cidr and target_subnet_cidr in global_state.subnets:
-            subnet_hosts = global_state.subnets[target_subnet_cidr].hosts
-            for ip, host in subnet_hosts.items():
-                if host.edr_active:
-                    knowledge_deltas[f'knowledge/{self.agent_id}/{ip}'] = 'True'
+            for ip, host in global_state.subnets[target_subnet_cidr].hosts.items():
+                if host.privilege in ('User', 'Root'):
+                    deltas.append(
+                        PushSIEMEntryCommand(
+                            f'[MONITOR] EDR_PRIVILEGE_ALERT target={ip} '
+                            f'privilege={host.privilege} compromised_by={host.compromised_by}',
+                            target_subnet_cidr,
+                        )
+                    )
+                    found.append(ip)
+                elif host.compromised_by != 'None':
+                    deltas.append(
+                        PushSIEMEntryCommand(
+                            f'[MONITOR] EDR_COMPROMISE_ALERT target={ip} '
+                            f'compromised_by={host.compromised_by}',
+                            target_subnet_cidr,
+                        )
+                    )
+                    found.append(ip)
+
         return ActionEffect(
             success=True,
-            state_deltas=knowledge_deltas,
-            observation_data={'monitoring': self.target_ip},
+            state_deltas=deltas,
+            observation_data={
+                'monitoring': self.target_ip,
+                'alerts_generated': len(found),
+            },
         )
 
 

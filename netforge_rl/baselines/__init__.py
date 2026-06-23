@@ -4,12 +4,10 @@ from netforge_rl.baselines.policies import (
     HeuristicRedPolicy,
     RandomPolicy,
 )
-from netforge_rl.baselines.eval import evaluate
 
 __all__ = [
     'BasePolicy',
     'HeuristicBluePolicy',
     'HeuristicRedPolicy',
     'RandomPolicy',
-    'evaluate',
 ]

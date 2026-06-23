@@ -104,7 +104,7 @@ class PassTheHash(BaseAction):
     def validate(self, global_state) -> bool:
         has_dc_hash = False
         for host in global_state.all_hosts.values():
-            if host.is_domain_controller and host.privilege in ['Root', 'SYSTEM']:
+            if host.is_domain_controller and host.privilege == 'Root':
                 if host.compromised_by == self.agent_id:
                     has_dc_hash = True
                     break

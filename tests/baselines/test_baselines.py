@@ -4,12 +4,8 @@ pytest.importorskip('PIL')
 import json
 import numpy as np
 import pytest
-from netforge_rl.baselines import (
-    HeuristicBluePolicy,
-    HeuristicRedPolicy,
-    RandomPolicy,
-    evaluate,
-)
+from netforge_rl.baselines import HeuristicBluePolicy, HeuristicRedPolicy, RandomPolicy
+from netforge_rl.baselines.eval import evaluate
 
 
 @pytest.mark.fast

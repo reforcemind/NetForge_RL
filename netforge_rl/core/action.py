@@ -51,18 +51,6 @@ class BaseAction(ABC):
             expected = f'{self.required_prior_state}:{self.target_ip}'
             if expected not in global_state.action_history.get(self.agent_id, set()):
                 return False
-        if self.target_ip:
-            host = global_state.all_hosts[self.target_ip]
-            if 'red' in self.agent_id.lower() and host.subnet_cidr == '10.0.1.0/24':
-                has_pivot = any(
-                    (
-                        h.privilege in ('User', 'Root')
-                        and h.subnet_cidr in ('192.168.1.0/24', '10.0.0.0/24')
-                        for h in global_state.all_hosts.values()
-                    )
-                )
-                if not has_pivot:
-                    return False
         return True
 
     @abstractmethod

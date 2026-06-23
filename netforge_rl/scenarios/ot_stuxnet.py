@@ -6,9 +6,10 @@ from netforge_rl.scenarios.base_scenario import BaseScenario
 class OTStuxnetScenario(BaseScenario):
     name = 'ot_stuxnet'
 
+    MAX_STEP_REWARD = 10_000.0
     KINETIC_REWARD = 10_000.0
-    PER_TIER_BONUS = 4.0  # Red gains for each new tier they own
-    BLUE_HOLD_BONUS = 0.5  # per step while no OT host is compromised
+    PER_TIER_BONUS = 4.0
+    BLUE_HOLD_BONUS = 0.5
     BLUE_KINETIC_PENALTY = -10_000.0
 
     def __init__(self, agents):

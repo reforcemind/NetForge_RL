@@ -8,6 +8,8 @@ from netforge_rl.core.action import ActionEffect
 class AptEspionageScenario(BaseScenario):
     """APT espionage scenario."""
 
+    MAX_STEP_REWARD = 20.0
+
     def __init__(self, agents):
         self.agents = agents
 

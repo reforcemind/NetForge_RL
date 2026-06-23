@@ -7,7 +7,9 @@ if TYPE_CHECKING:
 
 
 class BaseScenario(ABC):
-    """Abstract Scenario outlining the Reward dynamics and Target objectives."""
+    """Abstract Scenario outlining reward dynamics and target objectives."""
+
+    MAX_STEP_REWARD: float = 10.0
 
     @abstractmethod
     def calculate_reward(
@@ -16,10 +18,12 @@ class BaseScenario(ABC):
         global_state: 'GlobalNetworkState',
         effect: 'ActionEffect' = None,
     ) -> float:
-        """Dynamically calculates the reward for the specified agent."""
         pass
 
     @abstractmethod
     def check_termination(self, global_state: 'GlobalNetworkState') -> Dict[str, bool]:
-        """Returns a dictionary mapping agent_ids to their termination state."""
         pass
+
+    def normalized_reward(self, reward: float) -> float:
+        """Reward divided by MAX_STEP_REWARD for cross-scenario comparability."""
+        return reward / max(self.MAX_STEP_REWARD, 1e-6)

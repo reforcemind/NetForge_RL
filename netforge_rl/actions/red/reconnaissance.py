@@ -71,6 +71,10 @@ class DiscoverNetworkServices(BaseAction):
                 obs_data['services'] = ['Fake_SSH_22']
             elif host.decoy == 'Tomcat':
                 obs_data['services'] = ['Fake_Tomcat_8080']
+            elif getattr(host, 'misinformation', False):
+                obs_data['services'] = ['HTTP_80', 'SSH_22']
+                obs_data['os'] = 'Linux_Ubuntu'
+                obs_data['vulnerabilities'] = []
             else:
                 obs_data['services'] = host.services
                 obs_data['os'] = host.os

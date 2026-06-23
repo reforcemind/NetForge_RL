@@ -7,6 +7,7 @@ from netforge_rl.scenarios.apt_espionage import AptEspionageScenario
 from netforge_rl.core.action import BaseAction, ActionEffect
 from netforge_rl.core.observation import BaseObservation
 from netforge_rl.core.registry import action_registry
+import netforge_rl.actions  # noqa: F401 — registers all action decorators
 
 from netforge_rl.core.physics import ConflictResolutionEngine
 from netforge_rl.environment.base_env import BaseNetForgeRLEnv
@@ -16,8 +17,17 @@ from netforge_rl.scenarios.ot_physics import PLCPhysicsEngine
 from netforge_rl.agents.green_agent import GreenAgent
 from netforge_rl.docker_bridge.bridge import DockerBridge
 from netforge_rl.siem.siem_logger import SIEMLogger
-from netforge_rl.siem.pcap_synthesizer import PcapSynthesizer, N_PACKETS, PACKET_DIM, NODE_DIM
+from netforge_rl.siem.pcap_synthesizer import (
+    PcapSynthesizer,
+    N_PACKETS,
+    PACKET_DIM,
+    NODE_DIM,
+)
+from netforge_rl.siem.correlator import SIEMCorrelator
 from netforge_rl.nlp.log_encoder import LogEncoder, EMBEDDING_DIM
+from netforge_rl.siem.event_templates import sysmon_1
+from netforge_rl.core.functional import from_global_state
+import random
 
 
 # Normalization constant for Neural ODE integration
@@ -64,16 +74,21 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
             arrival_rate=cfg.get('topology_arrival_rate', 0.0),
         )
         self.physics_engine = PLCPhysicsEngine()
+        self.correlator = SIEMCorrelator()
         self.pcap_obs = cfg.get('pcap_obs', False)
         self.pcap_synthesizer = PcapSynthesizer() if self.pcap_obs else None
 
         _base_obs = {
             'obs': gym.spaces.Box(low=-1.0, high=1.0, shape=(256,), dtype=np.float32),
-            'action_mask': gym.spaces.Box(low=0, high=1, shape=(32 + 100,), dtype=np.int8),
+            'action_mask': gym.spaces.Box(
+                low=0, high=1, shape=(32 + 100,), dtype=np.int8
+            ),
             'siem_embedding': gym.spaces.Box(
                 low=-1.0, high=1.0, shape=(EMBEDDING_DIM,), dtype=np.float32
             ),
-            'adj_matrix': gym.spaces.Box(low=0.0, high=1.0, shape=(10000,), dtype=np.float32),
+            'adj_matrix': gym.spaces.Box(
+                low=0.0, high=1.0, shape=(10000,), dtype=np.float32
+            ),
             'delta_t': gym.spaces.Box(low=0.0, high=1.0, shape=(1,), dtype=np.float32),
         }
         if self.pcap_obs:
@@ -101,9 +116,7 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
     ) -> Tuple[Dict[str, np.ndarray], Dict[str, dict]]:
         """Reset the environment."""
         if seed is not None:
-            import random as _random
-
-            _random.seed(seed)
+            random.seed(seed)
             np.random.seed(seed)
         self.docker_bridge.teardown_all()
         self.global_state = self.network_generator.generate(seed=seed)
@@ -149,6 +162,7 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
         self.event_queue = []
         self.topology_engine.reset(seed=seed)
         self.physics_engine.reset(seed=seed)
+        self.correlator.reset()
         if self.pcap_synthesizer:
             self.pcap_synthesizer.reset(seed=seed)
 
@@ -310,8 +324,6 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
                 target_ip=res_effect.observation_data.get('exploit'),
             )
 
-        from netforge_rl.siem.event_templates import sysmon_1
-
         for res_agent, res_effect in resolved_effects.items():
             if 'red' not in res_agent or not res_effect.success:
                 continue
@@ -353,6 +365,13 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
         ot_subnet = '10.0.99.0/24'
         for alert in physics_alerts:
             self.siem_logger._push_to_buffer(alert, ot_subnet, self.global_state)
+
+        for incident_log, incident_subnet in self.correlator.correlate(
+            self.global_state
+        ):
+            self.global_state.siem_log_buffer.append((incident_log, incident_subnet))
+            if len(self.global_state.siem_log_buffer) > 64:
+                self.global_state.siem_log_buffer.pop(0)
 
         topo_events = self.topology_engine.tick(self.global_state)
         if topo_events:
@@ -442,7 +461,7 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
             if not terminate[agent] and not truncate[agent]
         ]
 
-        infos = self._extract_agent_infos(observations, resolved_effects)
+        infos = self._extract_agent_infos(observations, resolved_effects, rewards)
 
         for agent in self.agents:
             if agent in infos:
@@ -463,8 +482,6 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
 
     def to_envstate(self):
         """Return a frozen EnvState PyTree snapshot."""
-        from netforge_rl.core.functional import from_global_state
-
         return from_global_state(self.global_state, tuple(self.possible_agents))
 
     def _update_episode_metrics(self, resolved_effects):
@@ -526,7 +543,9 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
                 for delta_cmd in effect.state_deltas:
                     self.global_state.apply_delta(delta_cmd)
 
-    def _extract_agent_infos(self, observations: dict, resolved_effects: dict) -> dict:
+    def _extract_agent_infos(
+        self, observations: dict, resolved_effects: dict, rewards: dict = None
+    ) -> dict:
         """Extract per-agent metrics info dict."""
         infos = {}
         for agent in observations:
@@ -608,6 +627,47 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
 
             info['Total_Exfiltrated_Data'] = float(
                 self.episode_metrics['exfiltrated_data']
+            )
+
+            # Multi-objective metrics
+            all_compromised = set(self.episode_metrics['infection_times'].keys())
+            all_isolated = set(self.episode_metrics['isolation_times'].keys())
+            detected = all_compromised & all_isolated
+            info['detection_rate'] = float(len(detected) / max(len(all_compromised), 1))
+
+            info['containment_time'] = float(
+                sum(
+                    self.episode_metrics['isolation_times'][ip]
+                    - self.episode_metrics['infection_times'][ip]
+                    for ip in detected
+                )
+                / max(len(detected), 1)
+            )
+
+            total_h = max(len(self.global_state.all_hosts), 1)
+            healthy_h = sum(
+                1
+                for h in self.global_state.all_hosts.values()
+                if h.compromised_by == 'None' and h.status == 'online'
+            )
+            compromised_h = sum(
+                1
+                for h in self.global_state.all_hosts.values()
+                if h.compromised_by != 'None'
+            )
+            info['blue_score'] = float(
+                (healthy_h / total_h) * 50.0
+                + info['detection_rate'] * 30.0
+                - info['containment_time'] * 0.1
+            )
+            info['red_score'] = float(
+                (compromised_h / total_h) * 50.0
+                + float(self.episode_metrics['exfiltrated_data']) * 5.0
+            )
+
+            raw_reward = (rewards or {}).get(agent, 0.0)
+            info['normalized_reward'] = float(
+                self.scenario.normalized_reward(raw_reward)
             )
 
             infos[agent] = info
