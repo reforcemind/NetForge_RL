@@ -12,13 +12,13 @@
         <meta name="author" content="Igor Jankowski">
       
       
-        <link rel="canonical" href="https://reforcemind.github.io/NetForge_RL/training/scenarios/">
+        <link rel="canonical" href="https://reforcemind.github.io/NetForge_RL/architecture/ot_physics/">
       
       
-        <link rel="prev" href="../rllib/">
+        <link rel="prev" href="../dynamic_topology/">
       
       
-        <link rel="next" href="../benchmarks/">
+        <link rel="next" href="../zero_trust/">
       
       
         
@@ -29,7 +29,7 @@
     
     
       
-        <title>Scenarios - NetForge RL</title>
+        <title>OT/SCADA Physics - NetForge RL</title>
       
     
     
@@ -84,7 +84,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#custom-scenarios" class="md-skip">
+        <a href="#otscada-physics" class="md-skip">
           Skip to content
         </a>
       
@@ -120,7 +120,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Scenarios
+              OT/SCADA Physics
             
           </span>
         </div>
@@ -266,11 +266,13 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="../../architecture/overview/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../overview/" class="md-tabs__link">
           
   
   
@@ -326,13 +328,11 @@
   
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
-        <a href="../curriculum/" class="md-tabs__link">
+      <li class="md-tabs__item">
+        <a href="../../training/curriculum/" class="md-tabs__link">
           
   
   
@@ -472,28 +472,31 @@
       
   
   
+    
   
   
+  
     
     
     
     
+      
+        
+        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
         
           
-        
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
-        
-          
-          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
             
   
   
@@ -511,7 +514,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             
@@ -529,7 +532,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../architecture/overview/" class="md-nav__link">
+      <a href="../overview/" class="md-nav__link">
         
   
   
@@ -557,7 +560,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../architecture/dynamic_topology/" class="md-nav__link">
+      <a href="../dynamic_topology/" class="md-nav__link">
         
   
   
@@ -582,10 +585,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../../architecture/ot_physics/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    OT/SCADA Physics
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -601,6 +631,81 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#physical-state-per-plc-host" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Physical state per PLC host
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#physics-engine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Physics engine
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#alarm-thresholds" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Alarm thresholds
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#attack-path" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Attack path
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#defense" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Defense
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -613,7 +718,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../architecture/zero_trust/" class="md-nav__link">
+      <a href="../zero_trust/" class="md-nav__link">
         
   
   
@@ -641,7 +746,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../architecture/sim2real/" class="md-nav__link">
+      <a href="../sim2real/" class="md-nav__link">
         
   
   
@@ -669,7 +774,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../architecture/nlp_siem/" class="md-nav__link">
+      <a href="../nlp_siem/" class="md-nav__link">
         
   
   
@@ -1047,31 +1152,28 @@
       
   
   
-    
   
   
-  
     
     
     
     
-      
-        
-        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
         
           
-          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
             
   
   
@@ -1089,7 +1191,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_6">
             <span class="md-nav__icon md-icon"></span>
             
@@ -1107,7 +1209,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../curriculum/" class="md-nav__link">
+      <a href="../../training/curriculum/" class="md-nav__link">
         
   
   
@@ -1135,7 +1237,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../rllib/" class="md-nav__link">
+      <a href="../../training/rllib/" class="md-nav__link">
         
   
   
@@ -1160,37 +1262,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Scenarios
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../training/scenarios/" class="md-nav__link">
         
   
   
@@ -1206,159 +1281,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#basescenario-interface" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        BaseScenario Interface
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#configuration-ransomware" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Configuration: Ransomware
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Configuration: Ransomware">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#1-structure-and-initialization" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        1. Structure and Initialization
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#2-base-reward-routing" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        2. Base Reward Routing
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#3-red-agent-logic" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        3. Red Agent Logic
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#4-blue-agent-logic" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4. Blue Agent Logic
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#5-termination-logic" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        5. Termination Logic
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#otscada-scenario-ot_stuxnet" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        OT/SCADA Scenario: ot_stuxnet
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="OT/SCADA Scenario: ot_stuxnet">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#physical-state" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Physical state
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#attack-flow" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Attack flow
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#registering-configurations" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Registering Configurations
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -1371,7 +1293,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../benchmarks/" class="md-nav__link">
+      <a href="../../training/benchmarks/" class="md-nav__link">
         
   
   
@@ -1453,10 +1375,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#basescenario-interface" class="md-nav__link">
+  <a href="#physical-state-per-plc-host" class="md-nav__link">
     <span class="md-ellipsis">
       
-        BaseScenario Interface
+        Physical state per PLC host
       
     </span>
   </a>
@@ -1464,121 +1386,43 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#configuration-ransomware" class="md-nav__link">
+  <a href="#physics-engine" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Configuration: Ransomware
+        Physics engine
       
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="Configuration: Ransomware">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#1-structure-and-initialization" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        1. Structure and Initialization
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#2-base-reward-routing" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        2. Base Reward Routing
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#3-red-agent-logic" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        3. Red Agent Logic
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#4-blue-agent-logic" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4. Blue Agent Logic
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#5-termination-logic" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        5. Termination Logic
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#otscada-scenario-ot_stuxnet" class="md-nav__link">
+  <a href="#alarm-thresholds" class="md-nav__link">
     <span class="md-ellipsis">
       
-        OT/SCADA Scenario: ot_stuxnet
+        Alarm thresholds
       
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="OT/SCADA Scenario: ot_stuxnet">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#physical-state" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Physical state
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#attack-flow" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Attack flow
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#registering-configurations" class="md-nav__link">
+  <a href="#attack-path" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Registering Configurations
+        Attack path
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#defense" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Defense
       
     </span>
   </a>
@@ -1605,118 +1449,119 @@
   
 
 
-<h1 id="custom-scenarios">Custom Scenarios<a class="headerlink" href="#custom-scenarios" title="Permanent link">&para;</a></h1>
-<p>Custom scenarios define the <strong>win conditions</strong> and <strong>reward tensors</strong> for the environment. Core resolution logic (e.g., executing an exploit) is handled independently by the <code>Functional Core</code>.</p>
-<h2 id="basescenario-interface">BaseScenario Interface<a class="headerlink" href="#basescenario-interface" title="Permanent link">&para;</a></h2>
-<p>Scenarios must inherit from <code>netforge_rl.scenarios.base_scenario.BaseScenario</code> and implement two abstract methods:</p>
-<ol>
-<li><code>calculate_reward(self, agent_id, global_state, effect)</code>: Returns a scalar float representing the delta reward for the current step.</li>
-<li><code>check_termination(self, global_state)</code>: Returns a dictionary mapping agent IDs to boolean terminal states.</li>
-</ol>
-<h2 id="configuration-ransomware">Configuration: Ransomware<a class="headerlink" href="#configuration-ransomware" title="Permanent link">&para;</a></h2>
-<p>In a Ransomware configuration, the Red agent seeks to compromise system integrity flags, while the Blue agent seeks to maximize healthy host ratios.</p>
-<h3 id="1-structure-and-initialization">1. Structure and Initialization<a class="headerlink" href="#1-structure-and-initialization" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">netforge_rl.scenarios.base_scenario</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseScenario</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="k">class</span><span class="w"> </span><span class="nc">CustomRansomware</span><span class="p">(</span><span class="n">BaseScenario</span><span class="p">):</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agents</span><span class="p">):</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">agents</span> <span class="o">=</span> <span class="n">agents</span>
-</code></pre></div>
-<h3 id="2-base-reward-routing">2. Base Reward Routing<a class="headerlink" href="#2-base-reward-routing" title="Permanent link">&para;</a></h3>
-<p>A central <code>calculate_reward</code> method routes scalar logic to specific agent functions, applying global penalties (like action cost) universally.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">calculate_reward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">agent_id</span><span class="p">,</span> <span class="n">global_state</span><span class="p">,</span> <span class="n">effect</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>        <span class="n">reward</span> <span class="o">=</span> <span class="mf">0.0</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>        <span class="c1"># Base penalty for taking actions</span>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>        <span class="k">if</span> <span class="n">effect</span> <span class="ow">and</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">effect</span><span class="p">,</span> <span class="s1">&#39;cost&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>            <span class="n">reward</span> <span class="o">-=</span> <span class="n">effect</span><span class="o">.</span><span class="n">cost</span> <span class="o">*</span> <span class="mf">0.05</span>
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>
-<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>        <span class="k">if</span> <span class="s1">&#39;red&#39;</span> <span class="ow">in</span> <span class="n">agent_id</span><span class="p">:</span>
-<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_red_reward</span><span class="p">(</span><span class="n">global_state</span><span class="p">,</span> <span class="n">effect</span><span class="p">)</span>
-<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_blue_reward</span><span class="p">(</span><span class="n">global_state</span><span class="p">,</span> <span class="n">effect</span><span class="p">)</span>
-</code></pre></div>
-<h3 id="3-red-agent-logic">3. Red Agent Logic<a class="headerlink" href="#3-red-agent-logic" title="Permanent link">&para;</a></h3>
-<p>Red agents are rewarded exclusively for successfully modifying the <code>GlobalNetworkState</code> access and integrity tensors.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_red_reward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">global_state</span><span class="p">,</span> <span class="n">effect</span><span class="p">):</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>        <span class="n">reward</span> <span class="o">=</span> <span class="mf">0.0</span>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>        <span class="k">if</span> <span class="n">effect</span> <span class="ow">and</span> <span class="n">effect</span><span class="o">.</span><span class="n">success</span> <span class="ow">and</span> <span class="n">effect</span><span class="o">.</span><span class="n">state_deltas</span><span class="p">:</span>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">effect</span><span class="o">.</span><span class="n">state_deltas</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>                <span class="k">if</span> <span class="s1">&#39;privilege&#39;</span> <span class="ow">in</span> <span class="n">key</span> <span class="ow">and</span> <span class="n">val</span> <span class="o">==</span> <span class="s1">&#39;Root&#39;</span><span class="p">:</span>
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>                    <span class="n">reward</span> <span class="o">+=</span> <span class="mf">5.0</span>
-<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>                <span class="k">if</span> <span class="s1">&#39;system_integrity&#39;</span> <span class="ow">in</span> <span class="n">key</span> <span class="ow">and</span> <span class="n">val</span> <span class="o">==</span> <span class="s1">&#39;kinetic_destruction&#39;</span><span class="p">:</span>
-<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>                    <span class="n">reward</span> <span class="o">+=</span> <span class="mf">10000.0</span>
-<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>        <span class="k">return</span> <span class="n">reward</span>
-</code></pre></div>
-<h3 id="4-blue-agent-logic">4. Blue Agent Logic<a class="headerlink" href="#4-blue-agent-logic" title="Permanent link">&para;</a></h3>
-<p>Blue agents are rewarded proportionally to the number of nodes maintaining a baseline (healthy) state vector.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">_blue_reward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">global_state</span><span class="p">,</span> <span class="n">effect</span><span class="p">):</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>        <span class="n">healthy</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>            <span class="mi">1</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">global_state</span><span class="o">.</span><span class="n">all_hosts</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>            <span class="k">if</span> <span class="n">h</span><span class="o">.</span><span class="n">compromised_by</span> <span class="o">==</span> <span class="s1">&#39;None&#39;</span> <span class="ow">and</span> <span class="n">h</span><span class="o">.</span><span class="n">status</span> <span class="o">!=</span> <span class="s1">&#39;isolated&#39;</span>
-<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>        <span class="p">)</span>
-<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>        <span class="k">return</span> <span class="n">healthy</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">global_state</span><span class="o">.</span><span class="n">all_hosts</span><span class="p">)</span>
-</code></pre></div>
-<h3 id="5-termination-logic">5. Termination Logic<a class="headerlink" href="#5-termination-logic" title="Permanent link">&para;</a></h3>
-<p>The episode halts immediately if a critical Cyber-Physical node transitions to a destroyed state.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">check_termination</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">global_state</span><span class="p">):</span>
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">h</span><span class="o">.</span><span class="n">system_integrity</span> <span class="o">==</span> <span class="s1">&#39;kinetic_destruction&#39;</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">global_state</span><span class="o">.</span><span class="n">all_hosts</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
-<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>            <span class="k">return</span> <span class="p">{</span><span class="n">agent</span><span class="p">:</span> <span class="kc">True</span> <span class="k">for</span> <span class="n">agent</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">agents</span><span class="p">}</span>
-<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>
-<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>        <span class="k">return</span> <span class="p">{</span><span class="n">agent</span><span class="p">:</span> <span class="kc">False</span> <span class="k">for</span> <span class="n">agent</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">agents</span><span class="p">}</span>
-</code></pre></div>
-<h2 id="otscada-scenario-ot_stuxnet">OT/SCADA Scenario: <code>ot_stuxnet</code><a class="headerlink" href="#otscada-scenario-ot_stuxnet" title="Permanent link">&para;</a></h2>
-<p>The <code>OTStuxnetScenario</code> rewards Red for achieving physical process destruction on PLC hosts, and Blue for keeping OT nodes clean. A 25% chance each episode generates an OT subnet (<code>10.0.99.0/24</code>) with <code>PLC_Firmware</code> hosts.</p>
-<h3 id="physical-state">Physical state<a class="headerlink" href="#physical-state" title="Permanent link">&para;</a></h3>
-<p>Each PLC host tracks three process variables governed by first-order lag ODEs (in <code>PLCPhysicsEngine</code>):</p>
+<h1 id="otscada-physics">OT/SCADA Physics<a class="headerlink" href="#otscada-physics" title="Permanent link">&para;</a></h1>
+<p>NetForge models physical process variables on PLC hosts using first-order lag differential equations, enabling safety-critical RL research for power grids and industrial control systems.</p>
+<h2 id="physical-state-per-plc-host">Physical state per PLC host<a class="headerlink" href="#physical-state-per-plc-host" title="Permanent link">&para;</a></h2>
+<p>Each host with <code>os == 'PLC_Firmware'</code> carries three process variables and their corresponding setpoints:</p>
 <table>
 <thead>
 <tr>
-<th>Variable</th>
-<th>Nominal</th>
-<th>Alarm</th>
-<th>Critical</th>
-<th>τ (ticks)</th>
+<th>Attribute</th>
+<th>Description</th>
+<th>Nominal range</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>temperature (°C)</td>
+<td><code>temperature</code></td>
+<td>Process temperature (°C)</td>
 <td>40–60</td>
-<td>&gt; 80</td>
-<td>&gt; 120</td>
-<td>20</td>
 </tr>
 <tr>
-<td>pressure (bar)</td>
+<td><code>pressure</code></td>
+<td>Process pressure (bar)</td>
 <td>90–110</td>
-<td>&gt; 130 or &lt; 70</td>
-<td>&gt; 180 or &lt; 30</td>
-<td>10</td>
 </tr>
 <tr>
-<td>flow_rate (L/min)</td>
+<td><code>flow_rate</code></td>
+<td>Volumetric flow (L/min)</td>
 <td>40–60</td>
-<td>&gt; 90 or &lt; 20</td>
-<td>&gt; 150 or &lt; 5</td>
-<td>5</td>
+</tr>
+<tr>
+<td><code>temperature_setpoint</code></td>
+<td>PLC target for temperature</td>
+<td>same as nominal</td>
+</tr>
+<tr>
+<td><code>pressure_setpoint</code></td>
+<td>PLC target for pressure</td>
+<td>same as nominal</td>
+</tr>
+<tr>
+<td><code>flow_rate_setpoint</code></td>
+<td>PLC target for flow</td>
+<td>same as nominal</td>
 </tr>
 </tbody>
 </table>
-<p>Each tick: <code>x[t+1] = x[t] + (setpoint − x[t]) / τ + noise</code></p>
-<h3 id="attack-flow">Attack flow<a class="headerlink" href="#attack-flow" title="Permanent link">&para;</a></h3>
-<p><code>OverloadPLC</code> (red_operator action ID 20, requires Root on a PLC host) manipulates setpoints rather than directly spiking values:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># setpoints jump to unsafe targets; physics engine drives process toward them</span>
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="n">temperature_setpoint</span> <span class="o">+=</span> <span class="n">uniform</span><span class="p">(</span><span class="mi">80</span><span class="p">,</span> <span class="mi">150</span><span class="p">)</span>   <span class="c1"># °C above normal</span>
-<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="n">pressure_setpoint</span>    <span class="o">*=</span> <span class="n">uniform</span><span class="p">(</span><span class="mf">1.5</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">)</span>  <span class="c1"># 1.5–2× nominal</span>
-<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="n">flow_rate_setpoint</span>    <span class="o">=</span> <span class="mf">3.0</span>               <span class="c1"># near-zero (choke)</span>
+<h2 id="physics-engine">Physics engine<a class="headerlink" href="#physics-engine" title="Permanent link">&para;</a></h2>
+<p><code>PLCPhysicsEngine</code> (<code>netforge_rl/scenarios/ot_physics.py</code>) is ticked once per environment step, after action effects are applied and before termination is checked.</p>
+<p>Update rule per variable <code>x</code> with setpoint <code>x_sp</code> and time constant <code>τ</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>x[t+1] = x[t] + (x_sp − x[t]) / τ + gauss(0, σ)
 </code></pre></div>
-<p>Blue receives <code>SCADA_PHYSICAL_ALARM</code> SIEM alerts (severity 7) when variables enter alarm range, and <code>SCADA_KINETIC_BREACH</code> (severity 10) when critical thresholds are crossed. Blue has roughly 10 ticks between first alarm and physical destruction to isolate the PLC.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="n">env</span> <span class="o">=</span> <span class="n">NetForgeRLEnv</span><span class="p">({</span><span class="s1">&#39;scenario_type&#39;</span><span class="p">:</span> <span class="s1">&#39;ot_stuxnet&#39;</span><span class="p">,</span> <span class="s1">&#39;max_ticks&#39;</span><span class="p">:</span> <span class="mi">300</span><span class="p">})</span>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>τ (ticks)</th>
+<th>σ (noise)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>temperature</td>
+<td>20</td>
+<td>0.1</td>
+</tr>
+<tr>
+<td>pressure</td>
+<td>10</td>
+<td>0.2</td>
+</tr>
+<tr>
+<td>flow_rate</td>
+<td>5</td>
+<td>0.3</td>
+</tr>
+</tbody>
+</table>
+<h2 id="alarm-thresholds">Alarm thresholds<a class="headerlink" href="#alarm-thresholds" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Alarm (SCADA_PHYSICAL_ALARM)</th>
+<th>Critical (SCADA_KINETIC_BREACH)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>temperature</td>
+<td>&gt; 80°C</td>
+<td>&gt; 120°C</td>
+</tr>
+<tr>
+<td>pressure</td>
+<td>&gt; 130 or &lt; 70 bar</td>
+<td>&gt; 180 or &lt; 30 bar</td>
+</tr>
+<tr>
+<td>flow_rate</td>
+<td>&gt; 90 or &lt; 20 L/min</td>
+<td>&gt; 150 or &lt; 5 L/min</td>
+</tr>
+</tbody>
+</table>
+<p>Alarm alerts are pushed to the SIEM at severity 7. Critical breach sets <code>system_integrity = 'kinetic_destruction'</code> and fires a severity-10 SIEM event, which terminates the episode in <code>ot_stuxnet</code>.</p>
+<h2 id="attack-path">Attack path<a class="headerlink" href="#attack-path" title="Permanent link">&para;</a></h2>
+<p><code>OverloadPLC</code> (red action ID 20) manipulates setpoints on a compromised PLC host:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>temperature_setpoint += uniform(80, 150)   # drives process toward 120–210°C
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>pressure_setpoint    *= uniform(1.5, 2.0)  # 1.5–2× nominal → kinetic range
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>flow_rate_setpoint    = 3.0               # near-zero choke
 </code></pre></div>
-<h2 id="registering-configurations">Registering Configurations<a class="headerlink" href="#registering-configurations" title="Permanent link">&para;</a></h2>
-<p>Scenario classes are registered dynamically via the <code>parallel_env</code> instantiation dictionary:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="n">env</span> <span class="o">=</span> <span class="n">NetForgeRLEnv</span><span class="p">({</span><span class="s1">&#39;scenario_type&#39;</span><span class="p">:</span> <span class="s1">&#39;custom_ransomware&#39;</span><span class="p">})</span>
-</code></pre></div>
+<p>Physical destruction follows roughly 10–15 ticks after setpoint manipulation, giving Blue agents a detection window via SIEM alarm events.</p>
+<h2 id="defense">Defense<a class="headerlink" href="#defense" title="Permanent link">&para;</a></h2>
+<p>Blue agents can respond to <code>SCADA_PHYSICAL_ALARM</code> events (visible in the SIEM embedding) by isolating the PLC before critical thresholds are crossed. <code>IsolateHost</code> stops physics ticking on the isolated host.</p>
 
 
 
@@ -1754,7 +1599,7 @@
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../rllib/" class="md-footer__link md-footer__link--prev" aria-label="Previous: RLlib + LSTM">
+          <a href="../dynamic_topology/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Dynamic Topologies">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -1764,20 +1609,20 @@
                 Previous
               </span>
               <div class="md-ellipsis">
-                RLlib + LSTM
+                Dynamic Topologies
               </div>
             </div>
           </a>
         
         
           
-          <a href="../benchmarks/" class="md-footer__link md-footer__link--next" aria-label="Next: Benchmarks &amp; Competition">
+          <a href="../zero_trust/" class="md-footer__link md-footer__link--next" aria-label="Next: Zero-Trust Identity">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Benchmarks & Competition
+                Zero-Trust Identity
               </div>
             </div>
             <div class="md-footer__button md-icon">
