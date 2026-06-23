@@ -88,8 +88,16 @@ class NetworkGenerator:
                         chosen_os = 'PLC_Firmware'
                         chosen_services = ['Modbus', 'S7Comm']
                         potential_cves = ['CVE-2010-2772', 'Stuxnet_0day']
-                        setattr(host, 'temperature', float(rng.randint(40, 60)))
-                        setattr(host, 'pressure', float(rng.randint(90, 110)))
+                        nominal_temp = float(rng.randint(40, 60))
+                        nominal_pressure = float(rng.randint(90, 110))
+                        nominal_flow = float(rng.randint(40, 60))
+                        setattr(host, 'temperature', nominal_temp)
+                        setattr(host, 'pressure', nominal_pressure)
+                        setattr(host, 'flow_rate', nominal_flow)
+                        setattr(host, 'temperature_setpoint', nominal_temp)
+                        setattr(host, 'pressure_setpoint', nominal_pressure)
+                        setattr(host, 'flow_rate_setpoint', nominal_flow)
+                        setattr(host, 'system_integrity', 'clean')
                     else:
                         profiles = [
                             (

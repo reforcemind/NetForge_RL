@@ -34,11 +34,14 @@ class OTStuxnetScenario(BaseScenario):
                     host = state.all_hosts.get(ip) if ip else None
                     if host:
                         if state.get_subnet_name(host.subnet_cidr) == 'OT':
-                            r += self.PER_TIER_BONUS * 3  # OT pwn is worth 3x
+                            r += self.PER_TIER_BONUS * 3
                         else:
                             r += self.PER_TIER_BONUS
-                if 'system_integrity' in k and v == 'kinetic_destruction':
-                    r += self.KINETIC_REWARD
+        if any(
+            getattr(h, 'system_integrity', 'clean') == 'kinetic_destruction'
+            for h in state.all_hosts.values()
+        ):
+            r += self.KINETIC_REWARD
         if effect and not effect.success:
             r -= 0.1
         return r

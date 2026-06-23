@@ -5,7 +5,7 @@ from netforge_rl.core.registry import action_registry
 
 @action_registry.register('red_operator', 20)
 class OverloadPLC(BaseAction):
-    """Spikes OT node temperature."""
+    """Manipulates PLC setpoints to drive physical parameters into unsafe ranges."""
 
     def __init__(self, agent_id: str, target_ip: str):
         super().__init__(
@@ -33,17 +33,24 @@ class OverloadPLC(BaseAction):
         host = global_state.all_hosts.get(self.target_ip)
         if not host:
             return ActionEffect(success=False, state_deltas={}, observation_data={})
-        current_temperature = getattr(host, 'temperature', 50.0)
-        spike = random.uniform(90.0, 150.0)
-        new_temp = current_temperature + spike
+        temp_sp = getattr(
+            host, 'temperature_setpoint', getattr(host, 'temperature', 50.0)
+        )
+        pressure_sp = getattr(
+            host, 'pressure_setpoint', getattr(host, 'pressure', 100.0)
+        )
+        new_temp_sp = temp_sp + random.uniform(80.0, 150.0)
+        new_pressure_sp = pressure_sp * random.uniform(1.5, 2.0)
         deltas = {
-            f'hosts/{self.target_ip}/temperature': new_temp,
-            f'hosts/{self.target_ip}/system_integrity': 'kinetic_destruction',
+            f'hosts/{self.target_ip}/temperature_setpoint': new_temp_sp,
+            f'hosts/{self.target_ip}/pressure_setpoint': new_pressure_sp,
+            f'hosts/{self.target_ip}/flow_rate_setpoint': 3.0,
         }
         obs_data = {
             'action': 'overload_plc',
-            'status': 'kinetic_impact_achieved',
-            'terminal_temperature': new_temp,
+            'status': 'setpoint_manipulated',
+            'temperature_setpoint': new_temp_sp,
+            'pressure_setpoint': new_pressure_sp,
         }
         return ActionEffect(
             success=True,

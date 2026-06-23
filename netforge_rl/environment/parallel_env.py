@@ -12,6 +12,7 @@ from netforge_rl.core.physics import ConflictResolutionEngine
 from netforge_rl.environment.base_env import BaseNetForgeRLEnv
 from netforge_rl.topologies.network_generator import NetworkGenerator
 from netforge_rl.topologies.dynamic_topology import TopologyEventEngine
+from netforge_rl.scenarios.ot_physics import PLCPhysicsEngine
 from netforge_rl.agents.green_agent import GreenAgent
 from netforge_rl.docker_bridge.bridge import DockerBridge
 from netforge_rl.siem.siem_logger import SIEMLogger
@@ -61,6 +62,7 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
             migration_rate=cfg.get('topology_migration_rate', 0.0),
             arrival_rate=cfg.get('topology_arrival_rate', 0.0),
         )
+        self.physics_engine = PLCPhysicsEngine()
 
         self.observation_spaces = {
             agent: gym.spaces.Dict(
@@ -142,6 +144,7 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
         self.current_tick = 0
         self.event_queue = []
         self.topology_engine.reset(seed=seed)
+        self.physics_engine.reset(seed=seed)
 
         return observations, {agent: {} for agent in self.agents}
 
@@ -329,10 +332,6 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
 
         self.siem_logger.log_background_noise(self.global_state)
 
-        observations = {}
-        rewards = {}
-        terminate = self.scenario.check_termination(self.global_state)
-
         if self.current_tick % 40 == 0:
             self.global_state.reallocate_dhcp()
             valid_ips = set(self.global_state.all_hosts.keys())
@@ -341,6 +340,13 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
                 for e in self.event_queue
                 if e.get('target_ip') is None or e['target_ip'] in valid_ips
             ]
+
+        physics_alerts, physics_deltas = self.physics_engine.tick(self.global_state)
+        for delta_key, delta_val in physics_deltas:
+            self.global_state.apply_delta(delta_key, delta_val)
+        ot_subnet = '10.0.99.0/24'
+        for alert in physics_alerts:
+            self.siem_logger._push_to_buffer(alert, ot_subnet, self.global_state)
 
         topo_events = self.topology_engine.tick(self.global_state)
         if topo_events:
@@ -364,6 +370,9 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
                 agent: self.action_mask(agent) for agent in self.agents
             }
 
+        observations = {}
+        rewards = {}
+        terminate = self.scenario.check_termination(self.global_state)
         is_truncated = self.current_tick >= self.max_ticks
         truncate = {agent: is_truncated for agent in self.agents}
 

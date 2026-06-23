@@ -81,6 +81,39 @@ The episode halts immediately if a critical Cyber-Physical node transitions to a
         return {agent: False for agent in self.agents}
 ```
 
+## OT/SCADA Scenario: `ot_stuxnet`
+
+The `OTStuxnetScenario` rewards Red for achieving physical process destruction on PLC hosts, and Blue for keeping OT nodes clean. A 25% chance each episode generates an OT subnet (`10.0.99.0/24`) with `PLC_Firmware` hosts.
+
+### Physical state
+
+Each PLC host tracks three process variables governed by first-order lag ODEs (in `PLCPhysicsEngine`):
+
+| Variable | Nominal | Alarm | Critical | τ (ticks) |
+|---|---|---|---|---|
+| temperature (°C) | 40–60 | > 80 | > 120 | 20 |
+| pressure (bar) | 90–110 | > 130 or < 70 | > 180 or < 30 | 10 |
+| flow_rate (L/min) | 40–60 | > 90 or < 20 | > 150 or < 5 | 5 |
+
+Each tick: `x[t+1] = x[t] + (setpoint − x[t]) / τ + noise`
+
+### Attack flow
+
+`OverloadPLC` (red_operator action ID 20, requires Root on a PLC host) manipulates setpoints rather than directly spiking values:
+
+```python
+# setpoints jump to unsafe targets; physics engine drives process toward them
+temperature_setpoint += uniform(80, 150)   # °C above normal
+pressure_setpoint    *= uniform(1.5, 2.0)  # 1.5–2× nominal
+flow_rate_setpoint    = 3.0               # near-zero (choke)
+```
+
+Blue receives `SCADA_PHYSICAL_ALARM` SIEM alerts (severity 7) when variables enter alarm range, and `SCADA_KINETIC_BREACH` (severity 10) when critical thresholds are crossed. Blue has roughly 10 ticks between first alarm and physical destruction to isolate the PLC.
+
+```python
+env = NetForgeRLEnv({'scenario_type': 'ot_stuxnet', 'max_ticks': 300})
+```
+
 ## Registering Configurations
 
 Scenario classes are registered dynamically via the `parallel_env` instantiation dictionary:
