@@ -16,6 +16,7 @@ from netforge_rl.scenarios.ot_physics import PLCPhysicsEngine
 from netforge_rl.agents.green_agent import GreenAgent
 from netforge_rl.docker_bridge.bridge import DockerBridge
 from netforge_rl.siem.siem_logger import SIEMLogger
+from netforge_rl.siem.pcap_synthesizer import PcapSynthesizer, N_PACKETS, PACKET_DIM, NODE_DIM
 from netforge_rl.nlp.log_encoder import LogEncoder, EMBEDDING_DIM
 
 
@@ -63,28 +64,27 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
             arrival_rate=cfg.get('topology_arrival_rate', 0.0),
         )
         self.physics_engine = PLCPhysicsEngine()
+        self.pcap_obs = cfg.get('pcap_obs', False)
+        self.pcap_synthesizer = PcapSynthesizer() if self.pcap_obs else None
 
-        self.observation_spaces = {
-            agent: gym.spaces.Dict(
-                {
-                    'obs': gym.spaces.Box(
-                        low=-1.0, high=1.0, shape=(256,), dtype=np.float32
-                    ),
-                    'action_mask': gym.spaces.Box(
-                        low=0, high=1, shape=(32 + 100,), dtype=np.int8
-                    ),
-                    'siem_embedding': gym.spaces.Box(
-                        low=-1.0, high=1.0, shape=(EMBEDDING_DIM,), dtype=np.float32
-                    ),
-                    'adj_matrix': gym.spaces.Box(
-                        low=0.0, high=1.0, shape=(10000,), dtype=np.float32
-                    ),
-                    'delta_t': gym.spaces.Box(
-                        low=0.0, high=1.0, shape=(1,), dtype=np.float32
-                    ),
-                }
+        _base_obs = {
+            'obs': gym.spaces.Box(low=-1.0, high=1.0, shape=(256,), dtype=np.float32),
+            'action_mask': gym.spaces.Box(low=0, high=1, shape=(32 + 100,), dtype=np.int8),
+            'siem_embedding': gym.spaces.Box(
+                low=-1.0, high=1.0, shape=(EMBEDDING_DIM,), dtype=np.float32
+            ),
+            'adj_matrix': gym.spaces.Box(low=0.0, high=1.0, shape=(10000,), dtype=np.float32),
+            'delta_t': gym.spaces.Box(low=0.0, high=1.0, shape=(1,), dtype=np.float32),
+        }
+        if self.pcap_obs:
+            _base_obs['pcap'] = gym.spaces.Box(
+                low=0.0, high=1.0, shape=(N_PACKETS, PACKET_DIM), dtype=np.float32
             )
-            for agent in self.possible_agents
+            _base_obs['node_features'] = gym.spaces.Box(
+                low=0.0, high=1.0, shape=(100, NODE_DIM), dtype=np.float32
+            )
+        self.observation_spaces = {
+            agent: gym.spaces.Dict(_base_obs) for agent in self.possible_agents
         }
         self.action_spaces = {
             agent: gym.spaces.MultiDiscrete(
@@ -134,17 +134,23 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
         for agent_id in self.agents:
             obs = BaseObservation(agent_id)
             obs.update_from_state(self.global_state, [])
-            observations[agent_id] = {
+            agent_obs = {
                 'obs': obs.to_numpy(max_size=256),
                 'action_mask': self._cached_action_masks[agent_id],
                 'siem_embedding': np.zeros(EMBEDDING_DIM, dtype=np.float32),
                 'adj_matrix': self.global_state.get_adjacency_matrix().flatten(),
                 'delta_t': np.zeros(1, dtype=np.float32),
             }
+            if self.pcap_obs:
+                agent_obs['pcap'] = np.zeros((N_PACKETS, PACKET_DIM), dtype=np.float32)
+                agent_obs['node_features'] = np.zeros((100, NODE_DIM), dtype=np.float32)
+            observations[agent_id] = agent_obs
         self.current_tick = 0
         self.event_queue = []
         self.topology_engine.reset(seed=seed)
         self.physics_engine.reset(seed=seed)
+        if self.pcap_synthesizer:
+            self.pcap_synthesizer.reset(seed=seed)
 
         return observations, {agent: {} for agent in self.agents}
 
@@ -388,6 +394,19 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
                     subset_logs, agg='mean'
                 )
 
+        pcap_snapshot = (
+            self.pcap_synthesizer.synthesize(
+                self.global_state, self.current_tick, self.max_ticks
+            )
+            if self.pcap_synthesizer
+            else None
+        )
+        node_feat_snapshot = (
+            self.pcap_synthesizer.node_features(self.global_state)
+            if self.pcap_synthesizer
+            else None
+        )
+
         for agent in self.agents:
             obs = BaseObservation(agent)
             obs.update_from_state(self.global_state, resolved_effects)
@@ -401,13 +420,17 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
             else:
                 agent_siem_vec = np.zeros(EMBEDDING_DIM, dtype=np.float32)
 
-            observations[agent] = {
+            agent_obs = {
                 'obs': obs_array,
                 'action_mask': self._cached_action_masks[agent],
                 'siem_embedding': agent_siem_vec,
                 'adj_matrix': self.global_state.get_adjacency_matrix().flatten(),
                 'delta_t': np.array([delta_t_norm], dtype=np.float32),
             }
+            if self.pcap_obs:
+                agent_obs['pcap'] = pcap_snapshot
+                agent_obs['node_features'] = node_feat_snapshot
+            observations[agent] = agent_obs
             agent_effect = resolved_effects.get(agent)
             rewards[agent] = self.scenario.calculate_reward(
                 agent, self.global_state, agent_effect

@@ -94,6 +94,7 @@ nav:
     - Overview: architecture/overview.md
     - Dynamic Topologies: architecture/dynamic_topology.md
     - OT/SCADA Physics: architecture/ot_physics.md
+    - Multi-Modal Observations: architecture/multimodal_obs.md
     - Zero-Trust Identity: architecture/zero_trust.md
     - Sim2Real Bridge: architecture/sim2real.md
     - NLP-SIEM Pipeline: architecture/nlp_siem.md
