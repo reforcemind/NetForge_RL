@@ -44,6 +44,7 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
         self.network_generator = NetworkGenerator(
             config_path=cfg.get('topology_path'),
             max_active_hosts=cfg.get('max_active_hosts'),
+            evaluation_mode=cfg.get('evaluation_mode', False),
         )
         self.log_latency = cfg.get('log_latency', 2)
         self.green_agent = GreenAgent()
@@ -98,8 +99,13 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
             _base_obs['node_features'] = gym.spaces.Box(
                 low=0.0, high=1.0, shape=(100, NODE_DIM), dtype=np.float32
             )
+        _blue_obs = dict(_base_obs)
+        _blue_obs['blue_comm'] = gym.spaces.Box(
+            low=0.0, high=1.0, shape=(100,), dtype=np.float32
+        )
         self.observation_spaces = {
-            agent: gym.spaces.Dict(_base_obs) for agent in self.possible_agents
+            agent: gym.spaces.Dict(_blue_obs if 'blue' in agent else _base_obs)
+            for agent in self.possible_agents
         }
         self.action_spaces = {
             agent: gym.spaces.MultiDiscrete(
@@ -154,6 +160,8 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
                 'adj_matrix': self.global_state.get_adjacency_matrix().flatten(),
                 'delta_t': np.zeros(1, dtype=np.float32),
             }
+            if 'blue' in agent_id:
+                agent_obs['blue_comm'] = np.zeros(100, dtype=np.float32)
             if self.pcap_obs:
                 agent_obs['pcap'] = np.zeros((N_PACKETS, PACKET_DIM), dtype=np.float32)
                 agent_obs['node_features'] = np.zeros((100, NODE_DIM), dtype=np.float32)
@@ -426,6 +434,8 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
             else None
         )
 
+        blue_comm = self._build_blue_comm()
+
         for agent in self.agents:
             obs = BaseObservation(agent)
             obs.update_from_state(self.global_state, resolved_effects)
@@ -446,6 +456,8 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
                 'adj_matrix': self.global_state.get_adjacency_matrix().flatten(),
                 'delta_t': np.array([delta_t_norm], dtype=np.float32),
             }
+            if 'blue' in agent.lower():
+                agent_obs['blue_comm'] = blue_comm
             if self.pcap_obs:
                 agent_obs['pcap'] = pcap_snapshot
                 agent_obs['node_features'] = node_feat_snapshot
@@ -673,6 +685,34 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
             infos[agent] = info
 
         return infos
+
+    def _build_blue_comm(self) -> np.ndarray:
+        """100-dim shared situational awareness from SIEM incidents and isolation state.
+
+        Encodes the union of threat intel visible to the collective blue team:
+        - 1.0 if the host appears as a target in a correlated [INCIDENT] record
+        - 0.5 if the host has been isolated (public outcome of any blue action)
+        Both signals are cumulative within the episode.
+        """
+        comm = np.zeros(100, dtype=np.float32)
+        ordered = sorted(self.global_state.all_hosts.keys())
+        ip_to_idx = {ip: i for i, ip in enumerate(ordered[:100])}
+
+        for entry, _ in self.global_state.siem_log_buffer:
+            if not isinstance(entry, str) or '[INCIDENT]' not in entry:
+                continue
+            for token in entry.split():
+                if token.startswith('target='):
+                    ip = token[7:]
+                    if ip in ip_to_idx:
+                        comm[ip_to_idx[ip]] = 1.0
+                    break
+
+        for i, ip in enumerate(ordered[:100]):
+            if self.global_state.all_hosts[ip].status == 'isolated':
+                comm[i] = max(comm[i], 0.5)
+
+        return comm
 
     def global_state_vector(self) -> np.ndarray:
         """Generate a flat 512-dim global state vector."""

@@ -3,23 +3,28 @@ from pathlib import Path
 from typing import Optional
 from netforge_rl.core.state import GlobalNetworkState, Subnet, Host
 
+_EVAL_SEED_OFFSET = 1000
+
 
 class NetworkGenerator:
     """Procedurally generates dynamic network topologies for MARL training."""
 
     def __init__(
-        self, config_path: Optional[str] = None, max_active_hosts: Optional[int] = None
+        self,
+        config_path: Optional[str] = None,
+        max_active_hosts: Optional[int] = None,
+        evaluation_mode: bool = False,
     ):
         self.config_path = config_path
         self.max_active_hosts = max_active_hosts
+        self.evaluation_mode = evaluation_mode
 
     def generate(self, seed: Optional[int] = None) -> GlobalNetworkState:
-        """Generates the architecture.
-
-        If a config path was provided, loads deterministically.
-        Otherwise, procedurally generates a randomized topology.
-        """
-        rng = random.Random(seed) if seed is not None else random.Random()
+        """Generates the architecture."""
+        actual_seed = seed
+        if self.evaluation_mode and seed is not None:
+            actual_seed = _EVAL_SEED_OFFSET + (seed % _EVAL_SEED_OFFSET)
+        rng = random.Random(actual_seed) if actual_seed is not None else random.Random()
 
         if self.config_path and Path(self.config_path).exists():
             return self._load_from_yaml(self.config_path, rng)

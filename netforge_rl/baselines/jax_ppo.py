@@ -7,6 +7,9 @@ from netforge_rl.backends.jax import BatchedActions, VectorEnvSpec
 from netforge_rl.bridges.jaxmarl import JaxMARLEnv
 
 
+BLUE_AGENTS = ('blue_dmz', 'blue_internal', 'blue_restricted')
+
+
 def init_mlp_params(key, obs_dim, n_targets, n_action_types, hidden=64):
     """Two-layer MLP with separate policy + value heads."""
     k1, k2, k3, k4, k5 = jax.random.split(key, 5)
@@ -289,3 +292,163 @@ def train(cfg: PPOConfig):
         losses.append(iter_loss / n_updates)
 
     return {'params': params, 'losses': losses}
+
+
+def make_ippo_rollout_scan(env: JaxMARLEnv, cfg: 'PPOConfig', blue_agents=BLUE_AGENTS):
+    """lax.scan rollout that drives ALL blue agents with shared params simultaneously."""
+    blue_names = [a for a in env.agents if a in set(blue_agents)]
+    red_names = [a for a in env.agents if 'red' in a.lower()]
+    n_blue = len(blue_names)
+    n_red = len(red_names)
+    B = cfg.batch_size
+    n_hosts = cfg.n_hosts
+
+    def step_body(carry, _):
+        params, state, obs_dict, key = carry
+
+        blue_obs = jnp.concatenate([obs_dict[a] for a in blue_names], axis=0)
+        (logits_target, logits_type), values = forward(params, blue_obs)
+
+        key, k_t, k_at, k_red = jax.random.split(key, 4)
+        target_idx = jax.random.categorical(k_t, logits_target)
+        action_type = jax.random.categorical(k_at, logits_type)
+
+        logp = (
+            jnp.take_along_axis(
+                jax.nn.log_softmax(logits_target), target_idx[..., None], axis=-1
+            )[..., 0]
+            + jnp.take_along_axis(
+                jax.nn.log_softmax(logits_type), action_type[..., None], axis=-1
+            )[..., 0]
+        )
+
+        # Split per agent: (n_blue, B)
+        target_per = jnp.reshape(target_idx, (n_blue, B))
+        type_per = jnp.reshape(action_type, (n_blue, B))
+        logp_per = jnp.reshape(logp, (n_blue, B))
+        val_per = jnp.reshape(values, (n_blue, B))
+
+        blue_t = jnp.stack([target_per[i] for i in range(n_blue)], axis=-1)
+        blue_at = jnp.stack(
+            [type_per[i].astype(jnp.int8) for i in range(n_blue)], axis=-1
+        )
+        red_t = jax.random.randint(k_red, (B, n_red), 0, n_hosts, dtype=jnp.int32)
+        red_at = jax.random.randint(k_red, (B, n_red), 0, 20, dtype=jnp.int8)
+
+        batched = BatchedActions(
+            red_target_idx=red_t,
+            blue_target_idx=blue_t,
+            red_attempt=jnp.ones((B, n_red), dtype=jnp.bool_),
+            blue_attempt=jnp.ones((B, n_blue), dtype=jnp.bool_),
+            red_action_type=red_at,
+            blue_action_type=blue_at,
+        )
+
+        key, k_step = jax.random.split(key)
+        obs_dict, state, reward_dict, done_dict, _ = env.step(k_step, state, batched)
+
+        out = {
+            'obs': jnp.reshape(blue_obs, (n_blue, B, -1)),
+            'action_target': target_per,
+            'action_type': type_per,
+            'logp': logp_per,
+            'value': val_per,
+            'reward': jnp.stack([reward_dict[a] for a in blue_names], axis=0),
+            'done': jnp.stack(
+                [done_dict[a].astype(jnp.float32) for a in blue_names], axis=0
+            ),
+        }
+        return (params, state, obs_dict, key), out
+
+    @jax.jit
+    def rollout(params, state, obs_dict, key):
+        (params, state, obs_dict, key), traj = jax.lax.scan(
+            step_body, (params, state, obs_dict, key), None, length=cfg.num_steps
+        )
+        blue_obs = jnp.concatenate([obs_dict[a] for a in blue_names], axis=0)
+        _, last_values = forward(params, blue_obs)
+        return state, obs_dict, key, traj, jnp.reshape(last_values, (n_blue, B))
+
+    return rollout, blue_names
+
+
+def ippo_train(cfg: 'PPOConfig', blue_agents=BLUE_AGENTS):
+    """Independent PPO with shared parameters across all blue agents."""
+    n_blue = len(blue_agents)
+    env = JaxMARLEnv(
+        spec=VectorEnvSpec(n_hosts=cfg.n_hosts, n_red=cfg.n_red, n_blue=n_blue),
+        batch_size=cfg.batch_size,
+    )
+
+    key = jax.random.PRNGKey(cfg.seed)
+    key, sub = jax.random.split(key)
+    obs_dict, state = env.reset(sub)
+
+    blue_names = [a for a in env.agents if a in set(blue_agents)]
+    obs_dim = obs_dict[blue_names[0]].shape[-1]
+    params = init_mlp_params(
+        jax.random.PRNGKey(cfg.seed + 1), obs_dim, cfg.n_hosts, cfg.n_action_types
+    )
+    opt_state = init_adam(params)
+    rollout, blue_names = make_ippo_rollout_scan(
+        env, cfg, blue_agents=tuple(blue_names)
+    )
+    grad_step = _make_grad_step(cfg)
+
+    # n_blue times the data per iteration compared to single-agent PPO
+    total_samples = cfg.num_steps * cfg.batch_size * n_blue
+    if total_samples % cfg.num_minibatches != 0:
+        raise ValueError(
+            f'num_steps*batch_size*n_blue ({total_samples}) must be divisible by '
+            f'num_minibatches ({cfg.num_minibatches}).'
+        )
+    minibatch_size = total_samples // cfg.num_minibatches
+
+    losses = []
+    for _ in range(cfg.total_iters):
+        state, obs_dict, key, traj, last_values = rollout(params, state, obs_dict, key)
+
+        all_obs, all_actions, all_logps, all_advs, all_rets = [], [], [], [], []
+        for i in range(n_blue):
+            r = traj['reward'][:, i, :]  # (T, B)
+            d = traj['done'][:, i, :]  # (T, B)
+            v = traj['value'][:, i, :]  # (T, B)
+            lv = last_values[i]  # (B,)
+
+            values_ext = jnp.concatenate([v, lv[None]], axis=0)
+            adv = gae(r, values_ext, d, gamma=cfg.gamma, lam=cfg.lam)
+            ret = adv + v
+
+            obs_i = traj['obs'][:, i, :, :]  # (T, B, obs_dim)
+            act_i = jnp.stack(
+                [traj['action_target'][:, i, :], traj['action_type'][:, i, :]], axis=-1
+            )  # (T, B, 2)
+
+            all_obs.append(obs_i.reshape(-1, obs_dim))
+            all_actions.append(act_i.reshape(-1, 2))
+            all_logps.append(traj['logp'][:, i, :].reshape(-1))
+            all_advs.append(adv.reshape(-1))
+            all_rets.append(ret.reshape(-1))
+
+        flat = {
+            'obs': jnp.concatenate(all_obs, axis=0),
+            'action': jnp.concatenate(all_actions, axis=0),
+            'logp': jnp.concatenate(all_logps, axis=0),
+            'adv': jnp.concatenate(all_advs, axis=0),
+            'ret': jnp.concatenate(all_rets, axis=0),
+        }
+        flat['adv'] = (flat['adv'] - flat['adv'].mean()) / (flat['adv'].std() + 1e-8)
+
+        iter_loss = 0.0
+        n_updates = 0
+        for _ in range(cfg.update_epochs):
+            key, perm_key = jax.random.split(key)
+            perm = jax.random.permutation(perm_key, total_samples)
+            for mb in range(cfg.num_minibatches):
+                idx = perm[mb * minibatch_size : (mb + 1) * minibatch_size]
+                params, opt_state, loss = grad_step(params, opt_state, flat, idx)
+                iter_loss += float(loss)
+                n_updates += 1
+        losses.append(iter_loss / n_updates)
+
+    return {'params': params, 'losses': losses, 'blue_agents': blue_names}
