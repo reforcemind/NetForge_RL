@@ -27,6 +27,7 @@ from netforge_rl.siem.correlator import SIEMCorrelator
 from netforge_rl.nlp.log_encoder import LogEncoder, EMBEDDING_DIM
 from netforge_rl.siem.event_templates import sysmon_1
 from netforge_rl.core.functional import from_global_state
+from netforge_rl.render.trajectory import TrajectoryRecorder
 import random
 
 
@@ -78,6 +79,9 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
         self.correlator = SIEMCorrelator()
         self.pcap_obs = cfg.get('pcap_obs', False)
         self.pcap_synthesizer = PcapSynthesizer() if self.pcap_obs else None
+        self.trajectory_recorder = (
+            TrajectoryRecorder() if cfg.get('record_trajectory', False) else None
+        )
 
         _base_obs = {
             'obs': gym.spaces.Box(low=-1.0, high=1.0, shape=(256,), dtype=np.float32),
@@ -171,6 +175,10 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
         self.topology_engine.reset(seed=seed)
         self.physics_engine.reset(seed=seed)
         self.correlator.reset()
+        if self.trajectory_recorder is not None:
+            self.trajectory_recorder.reset(
+                scenario=self.scenario.__class__.__name__, seed=seed or 0
+            )
         if self.pcap_synthesizer:
             self.pcap_synthesizer.reset(seed=seed)
 
@@ -466,6 +474,18 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
             rewards[agent] = self.scenario.calculate_reward(
                 agent, self.global_state, agent_effect
             )
+
+        if self.trajectory_recorder is not None:
+            for agent, effect in resolved_effects.items():
+                meta = action_metadata.get(agent, {})
+                self.trajectory_recorder.record_step(
+                    tick=self.current_tick,
+                    agent_id=agent,
+                    action_name=meta.get('name', 'UnknownAction'),
+                    target_ip=meta.get('target_ip'),
+                    success=effect.success,
+                    reward=float(rewards.get(agent, 0.0)),
+                )
 
         self.agents = [
             agent
