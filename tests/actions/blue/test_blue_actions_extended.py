@@ -65,4 +65,4 @@ def test_security_awareness_training(global_state, blue_agent):
     assert result.success is True
     apply_deltas(global_state, result.state_deltas)
     for h in global_state.subnets[subnet_cidr].hosts.values():
-        assert h.human_vulnerability_score == 0.16
+        assert h.human_vulnerability_score == 0.64

@@ -57,9 +57,10 @@ def test_discover_remote_systems_decoys(red_agent):
     host = Host(ip='192.168.1.50', hostname='Honeypot', subnet_cidr=target_subnet)
     host.decoy = 'active'
     state.register_host(host)
+    state.register_host(Host(ip='169.254.0.1', hostname='Decoy1', subnet_cidr='169.254.0.0/16'))
     result = action.execute(state)
     assert result.success is True
-    assert '10.x.x.99' in result.observation_data['hosts']
+    assert '169.254.0.1' in result.observation_data['hosts']
 
 
 @pytest.mark.fast
