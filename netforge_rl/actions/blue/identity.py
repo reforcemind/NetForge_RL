@@ -1,4 +1,3 @@
-import random
 import string
 from netforge_rl.core.action import BaseAction, ActionEffect
 from netforge_rl.core.registry import action_registry
@@ -20,10 +19,12 @@ class RotateKerberosCommand(IStateDeltaCommand):
         state.business_downtime_score += 1500.0
         for agent in state.agent_inventory:
             state.agent_inventory[agent].clear()
-        random_suffix = ''.join(
-            random.choices(string.ascii_uppercase + string.digits, k=6)
+        tick = getattr(state, 'current_tick', 0)
+        suffix_chars = string.ascii_uppercase + string.digits
+        suffix = ''.join(
+            suffix_chars[(tick * 7 + i * 31) % len(suffix_chars)] for i in range(6)
         )
-        new_token = f'Enterprise_Admin_Token_{random_suffix}'
+        new_token = f'Enterprise_Admin_Token_{suffix}'
 
         def _migrate_tokens(token_list):
             if 'Enterprise_Admin_Token' in token_list:

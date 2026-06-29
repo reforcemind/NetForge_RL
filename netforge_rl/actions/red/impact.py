@@ -3,7 +3,7 @@ from netforge_rl.core.registry import action_registry
 from netforge_rl.core.commands import ConsumeBandwidthCommand
 
 
-@action_registry.register('red_operator', 2)
+@action_registry.register('red', 11)
 class Impact(BaseAction):
     """Executes ransomware/wiper impact."""
 
@@ -21,7 +21,7 @@ class Impact(BaseAction):
         )
 
 
-@action_registry.register('red_operator', 8)
+@action_registry.register('red', 12)
 class KillProcess(BaseAction):
     """Terminates specific process."""
 
@@ -39,7 +39,7 @@ class KillProcess(BaseAction):
         )
 
 
-@action_registry.register('red_operator', 10)
+@action_registry.register('red', 13)
 class ExfiltrateData(BaseAction):
     """Exfiltrates data."""
 

@@ -134,7 +134,9 @@ class SecurityAwarenessTraining(BaseAction):
         for host in subnet.hosts.values():
             if hasattr(host, 'human_vulnerability_score'):
                 current_score = host.human_vulnerability_score
-                new_score = round(current_score * 0.2, 2)
+                new_score = round(
+                    current_score * 0.8, 2
+                )  # Fix 2.6: reduce by 20% per training, not 80%
                 deltas[f'hosts/{host.ip}/human_vulnerability_score'] = new_score
         return ActionEffect(
             success=True,

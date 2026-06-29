@@ -7,7 +7,7 @@ from netforge_rl.core.commands import (
 from netforge_rl.core.registry import action_registry
 
 
-@action_registry.register('red_operator', 21)
+@action_registry.register('red', 21)
 class SpearPhishing(BaseAction):
     """Executes spear-phishing."""
 

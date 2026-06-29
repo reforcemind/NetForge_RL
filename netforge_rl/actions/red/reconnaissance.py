@@ -41,7 +41,12 @@ class DiscoverRemoteSystems(BaseAction):
                     fake_data = True
         obs_data = {'ping_sweep': self.target_ip, 'hosts': active_hosts}
         if fake_data:
-            obs_data['hosts'] = active_hosts + ['10.x.x.99', '10.x.x.100']
+            decoy_ips = [
+                ip
+                for ip in global_state.all_hosts
+                if ip.startswith('169.254.') and ip not in active_hosts
+            ][:2]
+            obs_data['hosts'] = active_hosts + decoy_ips
         knowledge_deltas = {
             f'knowledge/{self.agent_id}/{ip}': 'True' for ip in obs_data['hosts']
         }

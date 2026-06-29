@@ -3,7 +3,7 @@ from netforge_rl.core.action import BaseAction, ActionEffect
 from netforge_rl.core.registry import action_registry
 
 
-@action_registry.register('red_operator', 20)
+@action_registry.register('red', 20)
 class OverloadPLC(BaseAction):
     """Manipulates PLC setpoints to drive physical parameters into unsafe ranges."""
 

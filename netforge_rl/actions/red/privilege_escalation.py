@@ -26,7 +26,7 @@ class PrivilegeEscalate(BaseAction):
         )
 
 
-@action_registry.register('red_operator', 6)
+@action_registry.register('red', 6)
 class JuicyPotato(BaseAction):
     """Executes the JuicyPotato privilege escalation vector."""
 
@@ -59,7 +59,7 @@ class JuicyPotato(BaseAction):
         )
 
 
-@action_registry.register('red_operator', 7)
+@action_registry.register('red', 10)
 class V4L2KernelExploit(BaseAction):
     """Executes a V4L2 kernel-level vulnerability."""
 
