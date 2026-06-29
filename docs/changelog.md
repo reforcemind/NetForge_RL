@@ -3,6 +3,17 @@
 All notable changes to the `netforge_rl` project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [2.2.0] — 2026-06
+
+### Fixed
+- **Core**: Normalized rewards using `tanh` scaling to prevent reward explosion.
+- **Core**: Removed module-level global seeding for deterministic parallel execution.
+- **Core**: Fixed `red` agent action mapping and removed duplicate conflict resolution logic.
+- **Core**: Fixed fog-of-war masking shapes to align with the 132-dimension observation space.
+- **Core**: Replaced hardcoded decoy IPs with dynamic `169.254.x.x` padding IPs in reconnaissance.
+
+---
+
 ## [2.1.0] — 2026-06
 
 ### Added

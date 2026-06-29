@@ -57,7 +57,7 @@ flowchart TD
 All agent capabilities inherit from `BaseAction`. `execute()` returns an `ActionEffect` containing `state_deltas` determining specific state tensor modifications.
 
 ### `ConflictResolutionEngine`
-Resolves temporal collisions occurring in the same parallel tick. If a Blue action targets the same IP as a Red action simultaneously, the Red action is neutralized to enforce defense precedence.
+Resolves temporal collisions occurring in the same parallel tick. Handled deterministically within the `EnvState` interpreter.
 
 ### `SIEMLogger` and `LogEncoder`
 `SIEMLogger` translates state deltas into standardized string logs matching Windows/Sysmon syntax, injecting stochastic benign noise. `LogEncoder` vectorizes the buffer into dense observations.

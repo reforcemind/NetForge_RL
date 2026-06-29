@@ -12,7 +12,7 @@ NetForge RL defines a zero-sum, asymmetric, multi-agent environment with partial
 
 - **Objective**: Maximize scalar reward by maintaining service uptime and minimizing compromised host counts across the episode.
 - **Initial State**: Full visibility of the uncompromised network baseline.
-- **Mechanics**: Agents observe the environment strictly through SIEM event logs. Actions consist of isolation, firewall ACL modification, and host restoration. Detection capabilities are dependent on Red action signatures; stealthy actions may bypass event log generation.
+- **Mechanics**: Agents observe the environment through SIEM event logs. Actions consist of isolation, firewall ACL modification, host restoration, and decoy deployment (`169.254.x.x`). Detection capabilities depend on Red action signatures; stealthy actions may bypass event generation.
 
 ## Kinetic Impacts
 
