@@ -1,3 +1,7 @@
+import pytest
+
+pytest.importorskip('ray')
+
 import gymnasium as gym
 from netforge_rl.bridges.rllib_bridge import NetForgeRLlibEnv
 
