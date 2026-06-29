@@ -112,5 +112,7 @@ nav:
     - Curriculum Learning: training/curriculum.md
     - RLlib + LSTM: training/rllib.md
     - Scenarios: training/scenarios.md
-    - Benchmarks & Competition: training/benchmarks.md
+    - Benchmarks:
+      - Overview: benchmarks/overview.md
+      - Run: benchmarks/run.md
   - Changelog: changelog.md
