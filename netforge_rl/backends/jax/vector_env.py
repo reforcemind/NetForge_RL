@@ -119,6 +119,34 @@ _RW = {
 _RED_SCALE = 100.0
 _BLUE_SCALE = 10.0
 
+_RED_WEIGHT_KEYS = (
+    'user-compromise',
+    'root-privesc',
+    'host-impact',
+    'kinetic',
+    'exfil/host',
+    'dc-compromise',
+    'recon',
+)
+_BLUE_WEIGHT_KEYS = (
+    'good-isolate',
+    'bad-isolate',
+    'restore',
+    'health-ratio',
+    'dc-loss',
+    'deception',
+)
+
+
+def get_reward_weights(scenario_name: str) -> dict:
+    """Public API: return named reward weights for a given scenario."""
+    sid = SCENARIO_IDS[scenario_name]
+    rw_red, rw_blue = _RW[sid]
+    return {
+        'red': dict(zip(_RED_WEIGHT_KEYS, rw_red)),
+        'blue': dict(zip(_BLUE_WEIGHT_KEYS, rw_blue)),
+    }
+
 
 class BatchedActions(NamedTuple):
     red_target_idx: jax.Array
