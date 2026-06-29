@@ -100,6 +100,9 @@ def test_curriculum_wrapper_reset_and_step():
 
 
 def test_curriculum_wrapper_render_and_close():
+    import pytest
+
+    pytest.importorskip('matplotlib')
     wrapper = CurriculumWrapper()
     img = wrapper.render()
     assert img is not None
