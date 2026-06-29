@@ -223,8 +223,7 @@ def generalization_gap(
     n_seeds: int = 20,
     max_ticks: int = 200,
 ) -> dict:
-    """Run the same agent on train and held-out topologies; report the gap (D).
-    """
+    """Run the same agent on train and held-out topologies; report the gap (D)."""
     train = run_benchmark(
         f'{name}_train',
         team,
@@ -298,12 +297,8 @@ if __name__ == '__main__':
         _red_opp = RandomAgent()
         _blue_opp = RandomAgent()
     else:
-        _red_opp = (
-            RandomAgent()
-        )
-        _blue_opp = (
-            RandomAgent()
-        )
+        _red_opp = RandomAgent()
+        _blue_opp = RandomAgent()
 
     if args.leaderboard:
         print_leaderboard()

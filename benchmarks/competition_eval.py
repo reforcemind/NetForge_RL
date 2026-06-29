@@ -208,8 +208,7 @@ def save_leaderboard(entries: list) -> None:
 
 
 def submit_to_leaderboard(result: SubmissionResult) -> None:
-    """Persist result and maintain separate red/blue leaderboard tables.
-    """
+    """Persist result and maintain separate red/blue leaderboard tables."""
     entries = load_leaderboard()
     agg = result.aggregate()
     entry = {
@@ -303,7 +302,8 @@ if __name__ == '__main__':
                 pass
 
             def act(self, obs, agent_id):
-                return np.array([0, 0], dtype=np.int64) 
+                return np.array([0, 0], dtype=np.int64)
+
         print(
             f'Evaluating "{args.name}" ({args.team}) '
             f'against heuristic opponent (fix 6.2)...'

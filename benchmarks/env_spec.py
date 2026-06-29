@@ -66,7 +66,7 @@ def build_spec() -> dict:
     reward = {
         name: {
             'max_step_reward': cls.MAX_STEP_REWARD,
-            **get_reward_weights(name),  
+            **get_reward_weights(name),
         }
         for name, cls in _SCENARIOS.items()
         if name in SCENARIO_IDS
