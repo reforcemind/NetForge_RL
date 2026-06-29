@@ -33,7 +33,7 @@ def _per_agent_obs(state, agents):
         axis=-1,
     )
 
-    known_mask = state.agent_known_mask[:, 0, :].astype(jnp.float32)
+    known_mask = state.knowledge_mask[:, 0, :].astype(jnp.float32)
     red_status = state.hosts.status.astype(jnp.float32) * known_mask
     red_priv = state.hosts.privilege.astype(jnp.float32) * known_mask
     red_flat = jnp.concatenate([red_status, red_priv], axis=-1)

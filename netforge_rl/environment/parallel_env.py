@@ -26,7 +26,6 @@ from netforge_rl.siem.correlator import SIEMCorrelator
 from netforge_rl.nlp.log_encoder import LogEncoder, EMBEDDING_DIM
 from netforge_rl.siem.event_templates import sysmon_1
 from netforge_rl.core.functional import from_global_state
-from netforge_rl.render.trajectory import TrajectoryRecorder
 import random
 
 
@@ -744,9 +743,10 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
         full_adj = self.global_state.get_adjacency_matrix()
         known_ips = self.global_state.agent_knowledge.get(agent, set())
         sorted_ips = sorted(self.global_state.all_hosts.keys())[:100]
-        mask = np.array(
-            [1.0 if ip in known_ips else 0.0 for ip in sorted_ips], dtype=np.float32
-        )
+        mask = np.zeros(100, dtype=np.float32)
+        for i, ip in enumerate(sorted_ips):
+            if ip in known_ips:
+                mask[i] = 1.0
         masked = full_adj * mask[None, :] * mask[:, None]
         return masked
 
