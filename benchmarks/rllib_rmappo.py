@@ -55,7 +55,9 @@ if __name__ == '__main__':
     algo = config.build()
 
     print('[Training Red (RMAPPO) vs Blue (RMAPPO) simultaneously...')
-    for i in range(2):
+    for i in range(
+        100
+    ):
         result = algo.train()
         print(f'\n--- Iteration {i} ---')
         print(f'Mean Reward: {result.get("episode_reward_mean", 0.0)}')
