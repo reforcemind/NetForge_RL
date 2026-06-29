@@ -174,12 +174,17 @@ class NetworkGenerator:
             pad_host.status = 'isolated'  # Native Action Masking bounds
             state.register_host(pad_host)
 
+        assert len(state.all_hosts) == 100, (
+            f'NetworkGenerator produced {len(state.all_hosts)} hosts; '
+            f'expected exactly 100. Check max_active_hosts limit and padding logic.'
+        )
+
         self._configure_procedural_vision(state)
         return state
 
     def _configure_procedural_vision(self, state: GlobalNetworkState):
-        """Builds fog-of-war vision depending on the layout."""
-        # Red baseline starts in DMZ
+        """Builds fog-of-war initial vision depending on the layout."""
+        # Red baseline starts in DMZ only.
         for host in state.all_hosts.values():
             if (
                 state.get_subnet_name(host.subnet_cidr) == 'DMZ'
@@ -189,11 +194,88 @@ class NetworkGenerator:
                 state.update_knowledge('red_operator', host.ip)
                 break
 
-        # Blue knows all active topology natively but is blind to zero-padded isolated objects
+        # Subnet → blue agent mapping.
+        _SUBNET_BLUE = {
+            'DMZ': 'blue_dmz',
+            'Corporate': 'blue_internal',
+            'Secure': 'blue_restricted',
+            'Guest': 'blue_internal',
+            'OT_Subnet': 'blue_restricted',
+        }
+        # Ensure all deployed blue agents start with at least an empty knowledge set.
+        for blue_id in ('blue_dmz', 'blue_internal', 'blue_restricted'):
+            state.agent_knowledge.setdefault(blue_id, set())
+
         for host in state.all_hosts.values():
-            if host.status != 'isolated':
-                state.update_knowledge('blue_commander', host.ip)
-                state.update_knowledge('blue_operator', host.ip)
+            if host.status == 'isolated':  # Exclude padding hosts.
+                continue
+            subnet_name = state.get_subnet_name(host.subnet_cidr)
+            blue_id = _SUBNET_BLUE.get(subnet_name)
+            if blue_id:
+                state.update_knowledge(blue_id, host.ip)
 
     def _load_from_yaml(self, path: str, rng: random.Random) -> GlobalNetworkState:
-        raise NotImplementedError(f'YAML topology loading not implemented; got {path}')
+        """Load a fixed network topology from a YAML config file.
+
+        YAML format example::
+
+            subnets:
+              - cidr: "192.168.1.0/24"
+                name: DMZ
+            hosts:
+              - ip: "192.168.1.10"
+                hostname: "WebServer"
+                subnet_cidr: "192.168.1.0/24"
+                os: "Linux_Ubuntu"
+                services: ["SSH", "Apache"]
+                vulnerabilities: ["CVE-2021-44228"]
+                cvss_score: 7.5
+                decoy: "inactive"
+        """
+        import yaml  # noqa: PLC0415 (lazy import to keep non-yaml envs lightweight)
+
+        with open(path) as fh:
+            cfg = yaml.safe_load(fh)
+
+        state = GlobalNetworkState()
+
+        for sn in cfg.get('subnets', []):
+            from netforge_rl.core.state import Subnet  # noqa: PLC0415
+
+            state.add_subnet(Subnet(cidr=sn['cidr'], name=sn['name']))
+
+        active_hosts = []
+        for hcfg in cfg.get('hosts', []):
+            host = Host(
+                ip=hcfg['ip'],
+                hostname=hcfg.get('hostname', hcfg['ip']),
+                subnet_cidr=hcfg['subnet_cidr'],
+            )
+            host.os = hcfg.get('os', 'Unknown')
+            host.services = hcfg.get('services', [])
+            host.vulnerabilities = hcfg.get('vulnerabilities', [])
+            host.cvss_score = float(hcfg.get('cvss_score', 5.0))
+            host.decoy = hcfg.get('decoy', 'inactive')
+            host.human_vulnerability_score = float(
+                hcfg.get('human_vulnerability_score', 0.3)
+            )
+            state.register_host(host)
+            active_hosts.append(host)
+
+        padding_needed = 100 - len(state.all_hosts)
+        for p in range(padding_needed):
+            pad_ip = f'169.254.0.{p + 1}'
+            pad_host = Host(
+                ip=pad_ip, hostname=f'Pad_Node_{p}', subnet_cidr='169.254.0.0/16'
+            )
+            pad_host.status = 'isolated'
+            state.register_host(pad_host)
+
+        if len(state.all_hosts) != 100:
+            raise ValueError(
+                f'YAML topology produced {len(state.all_hosts)} hosts after padding; '
+                f'reduce the number of defined hosts to at most 99 (one slot reserved for gateway).'
+            )
+
+        self._configure_procedural_vision(state)
+        return state

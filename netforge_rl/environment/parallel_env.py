@@ -123,8 +123,6 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
         """Reset the environment."""
         self.np_random = np.random.default_rng(seed)
         self._py_random = random.Random(seed)
-        if seed is not None:
-            random.seed(seed)
         self.docker_bridge.teardown_all()
         self.global_state = self.network_generator.generate(seed=seed)
         self.global_state.docker_bridge = self.docker_bridge
@@ -188,7 +186,7 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
         return self.action_spaces[agent]
 
     def action_mask(self, agent: str) -> np.ndarray:
-        """Generate a binary action mask (132,) reflecting registered actions and live hosts."""
+        """Generate a binary action mask of shape (132,) = (32 + 100)."""
         mask = np.zeros(132, dtype=np.int8)
         lower = agent.lower()
         if 'red' in lower:
@@ -249,25 +247,27 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
 
             if self.global_state.agent_energy.get(agent, 0) < action.cost:
                 continue
+            if not action.validate(self.global_state):
+                continue
+
             self.global_state.agent_energy[agent] -= action.cost
 
-            if action.validate(self.global_state):
-                eta = getattr(action, 'duration', 1)
-                completion_tick = self.current_tick + eta
-                effect = action.execute(self.global_state)
-                effect.action = action
+            eta = getattr(action, 'duration', 1)
+            completion_tick = self.current_tick + eta
+            effect = action.execute(self.global_state)
+            effect.action = action
 
-                self.global_state.agent_locked_until[agent] = completion_tick
-                self.event_queue.append(
-                    {
-                        'completion_tick': completion_tick,
-                        'agent': agent,
-                        'action': action,
-                        'effect': effect,
-                        'target_ip': getattr(action, 'target_ip', None),
-                        'start_tick': self.current_tick,
-                    }
-                )
+            self.global_state.agent_locked_until[agent] = completion_tick
+            self.event_queue.append(
+                {
+                    'completion_tick': completion_tick,
+                    'agent': agent,
+                    'action': action,
+                    'effect': effect,
+                    'target_ip': getattr(action, 'target_ip', None),
+                    'start_tick': self.current_tick,
+                }
+            )
 
         for event in list(self.event_queue):
             if (
@@ -371,6 +371,9 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
                 for e in self.event_queue
                 if e.get('target_ip') is None or e['target_ip'] in valid_ips
             ]
+            self._cached_action_masks = {
+                agent: self.action_mask(agent) for agent in self.agents
+            }
 
         physics_alerts, physics_deltas = self.physics_engine.tick(self.global_state)
         for delta_key, delta_val in physics_deltas:
@@ -458,7 +461,7 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
                 'obs': obs_array,
                 'action_mask': self._cached_action_masks[agent],
                 'siem_embedding': agent_siem_vec,
-                'adj_matrix': self.global_state.get_adjacency_matrix().flatten(),
+                'adj_matrix': self._get_adj_matrix_for(agent).flatten(),
                 'delta_t': np.array([delta_t_norm], dtype=np.float32),
             }
             if 'blue' in agent.lower():
@@ -704,13 +707,7 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
         return infos
 
     def _build_blue_comm(self) -> np.ndarray:
-        """100-dim shared situational awareness from SIEM incidents and isolation state.
-
-        Encodes the union of threat intel visible to the collective blue team:
-        - 1.0 if the host appears as a target in a correlated [INCIDENT] record
-        - 0.5 if the host has been isolated (public outcome of any blue action)
-        Both signals are cumulative within the episode.
-        """
+        """100-dim shared situational awareness from SIEM incidents and isolation state."""
         comm = np.zeros(100, dtype=np.float32)
         ordered = sorted(self.global_state.all_hosts.keys())
         ip_to_idx = {ip: i for i, ip in enumerate(ordered[:100])}
@@ -725,18 +722,41 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
                         comm[ip_to_idx[ip]] = 1.0
                     break
 
+        recent_subnets: set = set()
+        for _, subnet in self.global_state.siem_log_buffer[-8:]:
+            recent_subnets.add(subnet)
+
         for i, ip in enumerate(ordered[:100]):
-            if self.global_state.all_hosts[ip].status == 'isolated':
+            host = self.global_state.all_hosts[ip]
+            if host.privilege in ('User', 'Root') and comm[i] < 0.75:
+                comm[i] = max(comm[i], 0.75)
+            if host.status == 'isolated':
                 comm[i] = max(comm[i], 0.5)
+            if host.subnet_cidr in recent_subnets and comm[i] < 0.25:
+                comm[i] = 0.25
 
         return comm
+
+    def _get_adj_matrix_for(self, agent: str) -> np.ndarray:
+        """Return adjacency matrix masked to the agent's discovered knowledge."""
+        if 'blue' in agent.lower():
+            return self.global_state.get_adjacency_matrix()
+        full_adj = self.global_state.get_adjacency_matrix()
+        known_ips = self.global_state.agent_knowledge.get(agent, set())
+        sorted_ips = sorted(self.global_state.all_hosts.keys())[:100]
+        mask = np.array(
+            [1.0 if ip in known_ips else 0.0 for ip in sorted_ips], dtype=np.float32
+        )
+        masked = full_adj * mask[None, :] * mask[:, None]
+        return masked
 
     def global_state_vector(self) -> np.ndarray:
         """Generate a flat 512-dim global state vector."""
         priv_codes = {'None': 0.0, 'User': 0.5, 'Root': 1.0}
 
+        current_hosts = sorted(self.global_state.all_hosts.keys())
         vec = []
-        for ip in self.ordered_hosts[:100]:
+        for ip in current_hosts[:100]:
             host = self.global_state.all_hosts[ip]
             vec.extend(
                 [

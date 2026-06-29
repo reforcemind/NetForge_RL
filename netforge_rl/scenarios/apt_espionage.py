@@ -53,9 +53,10 @@ class AptEspionageScenario(BaseScenario):
                     reward -= 15.0
 
         if 'red' in agent_id.lower():
-            # Persistence Reward
             total_persistence = 0.0
             for h in global_state.all_hosts.values():
+                if h.subnet_cidr == '169.254.0.0/16':
+                    continue
                 if h.privilege in ['User', 'Root'] and h.status == 'online':
                     total_persistence += 5.0
                 elif h.privilege in ['User', 'Root'] and h.status == 'isolated':
@@ -64,6 +65,8 @@ class AptEspionageScenario(BaseScenario):
 
         elif 'blue' in agent_id.lower():
             for h in global_state.all_hosts.values():
+                if h.subnet_cidr == '169.254.0.0/16':
+                    continue
                 is_infected = h.privilege in ['User', 'Root']
                 is_isolated = h.status == 'isolated'
 

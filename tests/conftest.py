@@ -8,7 +8,7 @@ from netforge_rl.nlp.log_encoder import LogEncoder
 def env_config():
     return {
         'scenario_type': 'ransomware',
-        'docker_bridge_mode': 'sim',
+        'docker_mode': 'sim',
         'nlp_backend': 'tfidf',
         'max_ticks': 100,
         'log_latency': 2,
