@@ -21,8 +21,9 @@ DEFAULT_AGENTS = ('red_operator', 'blue_dmz', 'blue_internal', 'blue_restricted'
 
 
 def _per_agent_obs(state, agents):
-    """Concatenated global view, broadcast to every agent for Phase 3."""
-    flat = jnp.concatenate(
+    """Per-role observation function.  Red agents see only recon'd hosts."""
+
+    blue_flat = jnp.concatenate(
         [
             state.hosts.status.astype(jnp.float32),
             state.hosts.privilege.astype(jnp.float32),
@@ -31,7 +32,19 @@ def _per_agent_obs(state, agents):
         ],
         axis=-1,
     )
-    return {agent: flat for agent in agents}
+
+    known_mask = state.agent_known_mask[:, 0, :].astype(jnp.float32)
+    red_status = state.hosts.status.astype(jnp.float32) * known_mask
+    red_priv = state.hosts.privilege.astype(jnp.float32) * known_mask
+    red_flat = jnp.concatenate([red_status, red_priv], axis=-1)
+
+    obs = {}
+    for agent in agents:
+        if 'red' in agent.lower():
+            obs[agent] = red_flat
+        else:
+            obs[agent] = blue_flat
+    return obs
 
 
 @dataclass
