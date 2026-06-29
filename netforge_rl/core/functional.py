@@ -375,9 +375,12 @@ def _extract_targeted_ips(state_deltas):
             if target:
                 ips.add(target)
     return ips
+
+
 from typing import Dict
 from netforge_rl.core.action import ActionEffect
 from netforge_rl.core.physics import ConflictResolutionEngine
+
 
 def resolve_conflicts(effects: Dict[str, ActionEffect]) -> Dict[str, ActionEffect]:
     return ConflictResolutionEngine.resolve(effects)

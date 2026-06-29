@@ -74,9 +74,12 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
         self.correlator = SIEMCorrelator()
         self.pcap_obs = cfg.get('pcap_obs', False)
         self.pcap_synthesizer = PcapSynthesizer() if self.pcap_obs else None
-        self.trajectory_recorder = (
-            TrajectoryRecorder() if cfg.get('record_trajectory', False) else None
-        )
+        if cfg.get('record_trajectory', False):
+            from netforge_rl.render.trajectory import TrajectoryRecorder
+
+            self.trajectory_recorder = TrajectoryRecorder()
+        else:
+            self.trajectory_recorder = None
 
         _base_obs = {
             'obs': gym.spaces.Box(low=-1.0, high=1.0, shape=(256,), dtype=np.float32),
