@@ -76,6 +76,49 @@ _DECOY_TOMCAT = DECOY_CODES.index('Tomcat')
 _DECOY_SSHD = DECOY_CODES.index('SSHD')
 EXFIL_PER_HOST = 5.0  # bytes-units per Rooted host per Exfiltrate tick
 
+N_RED_ACTIONS = 20
+N_BLUE_ACTIONS = 14
+
+SCENARIO_RANSOMWARE = 0
+SCENARIO_APT = 1
+SCENARIO_CLOUD = 2
+SCENARIO_IOT = 3
+SCENARIO_OT = 4
+SCENARIO_IDS = {
+    'ransomware': SCENARIO_RANSOMWARE,
+    'apt_espionage': SCENARIO_APT,
+    'cloud_hybrid': SCENARIO_CLOUD,
+    'iot_grid': SCENARIO_IOT,
+    'ot_stuxnet': SCENARIO_OT,
+}
+
+_RW = {
+    #                     user root impact kinetic exfil  dc   recon
+    SCENARIO_RANSOMWARE: (
+        (1.0, 3.0, 10.0, 30.0, 1.0, 2.0, 0.2),
+        #                     good  bad  restore health dcloss deceive
+        (5.0, 2.0, 3.0, 2.0, 5.0, 0.5),
+    ),
+    SCENARIO_APT: (
+        (2.0, 4.0, 20.0, 25.0, 3.0, 5.0, 1.0),
+        (20.0, 1.0, 3.0, 1.0, 8.0, 0.4),
+    ),
+    SCENARIO_CLOUD: (
+        (1.5, 3.0, 12.0, 25.0, 2.0, 25.0, 0.3),
+        (5.0, 1.0, 3.0, 1.5, 30.0, 0.4),
+    ),
+    SCENARIO_IOT: (
+        (2.0, 4.0, 10.0, 20.0, 1.0, 40.0, 0.3),
+        (3.0, 1.0, 3.0, 0.5, 40.0, 0.4),
+    ),
+    SCENARIO_OT: (
+        (4.0, 8.0, 12.0, 60.0, 2.0, 12.0, 0.3),
+        (6.0, 1.0, 3.0, 0.5, 12.0, 0.4),
+    ),
+}
+_RED_SCALE = 100.0
+_BLUE_SCALE = 10.0
+
 
 class BatchedActions(NamedTuple):
     red_target_idx: jax.Array
@@ -91,6 +134,8 @@ class VectorEnvSpec:
     n_hosts: int
     n_red: int
     n_blue: int
+    scenario: int = SCENARIO_RANSOMWARE
+    horizon: int = 200
 
 
 def _single_env_step(
@@ -356,46 +401,84 @@ def _single_env_step(
     )
 
     exfil_targets = red_target_mask & red_is_exfil[:, None] & host_is_root[None, :]
-    exfil_bytes_this_tick = EXFIL_PER_HOST * jnp.sum(
-        jnp.any(exfil_targets, axis=0).astype(jnp.float32)
+    n_exfil_hosts = jnp.sum(jnp.any(exfil_targets, axis=0).astype(jnp.float32))
+
+    was_decoy = state.hosts.decoy == jnp.int8(_DECOY_ACTIVE)
+    new_decoy_deploys = blue_writes_decoy & ~was_decoy
+    new_honey_deploys = blue_writes_honey & ~state.hosts.contains_honeytokens
+    new_acl_writes = blue_writes_acl & ~state.hosts.edr_active
+    new_misinform = (
+        (blue_writes_misinform_apache & (state.hosts.decoy != jnp.int8(_DECOY_APACHE)))
+        | (
+            blue_writes_misinform_tomcat
+            & (state.hosts.decoy != jnp.int8(_DECOY_TOMCAT))
+        )
+        | (blue_writes_misinform_sshd & (state.hosts.decoy != jnp.int8(_DECOY_SSHD)))
     )
 
-    # Gate farmable rewards on state transitions
-    raw_blue_reward = (
-        jnp.sum(new_blue_isolations.astype(jnp.float32))
-        + 2.0 * jnp.sum(blue_writes_any_restore.astype(jnp.float32))
-        + 0.5 * jnp.sum(blue_writes_decoy.astype(jnp.float32))
-        + 0.5 * jnp.sum(blue_writes_honey.astype(jnp.float32))
-        + 1.5 * jnp.sum(blue_writes_remove.astype(jnp.float32))
-        + 0.3 * jnp.sum(blue_writes_sat.astype(jnp.float32))
-        + 0.2 * jnp.sum(blue_new_intel.astype(jnp.float32))
-        + 0.4
-        * jnp.sum(
+    new_dc_compromise = (
+        (new_compromised != state.hosts.compromised_by_id)
+        & state.hosts.is_domain_controller
+        & (new_compromised >= 0)
+    )
+
+    rw_red, rw_blue = _RW[spec.scenario]
+    w_user, w_root, w_impact, w_kinetic, w_exfil, w_dc, w_recon = rw_red
+    w_good, w_bad, w_restore, w_health, w_dcloss, w_deceive = rw_blue
+
+    target_clean = state.hosts.compromised_by_id < 0
+    bad_isolations = new_blue_isolations & target_clean
+    good_isolations = new_blue_isolations & ~target_clean
+
+    n_hosts_f = jnp.float32(n_hosts)
+    healthy_ratio = (
+        jnp.sum(
             (
-                blue_writes_misinform_apache
-                | blue_writes_misinform_tomcat
-                | blue_writes_misinform_sshd
+                (state.hosts.compromised_by_id < 0)
+                & (state.hosts.status == jnp.int8(_STATUS_ONLINE))
             ).astype(jnp.float32)
         )
-        + 0.7 * jnp.sum(blue_writes_acl.astype(jnp.float32))
+        / n_hosts_f
+    )
+    dc_lost = jnp.any(
+        state.hosts.is_domain_controller & (state.hosts.compromised_by_id >= 0)
+    ).astype(jnp.float32)
+
+    raw_blue_reward = (
+        w_good * jnp.sum(good_isolations.astype(jnp.float32))
+        - w_bad * jnp.sum(bad_isolations.astype(jnp.float32))
+        + w_restore * jnp.sum(blue_writes_any_restore.astype(jnp.float32))
+        + w_health * healthy_ratio
+        - w_dcloss * dc_lost
+        + w_deceive
+        * jnp.sum(
+            (
+                new_decoy_deploys | new_honey_deploys | new_acl_writes | new_misinform
+            ).astype(jnp.float32)
+        )
+        + 0.3 * jnp.sum(blue_writes_sat.astype(jnp.float32))
+        + 0.2 * jnp.sum(blue_new_intel.astype(jnp.float32))
         + 4.0 * jnp.sum(blue_is_rotate.astype(jnp.float32))
     )
-    blue_reward = jnp.tanh(raw_blue_reward / 10.0)
+    blue_reward = jnp.tanh(raw_blue_reward / _BLUE_SCALE)
 
     raw_red_team_reward = (
-        jnp.sum(red_writes_user.astype(jnp.float32))
+        w_user * jnp.sum(red_writes_user.astype(jnp.float32))
         + 0.5 * n_cve_compromises.astype(jnp.float32)
-        + 3.0 * jnp.sum(red_writes_root.astype(jnp.float32))
-        + 10.0 * jnp.sum(new_red_impacts.astype(jnp.float32))
-        + 10_000.0 * jnp.sum(new_red_kinetics.astype(jnp.float32))
-        + 0.2 * jnp.sum(red_new_intel.astype(jnp.float32))
-        + exfil_bytes_this_tick
+        + w_root * jnp.sum(red_writes_root.astype(jnp.float32))
+        + w_impact * jnp.sum(new_red_impacts.astype(jnp.float32))
+        + w_kinetic * jnp.sum(new_red_kinetics.astype(jnp.float32))
+        + w_dc * jnp.sum(new_dc_compromise.astype(jnp.float32))
+        + w_recon * jnp.sum(red_new_intel.astype(jnp.float32))
+        + w_exfil * n_exfil_hosts
         + 0.4 * jnp.sum(red_is_share.astype(jnp.float32))
         + 2.0 * jnp.sum(jnp.any(looted_per_agent, axis=-1).astype(jnp.float32))
         + 5.0 * jnp.sum(red_writes_kill.astype(jnp.float32))
     )
-    red_team_reward = jnp.tanh(raw_red_team_reward / 100.0)
+    red_team_reward = jnp.tanh(raw_red_team_reward / _RED_SCALE)
     red_trap_penalty = -0.5 * red_trapped.astype(jnp.float32)
+
+    exfil_bytes_this_tick = EXFIL_PER_HOST * n_exfil_hosts
 
     new_state = replace(
         state,
@@ -409,6 +492,37 @@ def _single_env_step(
     red_rewards = jnp.broadcast_to(red_team_reward, (spec.n_red,)) + red_trap_penalty
     blue_rewards = jnp.broadcast_to(blue_reward, (spec.n_blue,))
     return new_state, jnp.concatenate([red_rewards, blue_rewards])
+
+
+def scenario_done(state, spec: VectorEnvSpec):
+    """Per-env terminal flag for the active scenario. Vectorized over the batch."""
+    hosts = state.hosts
+    infected = hosts.privilege >= jnp.int8(_PRIV_USER)
+    isolated = hosts.status == jnp.int8(_STATUS_ISOLATED)
+    compromised = hosts.compromised_by_id >= 0
+    kinetic = hosts.system_integrity == jnp.int8(_INTEGRITY_KINETIC)
+    is_dc = hosts.is_domain_controller
+
+    any_kinetic = jnp.any(kinetic, axis=-1)
+
+    any_infected = jnp.any(infected, axis=-1)
+    all_infected_isolated = jnp.all(~infected | isolated, axis=-1)
+    apt_done = any_infected & all_infected_isolated
+
+    any_dc = jnp.any(is_dc, axis=-1)
+    all_dc_compromised = jnp.all(~is_dc | compromised, axis=-1)
+    dc_done = any_dc & all_dc_compromised
+
+    compromised_frac = jnp.mean(compromised.astype(jnp.float32), axis=-1)
+    ransomware_done = (compromised_frac >= 0.9) | any_kinetic
+
+    if spec.scenario == SCENARIO_APT:
+        return apt_done
+    if spec.scenario in (SCENARIO_CLOUD, SCENARIO_IOT):
+        return dc_done
+    if spec.scenario == SCENARIO_OT:
+        return any_kinetic
+    return ransomware_done
 
 
 def _default_action_types(
@@ -465,10 +579,10 @@ def random_actions(
         red_attempt=jax.random.bernoulli(k3, p=0.5, shape=(batch_size, spec.n_red)),
         blue_attempt=jax.random.bernoulli(k4, p=0.5, shape=(batch_size, spec.n_blue)),
         red_action_type=jax.random.randint(
-            k5, (batch_size, spec.n_red), 0, 20, dtype=jnp.int8
+            k5, (batch_size, spec.n_red), 0, N_RED_ACTIONS, dtype=jnp.int8
         ),
         blue_action_type=jax.random.randint(
-            k6, (batch_size, spec.n_blue), 0, 14, dtype=jnp.int8
+            k6, (batch_size, spec.n_blue), 0, N_BLUE_ACTIONS, dtype=jnp.int8
         ),
     )
 

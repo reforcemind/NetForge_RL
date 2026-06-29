@@ -2,7 +2,6 @@ from typing import Dict, Tuple
 import numpy as np
 import gymnasium as gym
 from netforge_rl.scenarios import get_scenario_class
-from netforge_rl.scenarios.apt_espionage import AptEspionageScenario
 
 from netforge_rl.core.action import BaseAction, ActionEffect
 from netforge_rl.core.observation import BaseObservation
@@ -56,10 +55,7 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
             'blue_restricted',
         ]
         self.agents = self.possible_agents[:]
-        try:
-            scenario_cls = get_scenario_class(cfg.get('scenario_type', 'ransomware'))
-        except KeyError:
-            scenario_cls = AptEspionageScenario
+        scenario_cls = get_scenario_class(cfg.get('scenario_type', 'ransomware'))
         self.scenario = scenario_cls(self.agents)
 
         self.global_state = self.network_generator.generate()
@@ -125,9 +121,10 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
         self, seed=None, options=None
     ) -> Tuple[Dict[str, np.ndarray], Dict[str, dict]]:
         """Reset the environment."""
+        self.np_random = np.random.default_rng(seed)
+        self._py_random = random.Random(seed)
         if seed is not None:
             random.seed(seed)
-            np.random.seed(seed)
         self.docker_bridge.teardown_all()
         self.global_state = self.network_generator.generate(seed=seed)
         self.global_state.docker_bridge = self.docker_bridge
@@ -303,7 +300,7 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
         self.global_state.subnet_bandwidth.clear()
 
         noise_data = self.green_agent.generate_noise(
-            self.current_tick, self.global_state
+            self.current_tick, self.global_state, rng=self._py_random
         )
         for anomaly in noise_data.get('alerts', []):
             self.siem_logger._push_to_buffer(
@@ -367,7 +364,7 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
         self.siem_logger.log_background_noise(self.global_state)
 
         if self.current_tick % 40 == 0:
-            self.global_state.reallocate_dhcp()
+            self.global_state.reallocate_dhcp(rng=self._py_random)
             valid_ips = set(self.global_state.all_hosts.keys())
             self.event_queue = [
                 e

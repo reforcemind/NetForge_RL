@@ -1,3 +1,4 @@
+import math
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Dict
 
@@ -25,5 +26,5 @@ class BaseScenario(ABC):
         pass
 
     def normalized_reward(self, reward: float) -> float:
-        """Reward divided by MAX_STEP_REWARD for cross-scenario comparability."""
-        return reward / max(self.MAX_STEP_REWARD, 1e-6)
+        """Reward mapped into [-1, 1]."""
+        return math.tanh(reward / max(self.MAX_STEP_REWARD, 1e-6))

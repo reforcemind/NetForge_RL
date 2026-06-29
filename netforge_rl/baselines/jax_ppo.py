@@ -116,6 +116,7 @@ class PPOConfig:
     seed: int = 0
     update_epochs: int = 4
     num_minibatches: int = 4
+    scenario: int = 0
 
 
 def _build_actions(
@@ -376,7 +377,9 @@ def ippo_train(cfg: 'PPOConfig', blue_agents=BLUE_AGENTS):
     """Independent PPO with shared parameters across all blue agents."""
     n_blue = len(blue_agents)
     env = JaxMARLEnv(
-        spec=VectorEnvSpec(n_hosts=cfg.n_hosts, n_red=cfg.n_red, n_blue=n_blue),
+        spec=VectorEnvSpec(
+            n_hosts=cfg.n_hosts, n_red=cfg.n_red, n_blue=n_blue, scenario=cfg.scenario
+        ),
         batch_size=cfg.batch_size,
     )
 
@@ -405,8 +408,10 @@ def ippo_train(cfg: 'PPOConfig', blue_agents=BLUE_AGENTS):
     minibatch_size = total_samples // cfg.num_minibatches
 
     losses = []
+    reward_curve = []
     for _ in range(cfg.total_iters):
         state, obs_dict, key, traj, last_values = rollout(params, state, obs_dict, key)
+        reward_curve.append(float(traj['reward'].mean()))
 
         all_obs, all_actions, all_logps, all_advs, all_rets = [], [], [], [], []
         for i in range(n_blue):
@@ -451,4 +456,9 @@ def ippo_train(cfg: 'PPOConfig', blue_agents=BLUE_AGENTS):
                 n_updates += 1
         losses.append(iter_loss / n_updates)
 
-    return {'params': params, 'losses': losses, 'blue_agents': blue_names}
+    return {
+        'params': params,
+        'losses': losses,
+        'reward_curve': reward_curve,
+        'blue_agents': blue_names,
+    }

@@ -151,17 +151,20 @@ class GlobalNetworkState:
         return False
 
     def get_adjacency_matrix(self) -> np.ndarray:
-        """100x100 adjacency matrix; ``can_route_to`` is destination-only so rows broadcast the same decision."""
+        """100x100 adjacency matrix."""
         adj = np.zeros((100, 100), dtype=np.float32)
-        sorted_ips = sorted(self.all_hosts.keys())
-        for i, _src_ip in enumerate(sorted_ips):
-            for j, dst_ip in enumerate(sorted_ips):
-                if i == j or self.can_route_to(dst_ip):
-                    adj[i, j] = 1.0
+        sorted_ips = sorted(self.all_hosts.keys())[:100]
+        n = len(sorted_ips)
+        reachable = np.array(
+            [self.can_route_to(dst_ip) for dst_ip in sorted_ips], dtype=np.float32
+        )
+        adj[:n, :n] = reachable[None, :]
+        np.fill_diagonal(adj[:n, :n], 1.0)
         return adj
 
-    def reallocate_dhcp(self):
+    def reallocate_dhcp(self, rng=None):
         """Reshuffle IPs on every non-DMZ subnet; invalidates stale agent knowledge."""
+        rng = rng or random
         for subnet in self.subnets.values():
             if subnet.name == 'DMZ':
                 continue
@@ -169,7 +172,7 @@ class GlobalNetworkState:
             if not hosts:
                 continue
             base_ip = subnet.cidr.split('.0/')[0]
-            new_ips = random.sample(range(1, 250), len(hosts))
+            new_ips = rng.sample(range(1, 250), len(hosts))
             new_subnet_hosts = {}
             for i, host in enumerate(hosts):
                 self.all_hosts.pop(host.ip, None)

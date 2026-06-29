@@ -5,7 +5,7 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 
-from netforge_rl.backends.jax import VectorEnvSpec
+from netforge_rl.backends.jax import N_BLUE_ACTIONS, N_RED_ACTIONS, VectorEnvSpec
 from netforge_rl.bridges.jaxmarl import DEFAULT_AGENTS, JaxMARLEnv, random_action_dict
 
 
@@ -26,7 +26,7 @@ class CleanRLVecEnv:
         self._key = jax.random.PRNGKey(0)
         if self.opponent_action_fn is None:
             self.opponent_action_fn = random_action_dict
-        n_act = 20 if 'red' in self.agent_id.lower() else 14
+        n_act = N_RED_ACTIONS if 'red' in self.agent_id.lower() else N_BLUE_ACTIONS
         self.single_action_space = ('multidiscrete', (self.spec.n_hosts, n_act))
         self.single_observation_space = (4 * self.spec.n_hosts,)
 

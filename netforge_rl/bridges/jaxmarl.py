@@ -4,10 +4,13 @@ import jax
 import jax.numpy as jnp
 
 from netforge_rl.backends.jax import (
+    N_BLUE_ACTIONS,
+    N_RED_ACTIONS,
     BatchedActions,
     VectorEnvSpec,
     initial_batched_state,
     make_vector_step,
+    scenario_done,
     to_jax,
 )
 from netforge_rl.core.functional import from_global_state
@@ -38,13 +41,16 @@ class JaxMARLEnv:
     spec: VectorEnvSpec
     batch_size: int
     agents: tuple = DEFAULT_AGENTS
+    evaluation_mode: bool = False
 
     def __post_init__(self):
         self._step = make_vector_step(self.spec)
 
     def reset(self, key):
         seed = int(jax.random.randint(key, (), 0, 1 << 30))
-        legacy = NetworkGenerator().generate(seed=seed)
+        legacy = NetworkGenerator(evaluation_mode=self.evaluation_mode).generate(
+            seed=seed
+        )
         template = to_jax(from_global_state(legacy, agent_ids=self.agents))
         state = initial_batched_state(template, batch_size=self.batch_size)
         return _per_agent_obs(state, self.agents), state
@@ -61,9 +67,13 @@ class JaxMARLEnv:
         for i, name in enumerate(blue_names):
             per_agent_reward[name] = rewards[:, self.spec.n_red + i]
 
-        done = jnp.zeros((self.batch_size,), dtype=jnp.bool_)
+        terminated = scenario_done(new_state, self.spec)
+        truncated = new_state.current_tick >= self.spec.horizon
+        done = terminated | truncated
         done_dict = {a: done for a in self.agents}
-        info = {a: {} for a in self.agents}
+        info = {
+            a: {'terminated': terminated, 'truncated': truncated} for a in self.agents
+        }
 
         obs = _per_agent_obs(new_state, self.agents)
         return obs, new_state, per_agent_reward, done_dict, info
@@ -100,7 +110,7 @@ def random_action_dict(env, key):
             k1, (env.batch_size,), 0, env.spec.n_hosts, dtype=jnp.int32
         )
         attempt = jax.random.bernoulli(k2, p=0.5, shape=(env.batch_size,))
-        n_act = 20 if 'red' in agent.lower() else 14
+        n_act = N_RED_ACTIONS if 'red' in agent.lower() else N_BLUE_ACTIONS
         action_type = jax.random.randint(
             k3, (env.batch_size,), 0, n_act, dtype=jnp.int32
         )
