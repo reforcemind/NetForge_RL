@@ -15,7 +15,7 @@
         <link rel="canonical" href="https://reforcemind.github.io/NetForge_RL/changelog/">
       
       
-        <link rel="prev" href="../training/benchmarks/">
+        <link rel="prev" href="../benchmarks/run/">
       
       
       
@@ -611,6 +611,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../architecture/multimodal_obs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multi-Modal Observations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../architecture/zero_trust/" class="md-nav__link">
         
   
@@ -1185,15 +1213,69 @@
   
   
   
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_6_4" id="__nav_6_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Benchmarks
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Benchmarks
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
     <li class="md-nav__item">
-      <a href="../training/benchmarks/" class="md-nav__link">
+      <a href="../benchmarks/overview/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Benchmarks & Competition
+    Overview
   
 
     
@@ -1202,6 +1284,42 @@
   
 
       </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../benchmarks/run/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Run
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
     </li>
   
 
@@ -1281,6 +1399,34 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#220-2026-06" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [2.2.0] — 2026-06
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[2.2.0] — 2026-06">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fixed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#210-2026-06" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1304,7 +1450,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#fixed" class="md-nav__link">
+  <a href="#fixed_1" class="md-nav__link">
     <span class="md-ellipsis">
       
         Fixed
@@ -1432,6 +1578,34 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#220-2026-06" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [2.2.0] — 2026-06
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[2.2.0] — 2026-06">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fixed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#210-2026-06" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1455,7 +1629,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#fixed" class="md-nav__link">
+  <a href="#fixed_1" class="md-nav__link">
     <span class="md-ellipsis">
       
         Fixed
@@ -1571,6 +1745,16 @@
 <h1 id="changelog">Changelog<a class="headerlink" href="#changelog" title="Permanent link">&para;</a></h1>
 <p>All notable changes to the <code>netforge_rl</code> project will be documented in this file.
 The format is based on <a href="https://keepachangelog.com/en/1.0.0/">Keep a Changelog</a>.</p>
+<h2 id="220-2026-06">[2.2.0] — 2026-06<a class="headerlink" href="#220-2026-06" title="Permanent link">&para;</a></h2>
+<h3 id="fixed">Fixed<a class="headerlink" href="#fixed" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Core</strong>: Normalized rewards using <code>tanh</code> scaling to prevent reward explosion.</li>
+<li><strong>Core</strong>: Removed module-level global seeding for deterministic parallel execution.</li>
+<li><strong>Core</strong>: Fixed <code>red</code> agent action mapping and removed duplicate conflict resolution logic.</li>
+<li><strong>Core</strong>: Fixed fog-of-war masking shapes to align with the 132-dimension observation space.</li>
+<li><strong>Core</strong>: Replaced hardcoded decoy IPs with dynamic <code>169.254.x.x</code> padding IPs in reconnaissance.</li>
+</ul>
+<hr />
 <h2 id="210-2026-06">[2.1.0] — 2026-06<a class="headerlink" href="#210-2026-06" title="Permanent link">&para;</a></h2>
 <h3 id="added">Added<a class="headerlink" href="#added" title="Permanent link">&para;</a></h3>
 <ul>
@@ -1578,7 +1762,7 @@ The format is based on <a href="https://keepachangelog.com/en/1.0.0/">Keep a Cha
 <li><strong>Environment</strong>: Implemented curriculum learning framework.</li>
 <li><strong>Training</strong>: Added RLlib integration and RMAPPO vs RMAPPO baseline.</li>
 </ul>
-<h3 id="fixed">Fixed<a class="headerlink" href="#fixed" title="Permanent link">&para;</a></h3>
+<h3 id="fixed_1">Fixed<a class="headerlink" href="#fixed_1" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Core</strong>: Fixed decoy recon replacing hosts, static action mask issues, and stale DHCP targeting.</li>
 </ul>
@@ -1649,7 +1833,7 @@ The format is based on <a href="https://keepachangelog.com/en/1.0.0/">Keep a Cha
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../training/benchmarks/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Benchmarks &amp; Competition">
+          <a href="../benchmarks/run/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Run">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -1659,7 +1843,7 @@ The format is based on <a href="https://keepachangelog.com/en/1.0.0/">Keep a Cha
                 Previous
               </span>
               <div class="md-ellipsis">
-                Benchmarks & Competition
+                Run
               </div>
             </div>
           </a>

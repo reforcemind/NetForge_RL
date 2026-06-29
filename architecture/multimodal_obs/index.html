@@ -12,13 +12,13 @@
         <meta name="author" content="Igor Jankowski">
       
       
-        <link rel="canonical" href="https://reforcemind.github.io/NetForge_RL/architecture/overview/">
+        <link rel="canonical" href="https://reforcemind.github.io/NetForge_RL/architecture/multimodal_obs/">
       
       
-        <link rel="prev" href="../../quickstart/">
+        <link rel="prev" href="../ot_physics/">
       
       
-        <link rel="next" href="../dynamic_topology/">
+        <link rel="next" href="../zero_trust/">
       
       
         
@@ -29,7 +29,7 @@
     
     
       
-        <title>Overview - NetForge RL</title>
+        <title>Multi-Modal Observations - NetForge RL</title>
       
     
     
@@ -84,7 +84,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#execution-architecture" class="md-skip">
+        <a href="#multi-modal-state-observability" class="md-skip">
           Skip to content
         </a>
       
@@ -120,7 +120,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Overview
+              Multi-Modal Observations
             
           </span>
         </div>
@@ -272,7 +272,7 @@
     
     
       <li class="md-tabs__item md-tabs__item--active">
-        <a href="./" class="md-tabs__link">
+        <a href="../overview/" class="md-tabs__link">
           
   
   
@@ -529,37 +529,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Overview
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../overview/" class="md-nav__link">
         
   
   
@@ -575,98 +548,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#1-simulation-loop" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        1. Simulation Loop
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#2-telemetry-pipeline" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        2. Telemetry Pipeline
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#3-component-details" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        3. Component Details
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="3. Component Details">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#baseaction-and-actioneffect" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        BaseAction and ActionEffect
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#conflictresolutionengine" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        ConflictResolutionEngine
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#siemlogger-and-logencoder" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        SIEMLogger and LogEncoder
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -732,10 +613,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../multimodal_obs/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multi-Modal Observations
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -751,6 +659,81 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#observation-keys-when-pcap_obstrue" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Observation keys (when pcap_obs=True)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pcap-packet-features-20-dims" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PCAP packet features (20 dims)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#node-feature-matrix-8-dims-per-host" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Node feature matrix (8 dims per host)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#gnn-usage-pytorch-geometric" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GNN usage (PyTorch Geometric)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#packet-generation-logic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Packet generation logic
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1510,10 +1493,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#1-simulation-loop" class="md-nav__link">
+  <a href="#observation-keys-when-pcap_obstrue" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1. Simulation Loop
+        Observation keys (when pcap_obs=True)
       
     </span>
   </a>
@@ -1521,10 +1504,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#2-telemetry-pipeline" class="md-nav__link">
+  <a href="#pcap-packet-features-20-dims" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2. Telemetry Pipeline
+        PCAP packet features (20 dims)
       
     </span>
   </a>
@@ -1532,52 +1515,35 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#3-component-details" class="md-nav__link">
+  <a href="#node-feature-matrix-8-dims-per-host" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3. Component Details
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="3. Component Details">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#baseaction-and-actioneffect" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        BaseAction and ActionEffect
+        Node feature matrix (8 dims per host)
       
     </span>
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
-  <a href="#conflictresolutionengine" class="md-nav__link">
+      
+        <li class="md-nav__item">
+  <a href="#gnn-usage-pytorch-geometric" class="md-nav__link">
     <span class="md-ellipsis">
       
-        ConflictResolutionEngine
+        GNN usage (PyTorch Geometric)
       
     </span>
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
-  <a href="#siemlogger-and-logencoder" class="md-nav__link">
+      
+        <li class="md-nav__item">
+  <a href="#packet-generation-logic" class="md-nav__link">
     <span class="md-ellipsis">
       
-        SIEMLogger and LogEncoder
+        Packet generation logic
       
     </span>
   </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -1601,57 +1567,248 @@
   
 
 
-<h1 id="execution-architecture">Execution Architecture<a class="headerlink" href="#execution-architecture" title="Permanent link">&para;</a></h1>
-<h2 id="1-simulation-loop">1. Simulation Loop<a class="headerlink" href="#1-simulation-loop" title="Permanent link">&para;</a></h2>
-<p>The simulation loop is fully parallelized via the PettingZoo API (<code>parallel_env.step()</code>) and JAX vectorization (<code>jax.vmap</code>).</p>
-<pre class="mermaid"><code>sequenceDiagram
-    participant Agents
-    participant Environment
-    participant ActionRegistry
-    participant ConflictResolutionEngine
-    participant GlobalNetworkState
-
-    Agents-&gt;&gt;Environment: step({agent_id: action_str})
-    Environment-&gt;&gt;ActionRegistry: Parse actions
-    Environment-&gt;&gt;Environment: action.execute(GlobalNetworkState)
-    Environment-&gt;&gt;ConflictResolutionEngine: resolve(effects_dict)
-    ConflictResolutionEngine-&gt;&gt;GlobalNetworkState: Apply ActionEffect.state_deltas
-    Environment--&gt;&gt;Agents: Return new observations, rewards, terminations</code></pre>
-<h2 id="2-telemetry-pipeline">2. Telemetry Pipeline<a class="headerlink" href="#2-telemetry-pipeline" title="Permanent link">&para;</a></h2>
-<p>Blue agent observations are generated exclusively through the simulated Security Information and Event Management (SIEM) pipeline. </p>
-<pre class="mermaid"><code>flowchart TD
-    subgraph Action Execution
-        R1[Red Actions]
-    end
-
-    subgraph Simulation Core
-        GNS[(GlobalNetworkState)]
-        CRE{Conflict Resolution Engine}
-        SL[SIEMLogger]
-    end
-
-    subgraph Blue Observability
-        LB[(siem_log_buffer)]
-        NLP[NLP Log Encoder]
-        BO[Blue Agent Observation Vector]
-    end
-
-    R1 --&gt;|ActionEffect| CRE
-    CRE --&gt;|Valid Effects| GNS
-    CRE --&gt;|Action Metrics| SL
-
-    SL -.-&gt;|Stochastic Noise Injection| SL
-    SL --&gt;|Generates Sysmon/Windows Logs| LB
-
-    LB --&gt;|N Most Recent Logs| NLP
-    NLP --&gt;|TF-IDF / Dense Embeddings| BO</code></pre>
-<h2 id="3-component-details">3. Component Details<a class="headerlink" href="#3-component-details" title="Permanent link">&para;</a></h2>
-<h3 id="baseaction-and-actioneffect"><code>BaseAction</code> and <code>ActionEffect</code><a class="headerlink" href="#baseaction-and-actioneffect" title="Permanent link">&para;</a></h3>
-<p>All agent capabilities inherit from <code>BaseAction</code>. <code>execute()</code> returns an <code>ActionEffect</code> containing <code>state_deltas</code> determining specific state tensor modifications.</p>
-<h3 id="conflictresolutionengine"><code>ConflictResolutionEngine</code><a class="headerlink" href="#conflictresolutionengine" title="Permanent link">&para;</a></h3>
-<p>Resolves temporal collisions occurring in the same parallel tick. Handled deterministically within the <code>EnvState</code> interpreter.</p>
-<h3 id="siemlogger-and-logencoder"><code>SIEMLogger</code> and <code>LogEncoder</code><a class="headerlink" href="#siemlogger-and-logencoder" title="Permanent link">&para;</a></h3>
-<p><code>SIEMLogger</code> translates state deltas into standardized string logs matching Windows/Sysmon syntax, injecting stochastic benign noise. <code>LogEncoder</code> vectorizes the buffer into dense observations.</p>
+<h1 id="multi-modal-state-observability">Multi-Modal State Observability<a class="headerlink" href="#multi-modal-state-observability" title="Permanent link">&para;</a></h1>
+<p>Enable <code>pcap_obs=True</code> to extend each agent's observation dict with two additional arrays that expose the network state as synthesized packet traffic and a per-host feature matrix.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">env</span> <span class="o">=</span> <span class="n">NetForgeRLEnv</span><span class="p">({</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="s1">&#39;scenario_type&#39;</span><span class="p">:</span> <span class="s1">&#39;ransomware&#39;</span><span class="p">,</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="s1">&#39;pcap_obs&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="p">})</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="n">obs</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+</code></pre></div>
+<h2 id="observation-keys-when-pcap_obstrue">Observation keys (when <code>pcap_obs=True</code>)<a class="headerlink" href="#observation-keys-when-pcap_obstrue" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Shape</th>
+<th>dtype</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>pcap</code></td>
+<td>(32, 20)</td>
+<td>float32</td>
+<td>Synthesized packet snapshot for this tick</td>
+</tr>
+<tr>
+<td><code>node_features</code></td>
+<td>(100, 8)</td>
+<td>float32</td>
+<td>Per-host attribute matrix for GNN models</td>
+</tr>
+<tr>
+<td><code>adj_matrix</code></td>
+<td>(10000,)</td>
+<td>float32</td>
+<td>100×100 routing adjacency (always present)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="pcap-packet-features-20-dims">PCAP packet features (20 dims)<a class="headerlink" href="#pcap-packet-features-20-dims" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Idx</th>
+<th>Name</th>
+<th>Range</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td><code>src_idx</code></td>
+<td>0–1</td>
+<td>Source host index / 100</td>
+</tr>
+<tr>
+<td>1</td>
+<td><code>dst_idx</code></td>
+<td>0–1</td>
+<td>Destination host index / 100</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>protocol</code></td>
+<td>0–1</td>
+<td>TCP=0.2 UDP=0.4 ICMP=0.6 Modbus=0.8 S7Comm=1.0</td>
+</tr>
+<tr>
+<td>3</td>
+<td><code>port_norm</code></td>
+<td>0–1</td>
+<td>Port / 65535</td>
+</tr>
+<tr>
+<td>4</td>
+<td><code>payload_kb</code></td>
+<td>0–1</td>
+<td>Payload size / 100 KB</td>
+</tr>
+<tr>
+<td>5</td>
+<td><code>flag_syn</code></td>
+<td>0/1</td>
+<td>TCP SYN</td>
+</tr>
+<tr>
+<td>6</td>
+<td><code>flag_rst</code></td>
+<td>0/1</td>
+<td>TCP RST</td>
+</tr>
+<tr>
+<td>7</td>
+<td><code>flag_ack</code></td>
+<td>0/1</td>
+<td>TCP ACK (C2 keepalive)</td>
+</tr>
+<tr>
+<td>8</td>
+<td><code>flag_psh</code></td>
+<td>0/1</td>
+<td>Data payload present</td>
+</tr>
+<tr>
+<td>9</td>
+<td><code>is_lateral</code></td>
+<td>0/1</td>
+<td>Source and destination in different subnets</td>
+</tr>
+<tr>
+<td>10</td>
+<td><code>is_c2</code></td>
+<td>0/1</td>
+<td>Beacon from compromised host</td>
+</tr>
+<tr>
+<td>11</td>
+<td><code>is_recon</code></td>
+<td>0/1</td>
+<td>ICMP/scan pattern</td>
+</tr>
+<tr>
+<td>12</td>
+<td><code>is_exfil</code></td>
+<td>0/1</td>
+<td>Large payload from compromised host</td>
+</tr>
+<tr>
+<td>13</td>
+<td><code>is_exploit</code></td>
+<td>0/1</td>
+<td>Toward known vulnerable port</td>
+</tr>
+<tr>
+<td>14</td>
+<td><code>dst_sensitive</code></td>
+<td>0/1</td>
+<td>Destination in Secure or OT subnet</td>
+</tr>
+<tr>
+<td>15</td>
+<td><code>src_privilege</code></td>
+<td>0/0.5/1</td>
+<td>None / User / Root</td>
+</tr>
+<tr>
+<td>16</td>
+<td><code>dst_compromised</code></td>
+<td>0/1</td>
+<td>Destination already owned</td>
+</tr>
+<tr>
+<td>17</td>
+<td><code>tick_norm</code></td>
+<td>0–1</td>
+<td>tick / max_ticks</td>
+</tr>
+<tr>
+<td>18</td>
+<td><code>is_encrypted</code></td>
+<td>0/1</td>
+<td>TLS/SSH (port 443 or 22)</td>
+</tr>
+<tr>
+<td>19</td>
+<td><code>severity</code></td>
+<td>0/0.5/1</td>
+<td>Benign / suspicious / critical</td>
+</tr>
+</tbody>
+</table>
+<h2 id="node-feature-matrix-8-dims-per-host">Node feature matrix (8 dims per host)<a class="headerlink" href="#node-feature-matrix-8-dims-per-host" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Idx</th>
+<th>Name</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td><code>privilege</code></td>
+<td>0=none 0.5=user 1.0=root</td>
+</tr>
+<tr>
+<td>1</td>
+<td><code>is_online</code></td>
+<td>host.status == 'online'</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>is_compromised</code></td>
+<td>compromised_by != 'None'</td>
+</tr>
+<tr>
+<td>3</td>
+<td><code>is_decoy</code></td>
+<td>decoy node</td>
+</tr>
+<tr>
+<td>4</td>
+<td><code>is_dc</code></td>
+<td>domain controller</td>
+</tr>
+<tr>
+<td>5</td>
+<td><code>subnet_type</code></td>
+<td>DMZ=0.2 Corp=0.4 Secure=0.6 OT=0.8</td>
+</tr>
+<tr>
+<td>6</td>
+<td><code>cvss_norm</code></td>
+<td>cvss_score / 10</td>
+</tr>
+<tr>
+<td>7</td>
+<td><code>edr_active</code></td>
+<td>endpoint detection running</td>
+</tr>
+</tbody>
+</table>
+<h2 id="gnn-usage-pytorch-geometric">GNN usage (PyTorch Geometric)<a class="headerlink" href="#gnn-usage-pytorch-geometric" title="Permanent link">&para;</a></h2>
+<p><code>adj_matrix</code> reshaped to (100, 100) is the adjacency matrix. Combined with <code>node_features</code> this is a complete graph:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">torch_geometric.data</span><span class="w"> </span><span class="kn">import</span> <span class="n">Data</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;node_features&#39;</span><span class="p">])</span>               <span class="c1"># (100, 8)</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="n">adj</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">obs</span><span class="p">[</span><span class="s1">&#39;adj_matrix&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">100</span><span class="p">))</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="n">edge_index</span> <span class="o">=</span> <span class="n">adj</span><span class="o">.</span><span class="n">nonzero</span><span class="p">()</span><span class="o">.</span><span class="n">t</span><span class="p">()</span><span class="o">.</span><span class="n">contiguous</span><span class="p">()</span>           <span class="c1"># (2, E)</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="n">data</span> <span class="o">=</span> <span class="n">Data</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="p">,</span> <span class="n">edge_index</span><span class="o">=</span><span class="n">edge_index</span><span class="p">)</span>
+</code></pre></div>
+<h2 id="packet-generation-logic">Packet generation logic<a class="headerlink" href="#packet-generation-logic" title="Permanent link">&para;</a></h2>
+<p>Each tick the synthesizer derives packets from live simulation state — not random noise:</p>
+<ol>
+<li><strong>C2 beacons</strong> — every compromised host generates a TCP/443 beacon toward the DMZ gateway</li>
+<li><strong>Lateral movement</strong> — hosts with elevated privilege generate scan/exploit packets toward live targets</li>
+<li><strong>Background</strong> — remaining slots fill with benign TCP/UDP traffic between online hosts</li>
+</ol>
+<p>All values are in [0, 1] so no normalization is needed before passing to a neural network.</p>
 
 
 
@@ -1689,7 +1846,7 @@
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../../quickstart/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Quick Start">
+          <a href="../ot_physics/" class="md-footer__link md-footer__link--prev" aria-label="Previous: OT/SCADA Physics">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -1699,20 +1856,20 @@
                 Previous
               </span>
               <div class="md-ellipsis">
-                Quick Start
+                OT/SCADA Physics
               </div>
             </div>
           </a>
         
         
           
-          <a href="../dynamic_topology/" class="md-footer__link md-footer__link--next" aria-label="Next: Dynamic Topologies">
+          <a href="../zero_trust/" class="md-footer__link md-footer__link--next" aria-label="Next: Zero-Trust Identity">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Dynamic Topologies
+                Zero-Trust Identity
               </div>
             </div>
             <div class="md-footer__button md-icon">
