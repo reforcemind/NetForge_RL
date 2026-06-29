@@ -752,28 +752,3 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
                 mask[i] = 1.0
         masked = full_adj * mask[None, :] * mask[:, None]
         return masked
-
-    def global_state_vector(self) -> np.ndarray:
-        """Generate a flat 512-dim global state vector."""
-        priv_codes = {'None': 0.0, 'User': 0.5, 'Root': 1.0}
-
-        current_hosts = sorted(self.global_state.all_hosts.keys())
-        vec = []
-        for ip in current_hosts[:100]:
-            host = self.global_state.all_hosts[ip]
-            vec.extend(
-                [
-                    priv_codes.get(host.privilege, 0.0),
-                    1.0 if host.status == 'online' else 0.0,
-                    1.0 if host.decoy != 'inactive' else 0.0,
-                ]
-            )
-        vec.append(self.global_state.business_downtime_score / 100.0)
-        vec.append(float(self.current_tick) / float(self.max_ticks))
-        for agent in self.possible_agents:
-            vec.append(float(self.global_state.agent_energy.get(agent, 0)) / 100.0)
-
-        result = np.zeros(512, dtype=np.float32)
-        v_arr = np.array(vec, dtype=np.float32)
-        result[: len(v_arr)] = v_arr
-        return result

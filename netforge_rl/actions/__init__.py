@@ -33,6 +33,7 @@ from .red import (
     SpearPhishing,
 )
 from .red.post_exploitation import DumpLSASS, PassTheTicket
+from .network.ip_fragmentation import IPFragmentationAction
 
 __all__ = [
     'IsolateHost',
@@ -67,4 +68,7 @@ __all__ = [
     'SpearPhishing',
     'DumpLSASS',
     'PassTheTicket',
+    'PassTheHash',
+    'ExfiltrateData',
+    'IPFragmentationAction',
 ]

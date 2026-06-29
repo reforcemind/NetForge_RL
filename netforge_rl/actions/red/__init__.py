@@ -5,8 +5,13 @@ from .exploits import (
     ExploitEternalBlue,
     ExploitHTTP_RFI,
 )
-from .privilege_escalation import PrivilegeEscalate, JuicyPotato, V4L2KernelExploit
-from .impact import Impact, KillProcess
+from .privilege_escalation import (
+    PrivilegeEscalate,
+    JuicyPotato,
+    V4L2KernelExploit,
+    PassTheHash,
+)
+from .impact import Impact, KillProcess, ExfiltrateData
 from .coordination import ShareIntelligence
 from .kinetic import OverloadPLC
 
@@ -28,6 +33,8 @@ __all__ = [
     'SpearPhishing',
     'DumpLSASS',
     'PassTheTicket',
+    'PassTheHash',
+    'ExfiltrateData',
 ]
 from .social_engineering import SpearPhishing
 from .post_exploitation import DumpLSASS, PassTheTicket

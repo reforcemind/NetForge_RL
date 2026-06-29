@@ -138,16 +138,6 @@ _BLUE_WEIGHT_KEYS = (
 )
 
 
-def get_reward_weights(scenario_name: str) -> dict:
-    """Public API: return named reward weights for a given scenario."""
-    sid = SCENARIO_IDS[scenario_name]
-    rw_red, rw_blue = _RW[sid]
-    return {
-        'red': dict(zip(_RED_WEIGHT_KEYS, rw_red)),
-        'blue': dict(zip(_BLUE_WEIGHT_KEYS, rw_blue)),
-    }
-
-
 class BatchedActions(NamedTuple):
     red_target_idx: jax.Array
     blue_target_idx: jax.Array
