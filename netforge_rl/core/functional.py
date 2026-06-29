@@ -2,7 +2,6 @@ from dataclasses import dataclass, field, replace
 
 import numpy as np
 from netforge_rl.core.state import GlobalNetworkState, Subnet, Host
-from netforge_rl.core.action import ActionEffect
 
 N_HOSTS = 100
 STATUS_CODES = ('online', 'isolated', 'kernel_panic')
@@ -376,33 +375,3 @@ def _extract_targeted_ips(state_deltas):
             if target:
                 ips.add(target)
     return ips
-
-
-def resolve_conflicts(effects):
-    """Pure variant of ConflictResolutionEngine.resolve — does NOT mutate input."""
-    blue_defended = set()
-    for agent_id, eff in effects.items():
-        if eff is None or not eff.success:
-            continue
-        if 'blue' in agent_id.lower():
-            blue_defended |= _extract_targeted_ips(eff.state_deltas)
-    resolved = {}
-    for agent_id, eff in effects.items():
-        if eff is None or not eff.success or 'red' not in agent_id.lower():
-            resolved[agent_id] = eff
-            continue
-        red_targets = _extract_targeted_ips(eff.state_deltas)
-        if red_targets & blue_defended:
-            empty_deltas = [] if isinstance(eff.state_deltas, list) else {}
-            new_obs = dict(eff.observation_data)
-            new_obs['alert'] = 'TEMPORAL_COLLISION_DEFENSE_SUPREMACY'
-            resolved[agent_id] = ActionEffect(
-                success=False,
-                state_deltas=empty_deltas,
-                observation_data=new_obs,
-                eta=eff.eta,
-                action=eff.action,
-            )
-        else:
-            resolved[agent_id] = eff
-    return resolved
