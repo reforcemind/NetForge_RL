@@ -100,9 +100,11 @@ def ppo_loss(params, obs, actions, old_logp, advantages, returns, *, clip, vf_co
 
 @dataclass
 class PPOConfig:
-    total_iters: int = 5
-    num_steps: int = 16
-    batch_size: int = 32
+    """PPO hyper-parameters for NetForge RL training."""
+
+    total_iters: int = 500
+    num_steps: int = 128
+    batch_size: int = 256
     learning_rate: float = 3e-4
     gamma: float = 0.99
     lam: float = 0.95
