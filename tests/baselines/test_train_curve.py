@@ -1,7 +1,8 @@
-import jax
-import jax.numpy as jnp
 import numpy as np
 import pytest
+
+jax = pytest.importorskip('jax')
+jnp = pytest.importorskip('jax.numpy')
 
 from netforge_rl.baselines.jax_ppo import (
     PPOConfig,

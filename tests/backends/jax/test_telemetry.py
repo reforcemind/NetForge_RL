@@ -1,8 +1,9 @@
 import types
 
-import jax
-import jax.numpy as jnp
 import pytest
+
+jax = pytest.importorskip('jax')
+jnp = pytest.importorskip('jax.numpy')
 
 from netforge_rl.backends.jax import VectorEnvSpec
 from netforge_rl.backends.jax.vector_env import jax_siem_features
