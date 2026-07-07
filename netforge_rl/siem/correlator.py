@@ -57,7 +57,7 @@ class SIEMCorrelator:
         ]
 
         ip_stages: dict = {}
-        for log, subnet in seen_entries:
+        for log, _subnet in seen_entries:
             for stage, keywords in _STAGE_KEYWORDS.items():
                 if any(kw.lower() in log.lower() for kw in keywords):
                     for token in log.split():

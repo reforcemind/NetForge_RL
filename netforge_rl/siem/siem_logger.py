@@ -24,8 +24,13 @@ P_BACKGROUND_NOISE = 0.15
 class SIEMLogger:
     """Stochastic SIEM event generator."""
 
-    def __init__(self, seed: int | None = None):
+    def __init__(
+        self, seed: int | None = None, latency: int = 0, capture: bool = False
+    ):
         self._rng = random.Random(seed)
+        self.latency = latency
+        self._pending: list[tuple[int, str, str]] = []
+        self.captured: list[tuple[int, str, str]] | None = [] if capture else None
 
     def log_action(
         self,
@@ -75,7 +80,7 @@ class SIEMLogger:
         total = sum(weights)
         norm_weights = [w / total for w in weights]
         chosen = self._rng.choices(callables, weights=norm_weights, k=1)[0]
-        log_line = chosen(src.ip, dst.ip)
+        log_line = chosen(src.ip, dst.ip, rng=self._rng)
         self._push_to_buffer(f'[BACKGROUND] {log_line}', src.subnet_cidr, global_state)
 
     def get_recent_logs(
@@ -119,7 +124,7 @@ class SIEMLogger:
         norm_weights = [w / total for w in weights]
         chosen = self._rng.choices(callables, weights=norm_weights, k=1)[0]
         try:
-            return chosen(src_ip, tgt_ip)
+            return chosen(src_ip, tgt_ip, rng=self._rng)
         except Exception:
             return None
 
@@ -141,7 +146,36 @@ class SIEMLogger:
         subnet_cidr: str,
         global_state: 'GlobalNetworkState',
     ) -> None:
+        if self.latency > 0:
+            release_tick = getattr(global_state, 'current_tick', 0) + self.latency
+            self._pending.append((release_tick, log_line, subnet_cidr))
+            return
+        self._append(log_line, subnet_cidr, global_state)
+
+    def release(self, global_state: 'GlobalNetworkState') -> None:
+        """Flush pending logs whose delay has elapsed into the visible buffer."""
+        if not self._pending:
+            return
+        now = getattr(global_state, 'current_tick', 0)
+        still_pending = []
+        for release_tick, log_line, subnet_cidr in self._pending:
+            if release_tick <= now:
+                self._append(log_line, subnet_cidr, global_state)
+            else:
+                still_pending.append((release_tick, log_line, subnet_cidr))
+        self._pending = still_pending
+
+    def _append(
+        self,
+        log_line: str,
+        subnet_cidr: str,
+        global_state: 'GlobalNetworkState',
+    ) -> None:
         global_state.siem_log_buffer.append((log_line, subnet_cidr))
+        if self.captured is not None:
+            self.captured.append(
+                (getattr(global_state, 'current_tick', 0), log_line, subnet_cidr)
+            )
         # Rolling window — evict oldest entries beyond max
         if len(global_state.siem_log_buffer) > SIEM_BUFFER_MAX:
             global_state.siem_log_buffer.pop(0)
