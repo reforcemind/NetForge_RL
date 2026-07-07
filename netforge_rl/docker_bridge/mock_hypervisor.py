@@ -51,6 +51,9 @@ class MockHypervisor(BaseHypervisor):
         with open(library_path) as f:
             self._library: dict = json.load(f)
 
+    def reseed(self, seed: int | None) -> None:
+        self._rng = random.Random(seed)
+
     def dispatch(
         self,
         action_name: str,

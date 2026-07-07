@@ -53,6 +53,10 @@ class DockerBridge:
         """Destroy all active containers/sessions — call at episode end."""
         self._driver.teardown_all()
 
+    def reseed(self, seed: int | None) -> None:
+        """Reseed the driver RNG so exploit outcomes are reproducible per episode."""
+        self._driver.reseed(seed)
+
     def is_available(self) -> bool:
         return self._driver.is_available()
 

@@ -45,3 +45,6 @@ class BaseHypervisor(ABC):
     def is_available(self) -> bool:
         """Indicate whether this driver is operational."""
         return True
+
+    def reseed(self, seed: int | None) -> None:
+        """Reseed any internal RNG so episodes are reproducible. No-op by default."""
