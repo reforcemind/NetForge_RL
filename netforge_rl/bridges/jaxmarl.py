@@ -13,6 +13,7 @@ from netforge_rl.backends.jax import (
     scenario_done,
     to_jax,
 )
+from netforge_rl.backends.jax.vector_env import jax_siem_features
 from netforge_rl.core.functional import from_global_state
 from netforge_rl.topologies.network_generator import NetworkGenerator
 
@@ -20,18 +21,19 @@ from netforge_rl.topologies.network_generator import NetworkGenerator
 DEFAULT_AGENTS = ('red_operator', 'blue_dmz', 'blue_internal', 'blue_restricted')
 
 
-def _per_agent_obs(state, agents):
-    """Per-role observation function.  Red agents see only recon'd hosts."""
+def _per_agent_obs(state, agents, telemetry=False):
+    """Per-role observation function.  Red agents see only recon'd hosts.
+    """
 
-    blue_flat = jnp.concatenate(
-        [
-            state.hosts.status.astype(jnp.float32),
-            state.hosts.privilege.astype(jnp.float32),
-            state.hosts.compromised_by_id.astype(jnp.float32),
-            state.hosts.edr_active.astype(jnp.float32),
-        ],
-        axis=-1,
-    )
+    blue_parts = [
+        state.hosts.status.astype(jnp.float32),
+        state.hosts.privilege.astype(jnp.float32),
+        state.hosts.compromised_by_id.astype(jnp.float32),
+        state.hosts.edr_active.astype(jnp.float32),
+    ]
+    if telemetry:
+        blue_parts.append(jax_siem_features(state.hosts))
+    blue_flat = jnp.concatenate(blue_parts, axis=-1)
 
     known_mask = state.knowledge_mask[:, 0, :].astype(jnp.float32)
     red_status = state.hosts.status.astype(jnp.float32) * known_mask
@@ -55,6 +57,7 @@ class JaxMARLEnv:
     batch_size: int
     agents: tuple = DEFAULT_AGENTS
     evaluation_mode: bool = False
+    telemetry_obs: bool = False
 
     def __post_init__(self):
         self._step = make_vector_step(self.spec)
@@ -66,7 +69,7 @@ class JaxMARLEnv:
         )
         template = to_jax(from_global_state(legacy, agent_ids=self.agents))
         state = initial_batched_state(template, batch_size=self.batch_size)
-        return _per_agent_obs(state, self.agents), state
+        return _per_agent_obs(state, self.agents, self.telemetry_obs), state
 
     def step(self, key, state, actions):
         batched = self._coerce_actions(actions)
@@ -88,7 +91,7 @@ class JaxMARLEnv:
             a: {'terminated': terminated, 'truncated': truncated} for a in self.agents
         }
 
-        obs = _per_agent_obs(new_state, self.agents)
+        obs = _per_agent_obs(new_state, self.agents, self.telemetry_obs)
         return obs, new_state, per_agent_reward, done_dict, info
 
     def _coerce_actions(self, actions):
