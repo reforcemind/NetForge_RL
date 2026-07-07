@@ -1,9 +1,9 @@
 from netforge_rl.diagnostics.base import (
     Diagnostic,
     DiagnosticResult,
-    all_diagnostics,
     run_diagnostic,
 )
+from netforge_rl.diagnostics.suite import all_diagnostics
 from netforge_rl.diagnostics.delayed_telemetry import DelayedTelemetry
 from netforge_rl.diagnostics.false_positive import FalsePositiveRestraint
 from netforge_rl.diagnostics.memory_probe import MemoryProbe

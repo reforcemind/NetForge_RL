@@ -18,3 +18,8 @@ def get_scenario_class(name: str):
     if key not in _SCENARIOS:
         raise KeyError(f'Unknown scenario {name!r}. Available: {sorted(_SCENARIOS)}')
     return _SCENARIOS[key]
+
+
+def get_reward_weights(name: str) -> dict:
+    """Return the documented reward decomposition for a scenario."""
+    return get_scenario_class(name).REWARD_WEIGHTS

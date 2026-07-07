@@ -1,91 +1,74 @@
-from typing import Dict
-from netforge_rl.scenarios.base_scenario import BaseScenario
-
-from netforge_rl.core.state import GlobalNetworkState
-from netforge_rl.core.action import ActionEffect
+from netforge_rl.scenarios.base_scenario import PADDING_SUBNET, BaseScenario
 
 
 class AptEspionageScenario(BaseScenario):
     """APT espionage scenario."""
 
     MAX_STEP_REWARD = 20.0
+    ACTION_COST_FACTOR = 0.1
 
-    def __init__(self, agents):
-        self.agents = agents
+    REWARD_WEIGHTS = {
+        'red_weights': {
+            'recon': 2.0,
+            'breach': 10.0,
+            'exfiltration': 20.0,
+            'intel_shared': 5.0,
+            'hit_decoy': -15.0,
+            'persistence_online': 5.0,
+            'persistence_isolated': -20.0,
+            'action_cost': -0.1,
+        },
+        'blue_weights': {
+            'host_clean': 1.0,
+            'host_infected': -5.0,
+            'infected_isolated': 20.0,
+            'action_cost': -0.1,
+        },
+    }
 
-    def calculate_reward(
-        self,
-        agent_id: str,
-        global_state: 'GlobalNetworkState',
-        effect: 'ActionEffect' = None,
-    ) -> float:
-        reward = 0.0
+    def _red_reward(self, agent_id, state, effect):
+        r = 0.0
+        if effect and effect.success:
+            name = type(getattr(effect, 'action', None)).__name__
+            obs = effect.observation_data
+            if 'Discover' in name or 'Scan' in name:
+                r += 2.0
+            if 'Exploit' in name or 'Pivot' in name:
+                r += 10.0
+            if 'Exfiltrate' in name or 'Dump' in name or 'Impact' in name:
+                r += 20.0
+            if 'shared' in str(obs):
+                r += 5.0
+            if 'Failed against Decoy' in str(obs.values()):
+                r -= 15.0
 
-        if effect:
-            # Action Cost Penalty
-            if getattr(effect, 'cost', 0) > 0:
-                reward -= effect.cost * 0.1
+        for h in state.all_hosts.values():
+            if h.subnet_cidr == PADDING_SUBNET:
+                continue
+            if h.privilege in ('User', 'Root'):
+                if h.status == 'online':
+                    r += 5.0
+                elif h.status == 'isolated':
+                    r -= 20.0
+        return r
 
-            if 'red' in agent_id.lower() and effect.success:
-                action_obj = getattr(effect, 'action', None)
-                action_name = type(action_obj).__name__ if action_obj else 'Unknown'
+    def _blue_reward(self, agent_id, state, effect):
+        r = 0.0
+        for h in state.all_hosts.values():
+            if h.subnet_cidr == PADDING_SUBNET:
+                continue
+            infected = h.privilege in ('User', 'Root')
+            isolated = h.status == 'isolated'
+            if not infected and not isolated:
+                r += 1.0
+            elif infected and not isolated:
+                r -= 5.0
+            elif infected and isolated:
+                r += 20.0
+        return r
 
-                # RECON Reward
-                if 'Discover' in action_name or 'Scan' in action_name:
-                    reward += 2.0
-
-                # BREACH Reward
-                if 'Exploit' in action_name or 'Pivot' in action_name:
-                    reward += 10.0
-
-                # EXFIL Reward
-                if (
-                    'Exfiltrate' in action_name
-                    or 'Dump' in action_name
-                    or 'Impact' in action_name
-                ):
-                    reward += 20.0
-
-                if 'shared' in str(effect.observation_data):
-                    reward += 5.0
-
-                if 'Failed against Decoy' in str(effect.observation_data.values()):
-                    reward -= 15.0
-
-        if 'red' in agent_id.lower():
-            total_persistence = 0.0
-            for h in global_state.all_hosts.values():
-                if h.subnet_cidr == '169.254.0.0/16':
-                    continue
-                if h.privilege in ['User', 'Root'] and h.status == 'online':
-                    total_persistence += 5.0
-                elif h.privilege in ['User', 'Root'] and h.status == 'isolated':
-                    total_persistence -= 20.0
-            reward += total_persistence
-
-        elif 'blue' in agent_id.lower():
-            for h in global_state.all_hosts.values():
-                if h.subnet_cidr == '169.254.0.0/16':
-                    continue
-                is_infected = h.privilege in ['User', 'Root']
-                is_isolated = h.status == 'isolated'
-
-                if not is_infected and not is_isolated:
-                    reward += 1.0
-                elif is_infected and not is_isolated:
-                    reward -= 5.0
-                elif is_infected and is_isolated:
-                    reward += 20.0
-
-        return reward
-
-    def check_termination(self, global_state: 'GlobalNetworkState') -> Dict[str, bool]:
-        terminate = {agent: False for agent in self.agents}
-        infected_hosts = [
-            h
-            for h in global_state.all_hosts.values()
-            if h.privilege in ['User', 'Root']
+    def _is_terminal(self, state):
+        infected = [
+            h for h in state.all_hosts.values() if h.privilege in ('User', 'Root')
         ]
-        if infected_hosts and all(h.status == 'isolated' for h in infected_hosts):
-            return {agent: True for agent in self.agents}
-        return terminate
+        return bool(infected) and all(h.status == 'isolated' for h in infected)

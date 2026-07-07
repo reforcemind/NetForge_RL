@@ -1,5 +1,3 @@
-from __future__ import annotations
-from typing import Dict
 from netforge_rl.scenarios.base_scenario import BaseScenario
 
 
@@ -12,72 +10,50 @@ class OTStuxnetScenario(BaseScenario):
     BLUE_HOLD_BONUS = 0.5
     BLUE_KINETIC_PENALTY = -10_000.0
 
-    def __init__(self, agents):
-        self.agents = agents
+    REWARD_WEIGHTS = {
+        'red_weights': {
+            'ot_privilege': PER_TIER_BONUS * 3,
+            'it_privilege': PER_TIER_BONUS,
+            'kinetic_destruction': KINETIC_REWARD,
+            'failed_action': -0.1,
+            'action_cost': -0.05,
+        },
+        'blue_weights': {
+            'ot_hold_bonus': BLUE_HOLD_BONUS,
+            'kinetic_penalty': BLUE_KINETIC_PENALTY,
+            'ot_isolation': 6.0,
+            'action_cost': -0.05,
+        },
+    }
 
-    def calculate_reward(self, agent_id, global_state, effect=None):
-        reward = 0.0
-        if effect and getattr(effect, 'cost', 0) > 0:
-            reward -= effect.cost * 0.05
-
-        if 'red' in agent_id.lower():
-            reward += self._red(global_state, effect)
-        else:
-            reward += self._blue(global_state, effect)
-        return reward
-
-    def _red(self, state, effect):
+    def _red_reward(self, agent_id, state, effect):
         r = 0.0
-        if effect and effect.success and isinstance(effect.state_deltas, dict):
-            for k, v in effect.state_deltas.items():
-                if 'privilege' in k and v in ('User', 'Root'):
-                    ip = k.split('/')[1] if '/' in k else None
-                    host = state.all_hosts.get(ip) if ip else None
-                    if host:
-                        if state.get_subnet_name(host.subnet_cidr) == 'OT':
-                            r += self.PER_TIER_BONUS * 3
-                        else:
-                            r += self.PER_TIER_BONUS
-        if any(
-            getattr(h, 'system_integrity', 'clean') == 'kinetic_destruction'
-            for h in state.all_hosts.values()
-        ):
+        for attr, ip, v in self._iter_deltas(effect):
+            if attr == 'privilege' and v in ('User', 'Root'):
+                host = state.all_hosts.get(ip)
+                if host:
+                    if state.get_subnet_name(host.subnet_cidr) == 'OT_Subnet':
+                        r += self.PER_TIER_BONUS * 3
+                    else:
+                        r += self.PER_TIER_BONUS
+        if self._any_kinetic(state):
             r += self.KINETIC_REWARD
-        if effect and not effect.success:
-            r -= 0.1
-        return r
+        return r + self._failed_penalty(effect)
 
-    def _blue(self, state, effect):
+    def _blue_reward(self, agent_id, state, effect):
         r = 0.0
-        # Bonus per step where the OT tier is still safe.
-        ot_clean = all(
-            h.compromised_by == 'None'
-            for h in state.all_hosts.values()
-            if state.get_subnet_name(h.subnet_cidr) == 'OT'
-        )
-        if ot_clean:
-            r += self.BLUE_HOLD_BONUS
+        ot_hosts = self._hosts_in_subnet(state, 'OT_Subnet')
+        if all(h.compromised_by == 'None' for h in ot_hosts):
+            r += self.BLUE_HOLD_BONUS  # OT tier still safe this step
+        if self._any_kinetic(state):
+            r += self.BLUE_KINETIC_PENALTY  # catastrophic PLC damage
 
-        # Catastrophic penalty if any PLC takes kinetic damage.
-        if any(
-            getattr(h, 'system_integrity', 'clean') == 'kinetic_destruction'
-            for h in state.all_hosts.values()
-        ):
-            r += self.BLUE_KINETIC_PENALTY
-
-        if effect and effect.success and isinstance(effect.state_deltas, dict):
-            for k, v in effect.state_deltas.items():
-                if 'status' in k and v == 'isolated':
-                    ip = k.split('/')[1] if '/' in k else None
-                    host = state.all_hosts.get(ip) if ip else None
-                    if host and state.get_subnet_name(host.subnet_cidr) == 'OT':
-                        r += 6.0  # Isolating an OT host is high-value defense
+        for attr, ip, v in self._iter_deltas(effect):
+            if attr == 'status' and v == 'isolated':
+                host = state.all_hosts.get(ip)
+                if host and state.get_subnet_name(host.subnet_cidr) == 'OT_Subnet':
+                    r += 6.0  # isolating an OT host is high-value defense
         return r
 
-    def check_termination(self, state) -> Dict[str, bool]:
-        if any(
-            getattr(h, 'system_integrity', 'clean') == 'kinetic_destruction'
-            for h in state.all_hosts.values()
-        ):
-            return {a: True for a in self.agents}
-        return {a: False for a in self.agents}
+    def _is_terminal(self, state):
+        return self._any_kinetic(state)

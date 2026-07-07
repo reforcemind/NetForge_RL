@@ -1,5 +1,3 @@
-from __future__ import annotations
-from typing import Dict
 from netforge_rl.scenarios.base_scenario import BaseScenario
 
 
@@ -10,73 +8,62 @@ class IoTGridScenario(BaseScenario):
     CONTROLLER_LOSS_PENALTY = -250.0
     HEALTH_BONUS_SCALE = 0.5
 
-    def __init__(self, agents):
-        self.agents = agents
+    REWARD_WEIGHTS = {
+        'red_weights': {
+            'privilege': 2.0,
+            'controller_breach': 40.0,
+            'kernel_panic': 5.0,
+            'failed_action': -0.1,
+            'action_cost': -0.05,
+        },
+        'blue_weights': {
+            'health_ratio_scale': HEALTH_BONUS_SCALE,
+            'controller_loss': CONTROLLER_LOSS_PENALTY,
+            'correct_isolation': 3.0,
+            'false_positive_isolation': -1.0,
+            'action_cost': -0.05,
+        },
+    }
 
-    def calculate_reward(self, agent_id, global_state, effect=None):
-        reward = 0.0
-        if effect and getattr(effect, 'cost', 0) > 0:
-            reward -= effect.cost * 0.05
-
-        if 'red' in agent_id.lower():
-            reward += self._red(global_state, effect)
-        else:
-            reward += self._blue(global_state, effect)
-        return reward
-
-    def _red(self, state, effect):
+    def _red_reward(self, agent_id, state, effect):
         r = 0.0
-        if effect and effect.success and isinstance(effect.state_deltas, dict):
-            for k, v in effect.state_deltas.items():
-                if 'privilege' in k and v in ('User', 'Root'):
-                    r += 2.0
-                    ip = k.split('/')[1] if '/' in k else None
-                    if (
-                        ip
-                        and state.all_hosts.get(ip)
-                        and state.all_hosts[ip].is_domain_controller
-                    ):
-                        r += 40.0
-                if 'status' in k and v == 'kernel_panic':
-                    r += 5.0
-        if effect and not effect.success:
-            r -= 0.1
-        return r
+        for attr, ip, v in self._iter_deltas(effect):
+            if attr == 'privilege' and v in ('User', 'Root'):
+                r += 2.0
+                host = state.all_hosts.get(ip)
+                if host and host.is_domain_controller:
+                    r += 40.0
+            if attr == 'status' and v == 'kernel_panic':
+                r += 5.0
+        return r + self._failed_penalty(effect)
 
-    def _blue(self, state, effect):
-        r = 0.0
+    def _blue_reward(self, agent_id, state, effect):
         total = max(len(state.all_hosts), 1)
         healthy = sum(
             1
             for h in state.all_hosts.values()
             if h.compromised_by == 'None' and h.status == 'online'
         )
-        r += (healthy / total) * self.HEALTH_BONUS_SCALE
+        r = (healthy / total) * self.HEALTH_BONUS_SCALE
 
-        # Big penalty if any controller is compromised — load-bearing for grid.
+        # Big penalty if any controller is compromised — load-bearing for the grid.
         if any(
             h.is_domain_controller and h.compromised_by != 'None'
             for h in state.all_hosts.values()
         ):
             r += self.CONTROLLER_LOSS_PENALTY
 
-        if effect and effect.success and isinstance(effect.state_deltas, dict):
-            for k, v in effect.state_deltas.items():
-                if 'status' in k and v == 'isolated':
-                    ip = k.split('/')[1] if '/' in k else None
-                    if (
-                        ip
-                        and state.all_hosts.get(ip)
-                        and state.all_hosts[ip].compromised_by != 'None'
-                    ):
-                        r += 3.0
-                    else:
-                        r -= 1.0
+        for attr, ip, v in self._iter_deltas(effect):
+            if attr == 'status' and v == 'isolated':
+                host = state.all_hosts.get(ip)
+                if host and host.compromised_by != 'None':
+                    r += 3.0
+                else:
+                    r -= 1.0
         return r
 
-    def check_termination(self, state) -> Dict[str, bool]:
-        # End the episode if every controller is lost.
+    def _is_terminal(self, state):
         controllers = [h for h in state.all_hosts.values() if h.is_domain_controller]
-        if controllers and all(h.compromised_by != 'None' for h in controllers):
-            return {a: True for a in self.agents}
-        return {a: False for a in self.agents}
+        return bool(controllers) and all(
+            h.compromised_by != 'None' for h in controllers
+        )

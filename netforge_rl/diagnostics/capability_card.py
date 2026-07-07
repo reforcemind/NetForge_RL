@@ -6,7 +6,8 @@ from typing import Optional, Sequence
 
 import numpy as np
 
-from netforge_rl.diagnostics.base import all_diagnostics, run_diagnostic
+from netforge_rl.diagnostics.base import run_diagnostic
+from netforge_rl.diagnostics.suite import all_diagnostics
 
 
 def capability_card(

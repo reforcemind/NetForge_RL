@@ -23,8 +23,7 @@ def _reseed(policy, seed: int) -> None:
 
 
 class NetForgeSingleAgentEnv(gym.Env):
-    """Gymnasium single-agent facade: one RL-controlled agent vs scripted opponents.
-    """
+    """Gymnasium single-agent facade: one RL-controlled agent vs scripted opponents."""
 
     metadata = {'render_modes': []}
 
