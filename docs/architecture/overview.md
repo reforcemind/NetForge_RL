@@ -11,8 +11,8 @@ sequenceDiagram
     participant ConflictResolutionEngine
     participant GlobalNetworkState
 
-    Agents->>Environment: step({agent_id: action_str})
-    Environment->>ActionRegistry: Parse actions
+    Agents->>Environment: step({agent_id: [action_type, target_index]})
+    Environment->>ActionRegistry: Instantiate actions
     Environment->>Environment: action.execute(GlobalNetworkState)
     Environment->>ConflictResolutionEngine: resolve(effects_dict)
     ConflictResolutionEngine->>GlobalNetworkState: Apply ActionEffect.state_deltas
@@ -60,4 +60,4 @@ All agent capabilities inherit from `BaseAction`. `execute()` returns an `Action
 Resolves temporal collisions occurring in the same parallel tick. Handled deterministically within the `EnvState` interpreter.
 
 ### `SIEMLogger` and `LogEncoder`
-`SIEMLogger` translates state deltas into standardized string logs matching Windows/Sysmon syntax, injecting stochastic benign noise. `LogEncoder` vectorizes the buffer into dense observations.
+`SIEMLogger` translates state deltas into standardized string logs matching Windows/Sysmon syntax, injecting stochastic benign noise. When `log_latency > 0` it holds each log for that many ticks before it becomes visible, modelling a lagging SOC feed. `LogEncoder` vectorizes the buffer into dense observations.
