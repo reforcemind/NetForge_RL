@@ -4,26 +4,7 @@ from dataclasses import replace
 
 import numpy as np
 
-from netforge_rl.backends.jax.vector_env import (
-    _BLUE_SCALE,
-    _CVE_BLUEKEEP,
-    _CVE_ETERNALBLUE,
-    _CVE_HTTP_RFI,
-    _DECOY_ACTIVE,
-    _DECOY_APACHE,
-    _DECOY_SSHD,
-    _DECOY_TOMCAT,
-    _INTEGRITY_CLEAN,
-    _INTEGRITY_COMPROMISED,
-    _INTEGRITY_KINETIC,
-    _PRIV_NONE,
-    _PRIV_ROOT,
-    _PRIV_USER,
-    _RED_SCALE,
-    _RW,
-    _STATUS_ISOLATED,
-    _STATUS_KERNEL_PANIC,
-    _STATUS_ONLINE,
+from netforge_rl.backends.jax.action_codes import (
     BLUE_ANALYZE,
     BLUE_CONFIGURE_ACL,
     BLUE_DEPLOY_DECOY,
@@ -39,6 +20,7 @@ from netforge_rl.backends.jax.vector_env import (
     BLUE_ROTATE_KERBEROS,
     BLUE_SAT,
     EXFIL_PER_HOST,
+    RED_COMPROMISE,
     RED_DISCOVER_REMOTE_SYSTEMS,
     RED_DUMP_LSASS,
     RED_EXFILTRATE,
@@ -57,13 +39,35 @@ from netforge_rl.backends.jax.vector_env import (
     RED_RECON,
     RED_SHARE_INTEL,
     RED_SPEARPHISHING,
-    RED_COMPROMISE,
     RED_V4L2,
     SAT_DROP,
+)
+from netforge_rl.backends.jax.scenario_config import (
+    _BLUE_SCALE,
+    _RED_SCALE,
+    _RW,
     SCENARIO_APT,
     SCENARIO_CLOUD,
     SCENARIO_IOT,
     SCENARIO_OT,
+)
+from netforge_rl.backends.jax.state_codes import (
+    _CVE_BLUEKEEP,
+    _CVE_ETERNALBLUE,
+    _CVE_HTTP_RFI,
+    _DECOY_ACTIVE,
+    _DECOY_APACHE,
+    _DECOY_SSHD,
+    _DECOY_TOMCAT,
+    _INTEGRITY_CLEAN,
+    _INTEGRITY_COMPROMISED,
+    _INTEGRITY_KINETIC,
+    _PRIV_NONE,
+    _PRIV_ROOT,
+    _PRIV_USER,
+    _STATUS_ISOLATED,
+    _STATUS_KERNEL_PANIC,
+    _STATUS_ONLINE,
 )
 from netforge_rl.core.functional import OS_LINUX, OS_WINDOWS
 
