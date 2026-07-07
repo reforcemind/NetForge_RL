@@ -2,7 +2,7 @@ from netforge_rl.core.action import BaseAction, ActionEffect
 from netforge_rl.core.registry import action_registry
 
 
-@action_registry.register('red_commander', 3)
+@action_registry.register('red', 16)
 class ShareIntelligence(BaseAction):
     """Shares discovered hosts with allied agent."""
 

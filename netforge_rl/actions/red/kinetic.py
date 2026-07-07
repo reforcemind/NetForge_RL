@@ -1,4 +1,3 @@
-import random
 from netforge_rl.core.action import BaseAction, ActionEffect
 from netforge_rl.core.registry import action_registry
 
@@ -39,8 +38,8 @@ class OverloadPLC(BaseAction):
         pressure_sp = getattr(
             host, 'pressure_setpoint', getattr(host, 'pressure', 100.0)
         )
-        new_temp_sp = temp_sp + random.uniform(80.0, 150.0)
-        new_pressure_sp = pressure_sp * random.uniform(1.5, 2.0)
+        new_temp_sp = temp_sp + global_state.rng.uniform(80.0, 150.0)
+        new_pressure_sp = pressure_sp * global_state.rng.uniform(1.5, 2.0)
         deltas = {
             f'hosts/{self.target_ip}/temperature_setpoint': new_temp_sp,
             f'hosts/{self.target_ip}/pressure_setpoint': new_pressure_sp,

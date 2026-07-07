@@ -2,7 +2,7 @@ from netforge_rl.core.action import BaseAction, ActionEffect
 from netforge_rl.core.registry import action_registry
 
 
-@action_registry.register('red_commander', 0)
+@action_registry.register('red', 14)
 class NetworkScan(BaseAction):
     """Maps active IPs on subnet."""
 
@@ -21,7 +21,7 @@ class NetworkScan(BaseAction):
         )
 
 
-@action_registry.register('red_commander', 1)
+@action_registry.register('red', 15)
 class DiscoverRemoteSystems(BaseAction):
     """Executes ping sweep."""
 
@@ -55,7 +55,6 @@ class DiscoverRemoteSystems(BaseAction):
         )
 
 
-@action_registry.register('red_commander', 2)
 @action_registry.register('red', 2)
 class DiscoverNetworkServices(BaseAction):
     """Executes port scan."""

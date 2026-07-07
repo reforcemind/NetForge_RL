@@ -94,7 +94,7 @@ class V4L2KernelExploit(BaseAction):
         )
 
 
-@action_registry.register('red_operator', 9)
+@action_registry.register('red', 9)
 class PassTheHash(BaseAction):
     """Moves laterally using stolen Kerberos or NTLM hashes."""
 

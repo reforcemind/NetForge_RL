@@ -1,4 +1,3 @@
-import random
 from netforge_rl.core.action import BaseAction, ActionEffect
 from netforge_rl.core.commands import (
     EstablishSessionCommand,
@@ -32,7 +31,7 @@ class SpearPhishing(BaseAction):
     def execute(self, global_state) -> ActionEffect:
         host = global_state.all_hosts.get(self.target_ip)
         phish_chance = getattr(host, 'human_vulnerability_score', 0.1)
-        if random.random() > phish_chance:
+        if global_state.rng.random() > phish_chance:
             return ActionEffect(
                 success=False,
                 state_deltas=[],
