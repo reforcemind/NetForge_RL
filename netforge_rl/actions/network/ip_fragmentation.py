@@ -6,7 +6,7 @@ if TYPE_CHECKING:
 from netforge_rl.core.registry import action_registry
 
 
-@action_registry.register('red_operator', 11)
+@action_registry.register('red', 17)
 class IPFragmentationAction(BaseAction):
     """Fragments payload to bypass IDS."""
 
