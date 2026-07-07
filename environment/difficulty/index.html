@@ -12,29 +12,31 @@
         <meta name="author" content="Igor Jankowski">
       
       
-        <link rel="canonical" href="https://reforcemind.github.io/NetForge_RL/">
+        <link rel="canonical" href="https://reforcemind.github.io/NetForge_RL/environment/difficulty/">
       
       
+        <link rel="prev" href="../../DATASHEET/">
       
-        <link rel="next" href="quickstart/">
+      
+        <link rel="next" href="../reproducibility/">
       
       
         
       
       
-      <link rel="icon" href="assets/images/favicon.png">
+      <link rel="icon" href="../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
       
-        <title>NetForge RL</title>
+        <title>Difficulty & Splits - NetForge RL</title>
       
     
     
-      <link rel="stylesheet" href="assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
       
         
-        <link rel="stylesheet" href="assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -53,11 +55,11 @@
       
     
     
-      <link rel="stylesheet" href="assets/_mkdocstrings.css">
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
     
-      <link rel="stylesheet" href="stylesheets/custom.css">
+      <link rel="stylesheet" href="../../stylesheets/custom.css">
     
-    <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -82,7 +84,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#netforge-rl" class="md-skip">
+        <a href="#difficulty-evaluation-splits" class="md-skip">
           Skip to content
         </a>
       
@@ -98,7 +100,7 @@
 
 <header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="." title="NetForge RL" class="md-header__button md-logo" aria-label="NetForge RL" data-md-component="logo">
+    <a href="../.." title="NetForge RL" class="md-header__button md-logo" aria-label="NetForge RL" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 1 3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5zm0 6c1.4 0 2.8 1.1 2.8 2.5V11c.6 0 1.2.6 1.2 1.3v3.5c0 .6-.6 1.2-1.3 1.2H9.2c-.6 0-1.2-.6-1.2-1.3v-3.5c0-.6.6-1.2 1.2-1.2V9.5C9.2 8.1 10.6 7 12 7m0 1.2c-.8 0-1.5.5-1.5 1.3V11h3V9.5c0-.8-.7-1.3-1.5-1.3"/></svg>
@@ -118,7 +120,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Home
+              Difficulty & Splits
             
           </span>
         </div>
@@ -226,11 +228,9 @@
   
   
   
-    
   
-  
-    <li class="md-tabs__item md-tabs__item--active">
-      <a href="." class="md-tabs__link">
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
         
   
   
@@ -249,7 +249,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="quickstart/" class="md-tabs__link">
+      <a href="../../quickstart/" class="md-tabs__link">
         
   
   
@@ -268,7 +268,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="DATASHEET/" class="md-tabs__link">
+      <a href="../../DATASHEET/" class="md-tabs__link">
         
   
   
@@ -285,11 +285,13 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="environment/difficulty/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="./" class="md-tabs__link">
           
   
   
@@ -307,7 +309,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="diagnostics/overview/" class="md-tabs__link">
+      <a href="../../diagnostics/overview/" class="md-tabs__link">
         
   
   
@@ -328,7 +330,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="interop/soc_export/" class="md-tabs__link">
+        <a href="../../interop/soc_export/" class="md-tabs__link">
           
   
   
@@ -348,7 +350,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="architecture/overview/" class="md-tabs__link">
+        <a href="../../architecture/overview/" class="md-tabs__link">
           
   
   
@@ -368,7 +370,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="cybersec/overview/" class="md-tabs__link">
+        <a href="../../cybersec/overview/" class="md-tabs__link">
           
   
   
@@ -388,7 +390,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="api/environment/" class="md-tabs__link">
+        <a href="../../api/environment/" class="md-tabs__link">
           
   
   
@@ -408,7 +410,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="training/curriculum/" class="md-tabs__link">
+        <a href="../../training/curriculum/" class="md-tabs__link">
           
   
   
@@ -426,7 +428,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="changelog/" class="md-tabs__link">
+      <a href="../../changelog/" class="md-tabs__link">
         
   
   
@@ -467,7 +469,7 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="." title="NetForge RL" class="md-nav__button md-logo" aria-label="NetForge RL" data-md-component="logo">
+    <a href="../.." title="NetForge RL" class="md-nav__button md-logo" aria-label="NetForge RL" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 1 3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5zm0 6c1.4 0 2.8 1.1 2.8 2.5V11c.6 0 1.2.6 1.2 1.3v3.5c0 .6-.6 1.2-1.3 1.2H9.2c-.6 0-1.2-.6-1.2-1.3v-3.5c0-.6.6-1.2 1.2-1.2V9.5C9.2 8.1 10.6 7 12 7m0 1.2c-.8 0-1.5.5-1.5 1.3V11h3V9.5c0-.8-.7-1.3-1.5-1.3"/></svg>
@@ -494,37 +496,10 @@
       
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Home
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="." class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
         
   
   
@@ -540,81 +515,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#why-netforge" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Why NetForge
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#quick-start" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Quick Start
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#whats-inside" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        What's inside
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#the-five-scenarios" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        The five scenarios
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#citation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Citation
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -626,7 +526,7 @@
   
   
     <li class="md-nav__item">
-      <a href="quickstart/" class="md-nav__link">
+      <a href="../../quickstart/" class="md-nav__link">
         
   
   
@@ -653,7 +553,7 @@
   
   
     <li class="md-nav__item">
-      <a href="DATASHEET/" class="md-nav__link">
+      <a href="../../DATASHEET/" class="md-nav__link">
         
   
   
@@ -677,28 +577,31 @@
       
   
   
+    
   
   
+  
     
     
     
     
+      
+        
+        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
         
           
-        
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
-        
-          
-          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
             
   
   
@@ -716,7 +619,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
             
@@ -731,10 +634,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="environment/difficulty/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Difficulty & Splits
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -750,6 +680,70 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#presets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Presets
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-knobs-explained" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The knobs, explained
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#held-out-evaluation-split" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Held-out evaluation split
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#curriculum-learning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Curriculum learning
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -762,7 +756,7 @@
   
   
     <li class="md-nav__item">
-      <a href="environment/reproducibility/" class="md-nav__link">
+      <a href="../reproducibility/" class="md-nav__link">
         
   
   
@@ -790,7 +784,7 @@
   
   
     <li class="md-nav__item">
-      <a href="environment/graph_observations/" class="md-nav__link">
+      <a href="../graph_observations/" class="md-nav__link">
         
   
   
@@ -825,7 +819,7 @@
   
   
     <li class="md-nav__item">
-      <a href="diagnostics/overview/" class="md-nav__link">
+      <a href="../../diagnostics/overview/" class="md-nav__link">
         
   
   
@@ -906,7 +900,7 @@
   
   
     <li class="md-nav__item">
-      <a href="interop/soc_export/" class="md-nav__link">
+      <a href="../../interop/soc_export/" class="md-nav__link">
         
   
   
@@ -995,7 +989,7 @@
   
   
     <li class="md-nav__item">
-      <a href="architecture/overview/" class="md-nav__link">
+      <a href="../../architecture/overview/" class="md-nav__link">
         
   
   
@@ -1023,7 +1017,7 @@
   
   
     <li class="md-nav__item">
-      <a href="architecture/dynamic_topology/" class="md-nav__link">
+      <a href="../../architecture/dynamic_topology/" class="md-nav__link">
         
   
   
@@ -1051,7 +1045,7 @@
   
   
     <li class="md-nav__item">
-      <a href="architecture/ot_physics/" class="md-nav__link">
+      <a href="../../architecture/ot_physics/" class="md-nav__link">
         
   
   
@@ -1079,7 +1073,7 @@
   
   
     <li class="md-nav__item">
-      <a href="architecture/multimodal_obs/" class="md-nav__link">
+      <a href="../../architecture/multimodal_obs/" class="md-nav__link">
         
   
   
@@ -1107,7 +1101,7 @@
   
   
     <li class="md-nav__item">
-      <a href="architecture/zero_trust/" class="md-nav__link">
+      <a href="../../architecture/zero_trust/" class="md-nav__link">
         
   
   
@@ -1135,7 +1129,7 @@
   
   
     <li class="md-nav__item">
-      <a href="architecture/sim2real/" class="md-nav__link">
+      <a href="../../architecture/sim2real/" class="md-nav__link">
         
   
   
@@ -1163,7 +1157,7 @@
   
   
     <li class="md-nav__item">
-      <a href="architecture/nlp_siem/" class="md-nav__link">
+      <a href="../../architecture/nlp_siem/" class="md-nav__link">
         
   
   
@@ -1252,7 +1246,7 @@
   
   
     <li class="md-nav__item">
-      <a href="cybersec/overview/" class="md-nav__link">
+      <a href="../../cybersec/overview/" class="md-nav__link">
         
   
   
@@ -1280,7 +1274,7 @@
   
   
     <li class="md-nav__item">
-      <a href="cybersec/threat_model/" class="md-nav__link">
+      <a href="../../cybersec/threat_model/" class="md-nav__link">
         
   
   
@@ -1308,7 +1302,7 @@
   
   
     <li class="md-nav__item">
-      <a href="cybersec/red_actions/" class="md-nav__link">
+      <a href="../../cybersec/red_actions/" class="md-nav__link">
         
   
   
@@ -1336,7 +1330,7 @@
   
   
     <li class="md-nav__item">
-      <a href="cybersec/blue_actions/" class="md-nav__link">
+      <a href="../../cybersec/blue_actions/" class="md-nav__link">
         
   
   
@@ -1425,7 +1419,7 @@
   
   
     <li class="md-nav__item">
-      <a href="api/environment/" class="md-nav__link">
+      <a href="../../api/environment/" class="md-nav__link">
         
   
   
@@ -1453,7 +1447,7 @@
   
   
     <li class="md-nav__item">
-      <a href="api/sim2real/" class="md-nav__link">
+      <a href="../../api/sim2real/" class="md-nav__link">
         
   
   
@@ -1481,7 +1475,7 @@
   
   
     <li class="md-nav__item">
-      <a href="api/siem/" class="md-nav__link">
+      <a href="../../api/siem/" class="md-nav__link">
         
   
   
@@ -1509,7 +1503,7 @@
   
   
     <li class="md-nav__item">
-      <a href="api/nlp/" class="md-nav__link">
+      <a href="../../api/nlp/" class="md-nav__link">
         
   
   
@@ -1598,7 +1592,7 @@
   
   
     <li class="md-nav__item">
-      <a href="training/curriculum/" class="md-nav__link">
+      <a href="../../training/curriculum/" class="md-nav__link">
         
   
   
@@ -1626,7 +1620,7 @@
   
   
     <li class="md-nav__item">
-      <a href="training/rllib/" class="md-nav__link">
+      <a href="../../training/rllib/" class="md-nav__link">
         
   
   
@@ -1654,7 +1648,7 @@
   
   
     <li class="md-nav__item">
-      <a href="training/scenarios/" class="md-nav__link">
+      <a href="../../training/scenarios/" class="md-nav__link">
         
   
   
@@ -1736,7 +1730,7 @@
   
   
     <li class="md-nav__item">
-      <a href="benchmarks/overview/" class="md-nav__link">
+      <a href="../../benchmarks/overview/" class="md-nav__link">
         
   
   
@@ -1764,7 +1758,7 @@
   
   
     <li class="md-nav__item">
-      <a href="benchmarks/baselines/" class="md-nav__link">
+      <a href="../../benchmarks/baselines/" class="md-nav__link">
         
   
   
@@ -1792,7 +1786,7 @@
   
   
     <li class="md-nav__item">
-      <a href="benchmarks/self_play/" class="md-nav__link">
+      <a href="../../benchmarks/self_play/" class="md-nav__link">
         
   
   
@@ -1820,7 +1814,7 @@
   
   
     <li class="md-nav__item">
-      <a href="benchmarks/run/" class="md-nav__link">
+      <a href="../../benchmarks/run/" class="md-nav__link">
         
   
   
@@ -1863,7 +1857,7 @@
   
   
     <li class="md-nav__item">
-      <a href="changelog/" class="md-nav__link">
+      <a href="../../changelog/" class="md-nav__link">
         
   
   
@@ -1910,10 +1904,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#why-netforge" class="md-nav__link">
+  <a href="#presets" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Why NetForge
+        Presets
       
     </span>
   </a>
@@ -1921,10 +1915,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#quick-start" class="md-nav__link">
+  <a href="#the-knobs-explained" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Quick Start
+        The knobs, explained
       
     </span>
   </a>
@@ -1932,10 +1926,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#whats-inside" class="md-nav__link">
+  <a href="#held-out-evaluation-split" class="md-nav__link">
     <span class="md-ellipsis">
       
-        What's inside
+        Held-out evaluation split
       
     </span>
   </a>
@@ -1943,21 +1937,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#the-five-scenarios" class="md-nav__link">
+  <a href="#curriculum-learning" class="md-nav__link">
     <span class="md-ellipsis">
       
-        The five scenarios
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#citation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Citation
+        Curriculum learning
       
     </span>
   </a>
@@ -1984,178 +1967,120 @@
   
 
 
-<div align="center">
-  <img src="https://img.shields.io/badge/version-3.0.0-blue?style=for-the-badge" alt="Version 3.0.0"/>
-  <img src="https://img.shields.io/badge/Python-3.12+-blue?style=for-the-badge&logo=python" alt="Python 3.12+"/>
-  <img src="https://img.shields.io/badge/JAX-vmap%20%2B%20jit-orange?style=for-the-badge" alt="JAX"/>
-  <img src="https://img.shields.io/badge/PettingZoo-MARL-purple?style=for-the-badge" alt="PettingZoo"/>
-  <img src="https://img.shields.io/badge/MITRE_ATT%26CK-Mapped-red?style=for-the-badge" alt="MITRE ATT&CK"/>
-</div>
-
-<h1 id="netforge-rl">NetForge RL<a class="headerlink" href="#netforge-rl" title="Permanent link">&para;</a></h1>
-<p><strong>A fast, reproducible multi-agent reinforcement learning environment for autonomous
-cyber-defense.</strong> Red agents attack a procedurally generated enterprise/OT network
-(exploit, pivot, escalate, ransomware, kinetic sabotage); Blue agents defend it (monitor,
-analyze, isolate, deceive, restore). Built on the PettingZoo parallel API with a JAX
-vectorized backend for high-throughput training.</p>
-<hr />
-<h2 id="why-netforge">Why NetForge<a class="headerlink" href="#why-netforge" title="Permanent link">&para;</a></h2>
+<h1 id="difficulty-evaluation-splits">Difficulty &amp; Evaluation Splits<a class="headerlink" href="#difficulty-evaluation-splits" title="Permanent link">&para;</a></h1>
+<p>NetForge exposes difficulty as reproducible, named tiers rather than ad-hoc config dicts, and
+ships a <strong>frozen held-out evaluation seed suite</strong> so that difficulty and the train/eval split
+are comparable across runs, machines, and papers.</p>
+<p>All of this lives in <code>netforge_rl.environment.presets</code>.</p>
+<h2 id="presets">Presets<a class="headerlink" href="#presets" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">netforge_rl.environment</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_env</span><span class="p">,</span> <span class="n">make_config</span><span class="p">,</span> <span class="n">DIFFICULTY_PRESETS</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">env</span> <span class="o">=</span> <span class="n">make_env</span><span class="p">(</span><span class="s1">&#39;hard&#39;</span><span class="p">,</span> <span class="n">scenario_type</span><span class="o">=</span><span class="s1">&#39;ot_stuxnet&#39;</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>   <span class="c1"># build + reset</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="n">cfg</span> <span class="o">=</span> <span class="n">make_config</span><span class="p">(</span><span class="s1">&#39;easy&#39;</span><span class="p">)</span>                                    <span class="c1"># just the config dict</span>
+</code></pre></div>
+<p>Each tier sets the environment's difficulty knobs:</p>
+<table>
+<thead>
+<tr>
+<th>Knob</th>
+<th><code>easy</code></th>
+<th><code>medium</code></th>
+<th><code>hard</code></th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>max_active_hosts</code></td>
+<td>6</td>
+<td>15</td>
+<td>100 (uncapped)</td>
+<td>size of the live network</td>
+</tr>
+<tr>
+<td><code>dhcp_interval</code></td>
+<td>0 (off)</td>
+<td>80</td>
+<td>40</td>
+<td>ticks between DHCP address reshuffles</td>
+</tr>
+<tr>
+<td><code>topology_churn_rate</code></td>
+<td>0.0</td>
+<td>0.01</td>
+<td>0.02</td>
+<td>hosts leaving/arriving per tick</td>
+</tr>
+<tr>
+<td><code>topology_migration_rate</code></td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.01</td>
+<td>hosts changing subnet</td>
+</tr>
+<tr>
+<td><code>topology_arrival_rate</code></td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.005</td>
+<td>brand-new hosts appearing</td>
+</tr>
+<tr>
+<td><code>log_latency</code></td>
+<td>0</td>
+<td>2</td>
+<td>4</td>
+<td>ticks of SIEM telemetry delay</td>
+</tr>
+<tr>
+<td><code>max_ticks</code></td>
+<td>200</td>
+<td>200</td>
+<td>200</td>
+<td>episode horizon</td>
+</tr>
+</tbody>
+</table>
+<p><code>easy</code> is a small, static, fully observable network; <code>hard</code> is a larger, non-stationary
+network with a lagging SOC feed. Overrides always win, so you can pin a scenario or extend the
+horizon without forking a preset:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">cfg</span> <span class="o">=</span> <span class="n">make_config</span><span class="p">(</span><span class="s1">&#39;medium&#39;</span><span class="p">,</span> <span class="n">scenario_type</span><span class="o">=</span><span class="s1">&#39;apt_espionage&#39;</span><span class="p">,</span> <span class="n">max_ticks</span><span class="o">=</span><span class="mi">400</span><span class="p">,</span> <span class="n">log_latency</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
+</code></pre></div>
+<h2 id="the-knobs-explained">The knobs, explained<a class="headerlink" href="#the-knobs-explained" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>Standardized API</strong> — PettingZoo <code>ParallelEnv</code>, Gymnasium spaces, conformance-tested.</li>
-<li><strong>Partial observability that means something</strong> — Blue sees only a filtered, optionally
-  <em>delayed</em> SIEM feed; Red operates under fog of war and must recon before it can exploit.</li>
-<li><strong>Realistic telemetry</strong> — actions emit real Windows/Sysmon event XML (4624, 4688, Sysmon
-  1/3/10/22, …) which an NLP encoder turns into observations. Plug an LLM in as a SOC analyst.</li>
-<li><strong>MITRE ATT&amp;CK aligned</strong> — exploits map to real CVEs (MS17-010, CVE-2019-0708, Log4Shell).</li>
-<li><strong>Reproducible to the bit</strong> — a fixed seed replays observations, SIEM embeddings, infos and
-  rewards identically (test-guaranteed). See <a href="environment/reproducibility/">Reproducibility</a>.</li>
-<li><strong>Tunable difficulty</strong> — named <code>easy</code>/<code>medium</code>/<code>hard</code> presets and a frozen held-out
-  evaluation split. See <a href="environment/difficulty/">Difficulty &amp; Splits</a>.</li>
-<li><strong>Diagnostic probes + capability cards</strong> — a 6-capability suite (memory, attention, temporal,
-  precision, safety, generalization) that isolates <em>what</em> a policy can and cannot do, summarised
-  as a per-policy radar card. See <a href="diagnostics/overview/">Diagnostics</a>.</li>
-<li><strong>Graph-native observations</strong> — hosts as nodes, reachability as edges, fog-of-war aware,
-  one line to PyTorch Geometric / jraph. See <a href="environment/graph_observations/">Graph Observations</a>.</li>
-<li><strong>Self-play &amp; Elo</strong> — a population tournament that rates red and blue on one ladder. See
-  <a href="benchmarks/self_play/">Self-Play</a>.</li>
-<li><strong>Deception as a mechanic</strong> — decoys and honeytokens with a <code>deception_efficacy</code> metric
-  measuring how much of Red's effort was wasted on traps.</li>
-<li><strong>SOC export</strong> — replay an episode as OCSF-style JSON for real SIEM tooling. See
-  <a href="interop/soc_export/">SOC Export</a>.</li>
-<li><strong>Trained baselines, not just scripted</strong> — a JIT-fused JAX IPPO trainer whose whole rollout
-  runs on-device; a committed <code>ransomware</code> run learns mean reward 0.06 → 0.71. Checkpoints
-  reload into self-play and capability cards. See <a href="benchmarks/baselines/">Baselines</a>.</li>
-<li><strong>Standard single-agent API</strong> — <code>NetForgeSingleAgentEnv</code> is a <code>gymnasium.Env</code> (passes
-  <code>check_env</code>) for Stable-Baselines3 / CleanRL, with the action mask in <code>info</code>.</li>
-<li><strong>MITRE ATT&amp;CK coverage</strong> — episodes report which ATT&amp;CK techniques Red exercised and the
-  fraction of the taxonomy covered (<code>attack_coverage</code>).</li>
-<li><strong>Fast</strong> — JAX backend measured at <strong>270,795 env-steps/s (1,083,181 agent-steps/s)</strong> at
-  batch 4096 on CPU, with an optional in-kernel numeric SIEM signal. See
-  <a href="benchmarks/overview/">Benchmarks</a>.</li>
+<li><strong><code>max_active_hosts</code></strong> — caps the live topology. The procedural generator naturally produces
+  15–30 active hosts (the remaining slots are <code>169.254.0.0/16</code> padding that keeps the
+  observation shape constant); the cap trims below that.</li>
+<li><strong><code>dhcp_interval</code></strong> — every N ticks, host IP assignments reshuffle, forcing agents to track
+  identity through address churn. <code>0</code> disables it.</li>
+<li><strong><code>topology_churn_rate</code> / <code>migration_rate</code> / <code>arrival_rate</code></strong> — drive the
+  <code>TopologyEventEngine</code>, adding non-stationarity: hosts disappear, change subnet, or appear.</li>
+<li><strong><code>log_latency</code></strong> — delays SIEM log visibility by N ticks, modelling a lagging SOC feed. <code>0</code>
+  is immediate (the historical behaviour). See <a href="../reproducibility/">Reproducibility</a> for how
+  this interacts with determinism.</li>
 </ul>
-<h2 id="quick-start">Quick Start<a class="headerlink" href="#quick-start" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>pip<span class="w"> </span>install<span class="w"> </span><span class="s1">&#39;netforge_rl[jax] @ git+https://github.com/reforcemind/NetForge_RL&#39;</span>
+<h2 id="held-out-evaluation-split">Held-out evaluation split<a class="headerlink" href="#held-out-evaluation-split" title="Permanent link">&para;</a></h2>
+<p>Report on topologies your agent never trained on. <code>evaluation=True</code> shifts topology generation
+into a disjoint seed range (offset 1000), and <code>EVAL_SEEDS</code> is a frozen 20-seed suite:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">netforge_rl.environment</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_env</span><span class="p">,</span> <span class="n">EVAL_SEEDS</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="k">for</span> <span class="n">seed</span> <span class="ow">in</span> <span class="n">EVAL_SEEDS</span><span class="p">:</span>                       <span class="c1"># 9001..9020, frozen</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>    <span class="n">env</span> <span class="o">=</span> <span class="n">make_env</span><span class="p">(</span><span class="s1">&#39;medium&#39;</span><span class="p">,</span> <span class="n">evaluation</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">)</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>    <span class="o">...</span>
 </code></pre></div>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">netforge_rl.environment</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_env</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="n">env</span> <span class="o">=</span> <span class="n">make_env</span><span class="p">(</span><span class="s1">&#39;medium&#39;</span><span class="p">,</span> <span class="n">scenario_type</span><span class="o">=</span><span class="s1">&#39;ransomware&#39;</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="n">obs</span><span class="p">,</span> <span class="n">infos</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="k">while</span> <span class="n">env</span><span class="o">.</span><span class="n">agents</span><span class="p">:</span>
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>    <span class="n">actions</span> <span class="o">=</span> <span class="p">{</span><span class="n">a</span><span class="p">:</span> <span class="n">env</span><span class="o">.</span><span class="n">action_space</span><span class="p">(</span><span class="n">a</span><span class="p">)</span><span class="o">.</span><span class="n">sample</span><span class="p">()</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">env</span><span class="o">.</span><span class="n">agents</span><span class="p">}</span>
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>    <span class="n">obs</span><span class="p">,</span> <span class="n">rewards</span><span class="p">,</span> <span class="n">term</span><span class="p">,</span> <span class="n">trunc</span><span class="p">,</span> <span class="n">infos</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">actions</span><span class="p">)</span>
-<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>    <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">term</span><span class="o">.</span><span class="n">values</span><span class="p">())</span> <span class="ow">or</span> <span class="nb">all</span><span class="p">(</span><span class="n">trunc</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
-<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>        <span class="k">break</span>
+<p>The same base seed produces a <strong>different network</strong> under <code>evaluation=True</code> than under training,
+which is what makes the generalization gap meaningful:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">train</span> <span class="o">=</span> <span class="n">make_env</span><span class="p">(</span><span class="s1">&#39;medium&#39;</span><span class="p">,</span> <span class="n">evaluation</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">9001</span><span class="p">)</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="n">held</span>  <span class="o">=</span> <span class="n">make_env</span><span class="p">(</span><span class="s1">&#39;medium&#39;</span><span class="p">,</span> <span class="n">evaluation</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>  <span class="n">seed</span><span class="o">=</span><span class="mi">9001</span><span class="p">)</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="k">assert</span> <span class="nb">set</span><span class="p">(</span><span class="n">train</span><span class="o">.</span><span class="n">global_state</span><span class="o">.</span><span class="n">all_hosts</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">set</span><span class="p">(</span><span class="n">held</span><span class="o">.</span><span class="n">global_state</span><span class="o">.</span><span class="n">all_hosts</span><span class="p">)</span>
 </code></pre></div>
-<p>See the <a href="quickstart/">Quick Start Guide</a> for the raw PettingZoo loop, the JAX vectorized
-loop, difficulty presets, baselines, and diagnostics.</p>
-<h2 id="whats-inside">What's inside<a class="headerlink" href="#whats-inside" title="Permanent link">&para;</a></h2>
-<table>
-<thead>
-<tr>
-<th>Layer</th>
-<th>Package</th>
-<th>Purpose</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Environment</td>
-<td><code>environment/</code></td>
-<td>PettingZoo <code>NetForgeRLEnv</code>, difficulty presets, curriculum</td>
-</tr>
-<tr>
-<td>Scenarios</td>
-<td><code>scenarios/</code></td>
-<td>5 reward/objective families (ransomware, APT, cloud, IoT, OT)</td>
-</tr>
-<tr>
-<td>Actions</td>
-<td><code>actions/red</code>, <code>actions/blue</code></td>
-<td>ATT&amp;CK-aligned red/blue capabilities</td>
-</tr>
-<tr>
-<td>Telemetry</td>
-<td><code>siem/</code>, <code>nlp/</code></td>
-<td>Sysmon/Windows log synthesis + NLP encoding</td>
-</tr>
-<tr>
-<td>JAX backend</td>
-<td><code>backends/jax/</code></td>
-<td>Vectorized <code>vmap</code>/<code>jit</code> kernels + NumPy reference</td>
-</tr>
-<tr>
-<td>Baselines</td>
-<td><code>baselines/</code></td>
-<td>Random, heuristic, kill-chain red, JAX PPO</td>
-</tr>
-<tr>
-<td>Diagnostics</td>
-<td><code>diagnostics/</code></td>
-<td>Capability probes + oracle information-asymmetry</td>
-</tr>
-<tr>
-<td>Bridges</td>
-<td><code>bridges/</code></td>
-<td>RLlib, JaxMARL, CleanRL, DLPack adapters</td>
-</tr>
-<tr>
-<td>Semantic</td>
-<td><code>semantic/</code></td>
-<td>LLM SOC agents, grammars, fine-tuning recipes</td>
-</tr>
-</tbody>
-</table>
-<h2 id="the-five-scenarios">The five scenarios<a class="headerlink" href="#the-five-scenarios" title="Permanent link">&para;</a></h2>
-<table>
-<thead>
-<tr>
-<th>Scenario</th>
-<th>Red objective</th>
-<th>Blue objective</th>
-<th>Terminal condition</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>ransomware</code></td>
-<td>Encrypt/compromise Corporate + Secure</td>
-<td>Contain, restore, avoid downtime</td>
-<td>all Corporate/Secure compromised, or PLC kinetic</td>
-</tr>
-<tr>
-<td><code>apt_espionage</code></td>
-<td>Stealthy persistence + exfiltration</td>
-<td>Detect and isolate every foothold</td>
-<td>every infected host isolated</td>
-</tr>
-<tr>
-<td><code>cloud_hybrid</code></td>
-<td>Breach the Secure enclave</td>
-<td>Protect the Secure subnet SLA</td>
-<td>every Secure host compromised</td>
-</tr>
-<tr>
-<td><code>iot_grid</code></td>
-<td>Take the grid controllers</td>
-<td>Keep controllers healthy</td>
-<td>all controllers compromised</td>
-</tr>
-<tr>
-<td><code>ot_stuxnet</code></td>
-<td>Drive a PLC to kinetic destruction</td>
-<td>Prevent physical damage</td>
-<td>any PLC kinetic destruction</td>
-</tr>
-</tbody>
-</table>
-<h2 id="citation">Citation<a class="headerlink" href="#citation" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nc">@misc</span><span class="p">{</span><span class="nl">netforge_rl_2026</span><span class="p">,</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="na">title</span><span class="w">  </span><span class="p">=</span><span class="w"> </span><span class="s">{NetForge RL: A Fast Multi-Agent Cybersecurity Benchmark for Reinforcement Learning}</span><span class="p">,</span>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="na">author</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s">{ReforceMind}</span><span class="p">,</span>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span><span class="na">year</span><span class="w">   </span><span class="p">=</span><span class="w"> </span><span class="s">{2026}</span><span class="p">,</span>
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">  </span><span class="na">url</span><span class="w">    </span><span class="p">=</span><span class="w"> </span><span class="s">{https://github.com/reforcemind/NetForge_RL}</span>
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="p">}</span>
+<p>The benchmark runner reports the train-vs-held-out <strong>generalization gap</strong> directly:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>python<span class="w"> </span>-m<span class="w"> </span>benchmarks.run_benchmark<span class="w"> </span>--name<span class="w"> </span>my_agent<span class="w"> </span>--gap<span class="w"> </span>--seeds<span class="w"> </span><span class="m">20</span>
 </code></pre></div>
+<h2 id="curriculum-learning">Curriculum learning<a class="headerlink" href="#curriculum-learning" title="Permanent link">&para;</a></h2>
+<p>For automatic difficulty progression during training, use the <code>CurriculumWrapper</code>, which
+advances through <code>novice → intermediate → expert</code> phases based on a rolling reward window.
+See <a href="../../training/curriculum/">Curriculum Learning</a>.</p>
 
 
 
@@ -2192,15 +2117,31 @@ loop, difficulty presets, baselines, and diagnostics.</p>
       
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
+          
+          <a href="../../DATASHEET/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Datasheet">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Datasheet
+              </div>
+            </div>
+          </a>
+        
         
           
-          <a href="quickstart/" class="md-footer__link md-footer__link--next" aria-label="Next: Quick Start">
+          <a href="../reproducibility/" class="md-footer__link md-footer__link--next" aria-label="Next: Reproducibility">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Quick Start
+                Reproducibility
               </div>
             </div>
             <div class="md-footer__button md-icon">
@@ -2253,10 +2194,10 @@ loop, difficulty presets, baselines, and diagnostics.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": ".", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.top", "navigation.footer", "search.highlight", "search.share", "content.code.copy", "content.code.annotate", "content.tabs.link"], "search": "assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.expand", "navigation.top", "navigation.footer", "search.highlight", "search.share", "content.code.copy", "content.code.annotate", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
       
     
   </body>

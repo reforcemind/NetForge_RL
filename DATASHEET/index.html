@@ -15,6 +15,10 @@
         <link rel="canonical" href="https://reforcemind.github.io/NetForge_RL/DATASHEET/">
       
       
+        <link rel="prev" href="../quickstart/">
+      
+      
+        <link rel="next" href="../environment/difficulty/">
       
       
         
@@ -25,7 +29,7 @@
     
     
       
-        <title>Technical Datasheet - NetForge RL</title>
+        <title>Datasheet - NetForge RL</title>
       
     
     
@@ -116,7 +120,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Technical Datasheet
+              Datasheet
             
           </span>
         </div>
@@ -255,6 +259,86 @@
 
       </a>
     </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="./" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Datasheet
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../environment/difficulty/" class="md-tabs__link">
+          
+  
+  
+  Environment
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../diagnostics/overview/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Diagnostics
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../interop/soc_export/" class="md-tabs__link">
+          
+  
+  
+  Interoperability
+
+        </a>
+      </li>
+    
   
 
       
@@ -466,6 +550,168 @@
       
   
   
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Datasheet
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Datasheet
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#environment-composition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Environment Composition
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#observation-action-spaces" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Observation &amp; Action Spaces
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#difficulty-splits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Difficulty &amp; Splits
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#metrics-and-reward-signals" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metrics and Reward Signals
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data-generation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data Generation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#diagnostics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Diagnostics
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#research-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Research Features
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#supported-use-cases" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Supported Use Cases
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
   
   
     
@@ -484,10 +730,271 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
         
           
-          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Environment
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Environment
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../environment/difficulty/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Difficulty & Splits
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../environment/reproducibility/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reproducibility
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../environment/graph_observations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Graph Observations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../diagnostics/overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Diagnostics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Interoperability
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Interoperability
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../interop/soc_export/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SOC Export (OCSF)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
             
   
   
@@ -505,8 +1012,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -741,10 +1248,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
         
           
-          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
             
   
   
@@ -762,8 +1269,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -914,10 +1421,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_9" >
         
           
-          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
             
   
   
@@ -935,8 +1442,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_5">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1087,10 +1594,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_10" >
         
           
-          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="0">
             
   
   
@@ -1108,8 +1615,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_6">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1225,10 +1732,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_4" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_10_4" >
         
           
-          <label class="md-nav__link" for="__nav_6_4" id="__nav_6_4_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_10_4" id="__nav_10_4_label" tabindex="0">
             
   
   
@@ -1246,8 +1753,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_4_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_6_4">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_10_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10_4">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1272,6 +1779,62 @@
     
   
     Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../benchmarks/baselines/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Baselines
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../benchmarks/self_play/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Self-Play & Elo
   
 
     
@@ -1393,6 +1956,28 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#observation-action-spaces" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Observation &amp; Action Spaces
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#difficulty-splits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Difficulty &amp; Splits
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#metrics-and-reward-signals" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1408,6 +1993,28 @@
     <span class="md-ellipsis">
       
         Data Generation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#diagnostics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Diagnostics
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#research-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Research Features
       
     </span>
   </a>
@@ -1450,28 +2057,73 @@
 <ul>
 <li><strong>Topology Size</strong>: 100 host array slots. Active topologies range from 15-30 nodes. Unused nodes use <code>169.254.0.0/16</code> addresses, serving as dynamic decoys.</li>
 <li><strong>State Representation</strong>: <code>GlobalNetworkState</code> contains host attributes, firewall ACLs, topologies, and visibility masks. Categorical properties are encoded against static codebooks (<code>netforge_rl/core/functional.py</code>).</li>
-<li><strong>Scenarios</strong>: <code>ransomware</code>, <code>apt_espionage</code> (v2.2.0).</li>
+<li><strong>Scenarios</strong>: <code>ransomware</code>, <code>apt_espionage</code>, <code>cloud_hybrid</code>, <code>iot_grid</code>, <code>ot_stuxnet</code>.</li>
+</ul>
+<h2 id="observation-action-spaces">Observation &amp; Action Spaces<a class="headerlink" href="#observation-action-spaces" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Agents</strong>: <code>red_operator</code>, <code>blue_dmz</code>, <code>blue_internal</code>, <code>blue_restricted</code> (PettingZoo parallel).</li>
+<li><strong>Action space</strong>: <code>MultiDiscrete([32, 100])</code> = <code>[action_type_id, target_host_index]</code>, with a
+  132-d binary action mask (32 action types + 100 targets).</li>
+<li><strong>Observation</strong> (per-agent <code>Dict</code>): <code>obs</code> (256-d), <code>siem_embedding</code> (128-d), <code>action_mask</code>
+  (132-d), <code>adj_matrix</code>, <code>delta_t</code>; Blue agents also receive <code>blue_comm</code> (100-d shared channel).</li>
+<li>The full, machine-readable spec is generated by <code>python -m benchmarks.env_spec --json</code>.</li>
+</ul>
+<h2 id="difficulty-splits">Difficulty &amp; Splits<a class="headerlink" href="#difficulty-splits" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Presets</strong>: <code>easy</code> / <code>medium</code> / <code>hard</code> via <code>netforge_rl.environment.presets</code>, varying
+  network size, DHCP churn, dynamic-topology rates, and SIEM latency. See the docs page on
+  <em>Difficulty &amp; Splits</em>.</li>
+<li><strong>Held-out split</strong>: <code>evaluation_mode=True</code> draws from a disjoint seed pool (offset 1000);
+  <code>EVAL_SEEDS</code> is a frozen 20-seed evaluation suite.</li>
 </ul>
 <h2 id="metrics-and-reward-signals">Metrics and Reward Signals<a class="headerlink" href="#metrics-and-reward-signals" title="Permanent link">&para;</a></h2>
 <ul>
-<li>Reward signals are defined per-scenario via <code>BaseScenario</code>. Rewards are <code>tanh</code>-normalized.</li>
-<li>Metrics emitted per episode:</li>
-<li>Mean Time To Containment (MTTC)</li>
-<li>SLA Uptime</li>
-<li>Total Exfiltrated Data Volume</li>
-<li>Host Compromise/Isolation Counts</li>
+<li>Reward signals are defined per-scenario via <code>BaseScenario</code>; rewards are <code>tanh</code>-normalized.
+  Per-scenario reward decompositions are published in <code>env_spec</code> and on each scenario's
+  <code>REWARD_WEIGHTS</code>.</li>
+<li>Per-episode metrics: MTTC, SLA uptime, total exfiltration, detection rate, and active-host
+  compromise/isolation counts (padding excluded).</li>
 </ul>
 <h2 id="data-generation">Data Generation<a class="headerlink" href="#data-generation" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong>Source</strong>: <code>netforge_rl/topologies/network_generator.py</code>.</li>
-<li><strong>Determinism</strong>: Deterministic based on seed.</li>
-<li><strong>Splits</strong>: Leaderboard evaluation uses seeds 0-49.</li>
-<li><strong>Limitations</strong>: Synthetic generation.</li>
+<li><strong>Determinism</strong>: Byte-identical replay under seed — observations, SIEM embeddings, infos, and
+  rewards. Every stochastic source (topology, actions, exploit hypervisor, SIEM logger and
+  templates, green-agent noise) is reseeded on <code>reset(seed)</code>; timestamps use a fixed epoch, not
+  wall-clock. See the <em>Reproducibility</em> docs page.</li>
+<li><strong>Splits</strong>: <code>evaluation_mode=True</code> draws from a disjoint held-out seed pool never seen during
+  training.</li>
+<li><strong>Limitations</strong>: Synthetic generation; no real network captures.</li>
+</ul>
+<h2 id="diagnostics">Diagnostics<a class="headerlink" href="#diagnostics" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Six capability probes (memory, attention, temporal, precision, safety, generalization) that
+  score a policy in <code>[0, 1]</code> on isolated skills, plus an oracle information-asymmetry measure
+  and a <code>capability_card</code> aggregator (JSON + radar chart).</li>
+</ul>
+<h2 id="research-features">Research Features<a class="headerlink" href="#research-features" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Graph observations</strong>: node/edge/edge-attr arrays (<code>core/graph_obs.py</code>) with fog-of-war
+  masking, mapping directly to PyTorch Geometric / jraph.</li>
+<li><strong>Deception</strong>: decoys + honeytokens with <code>deception_hits</code> / <code>deception_efficacy</code> metrics.</li>
+<li><strong>SOC export</strong>: full-episode SIEM stream to OCSF-style JSON (<code>siem/export.py</code>,
+  <code>record_siem=True</code>).</li>
+<li><strong>Self-play</strong>: population Elo tournament over red/blue policy pools
+  (<code>benchmarks/self_play.py</code>).</li>
+<li><strong>JAX telemetry</strong>: an in-kernel numeric SIEM signal for the vectorized backend
+  (<code>JaxMARLEnv(telemetry_obs=True)</code>).</li>
+<li><strong>Trained baselines</strong>: JIT-fused JAX IPPO trainer with committed learning curves +
+  checkpoints (<code>benchmarks/train_curve.py</code>, <code>jax_ppo.save_params</code> / <code>load_params</code>).</li>
+<li><strong>Gymnasium single-agent env</strong>: <code>NetForgeSingleAgentEnv</code> (passes <code>check_env</code>) for
+  Stable-Baselines3 / CleanRL.</li>
+<li><strong>ATT&amp;CK coverage</strong>: red actions map to MITRE ATT&amp;CK techniques; <code>attack_coverage</code> reported
+  per episode (<code>actions/attack_map.py</code>).</li>
 </ul>
 <h2 id="supported-use-cases">Supported Use Cases<a class="headerlink" href="#supported-use-cases" title="Permanent link">&para;</a></h2>
 <ul>
-<li>RL policy training (PPO, MAPPO).</li>
-<li>LLM zero-shot evaluation and PEFT fine-tuning.</li>
+<li>MARL policy training (PPO, IPPO, MAPPO/R-MAPPO) via PettingZoo, RLlib, JaxMARL, CleanRL bridges.</li>
+<li>LLM zero-shot SOC evaluation and PEFT fine-tuning.</li>
+<li>Capability diagnosis and generalization studies.</li>
 </ul>
 
 
@@ -1505,6 +2157,44 @@
       
         <footer class="md-footer">
   
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../quickstart/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Quick Start">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Quick Start
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../environment/difficulty/" class="md-footer__link md-footer__link--next" aria-label="Next: Difficulty &amp; Splits">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Difficulty & Splits
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
     
   
   <div class="md-footer-meta md-typeset">

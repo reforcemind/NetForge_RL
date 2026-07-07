@@ -2,98 +2,126 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://reforcemind.github.io/NetForge_RL/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-07-07</lastmod>
     </url>
     <url>
          <loc>https://reforcemind.github.io/NetForge_RL/DATASHEET/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-07-07</lastmod>
     </url>
     <url>
          <loc>https://reforcemind.github.io/NetForge_RL/changelog/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-07-07</lastmod>
     </url>
     <url>
          <loc>https://reforcemind.github.io/NetForge_RL/quickstart/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-07-07</lastmod>
     </url>
     <url>
          <loc>https://reforcemind.github.io/NetForge_RL/api/environment/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-07-07</lastmod>
     </url>
     <url>
          <loc>https://reforcemind.github.io/NetForge_RL/api/nlp/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-07-07</lastmod>
     </url>
     <url>
          <loc>https://reforcemind.github.io/NetForge_RL/api/siem/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-07-07</lastmod>
     </url>
     <url>
          <loc>https://reforcemind.github.io/NetForge_RL/api/sim2real/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-07-07</lastmod>
     </url>
     <url>
          <loc>https://reforcemind.github.io/NetForge_RL/architecture/dynamic_topology/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-07-07</lastmod>
     </url>
     <url>
          <loc>https://reforcemind.github.io/NetForge_RL/architecture/multimodal_obs/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-07-07</lastmod>
     </url>
     <url>
          <loc>https://reforcemind.github.io/NetForge_RL/architecture/nlp_siem/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-07-07</lastmod>
     </url>
     <url>
          <loc>https://reforcemind.github.io/NetForge_RL/architecture/ot_physics/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-07-07</lastmod>
     </url>
     <url>
          <loc>https://reforcemind.github.io/NetForge_RL/architecture/overview/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-07-07</lastmod>
     </url>
     <url>
          <loc>https://reforcemind.github.io/NetForge_RL/architecture/sim2real/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-07-07</lastmod>
     </url>
     <url>
          <loc>https://reforcemind.github.io/NetForge_RL/architecture/zero_trust/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-07-07</lastmod>
+    </url>
+    <url>
+         <loc>https://reforcemind.github.io/NetForge_RL/benchmarks/baselines/</loc>
+         <lastmod>2026-07-07</lastmod>
     </url>
     <url>
          <loc>https://reforcemind.github.io/NetForge_RL/benchmarks/overview/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-07-07</lastmod>
     </url>
     <url>
          <loc>https://reforcemind.github.io/NetForge_RL/benchmarks/run/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-07-07</lastmod>
+    </url>
+    <url>
+         <loc>https://reforcemind.github.io/NetForge_RL/benchmarks/self_play/</loc>
+         <lastmod>2026-07-07</lastmod>
     </url>
     <url>
          <loc>https://reforcemind.github.io/NetForge_RL/cybersec/blue_actions/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-07-07</lastmod>
     </url>
     <url>
          <loc>https://reforcemind.github.io/NetForge_RL/cybersec/overview/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-07-07</lastmod>
     </url>
     <url>
          <loc>https://reforcemind.github.io/NetForge_RL/cybersec/red_actions/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-07-07</lastmod>
     </url>
     <url>
          <loc>https://reforcemind.github.io/NetForge_RL/cybersec/threat_model/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-07-07</lastmod>
+    </url>
+    <url>
+         <loc>https://reforcemind.github.io/NetForge_RL/diagnostics/overview/</loc>
+         <lastmod>2026-07-07</lastmod>
+    </url>
+    <url>
+         <loc>https://reforcemind.github.io/NetForge_RL/environment/difficulty/</loc>
+         <lastmod>2026-07-07</lastmod>
+    </url>
+    <url>
+         <loc>https://reforcemind.github.io/NetForge_RL/environment/graph_observations/</loc>
+         <lastmod>2026-07-07</lastmod>
+    </url>
+    <url>
+         <loc>https://reforcemind.github.io/NetForge_RL/environment/reproducibility/</loc>
+         <lastmod>2026-07-07</lastmod>
+    </url>
+    <url>
+         <loc>https://reforcemind.github.io/NetForge_RL/interop/soc_export/</loc>
+         <lastmod>2026-07-07</lastmod>
     </url>
     <url>
          <loc>https://reforcemind.github.io/NetForge_RL/training/curriculum/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-07-07</lastmod>
     </url>
     <url>
          <loc>https://reforcemind.github.io/NetForge_RL/training/rllib/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-07-07</lastmod>
     </url>
     <url>
          <loc>https://reforcemind.github.io/NetForge_RL/training/scenarios/</loc>
-         <lastmod>2026-06-29</lastmod>
+         <lastmod>2026-07-07</lastmod>
     </url>
 </urlset>

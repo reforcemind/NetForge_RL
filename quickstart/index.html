@@ -18,7 +18,7 @@
         <link rel="prev" href="..">
       
       
-        <link rel="next" href="../architecture/overview/">
+        <link rel="next" href="../DATASHEET/">
       
       
         
@@ -261,6 +261,84 @@
 
       </a>
     </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../DATASHEET/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Datasheet
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../environment/difficulty/" class="md-tabs__link">
+          
+  
+  
+  Environment
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../diagnostics/overview/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Diagnostics
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../interop/soc_export/" class="md-tabs__link">
+          
+  
+  
+  Interoperability
+
+        </a>
+      </li>
+    
   
 
       
@@ -519,10 +597,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#legacy-pettingzoo-execution" class="md-nav__link">
+  <a href="#pettingzoo-execution-single-environment" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Legacy PettingZoo Execution
+        PettingZoo execution (single environment)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#difficulty-presets-and-the-held-out-split" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Difficulty presets and the held-out split
       
     </span>
   </a>
@@ -533,7 +622,62 @@
   <a href="#jax-vectorized-execution" class="md-nav__link">
     <span class="md-ellipsis">
       
-        JAX Vectorized Execution
+        JAX vectorized execution
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#running-baselines" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Running baselines
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#single-agent-training-gymnasium-sb3-cleanrl" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Single-agent training (Gymnasium / SB3 / CleanRL)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#training-ippo-on-the-jax-backend" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Training IPPO on the JAX backend
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#running-the-diagnostic-probes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Running the diagnostic probes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#llm-soc-agent-optional" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LLM SOC agent (optional)
       
     </span>
   </a>
@@ -543,6 +687,294 @@
     </ul>
   
 </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DATASHEET/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Datasheet
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Environment
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Environment
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../environment/difficulty/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Difficulty & Splits
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../environment/reproducibility/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reproducibility
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../environment/graph_observations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Graph Observations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../diagnostics/overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Diagnostics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Interoperability
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Interoperability
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../interop/soc_export/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SOC Export (OCSF)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
       
     </li>
   
@@ -570,10 +1002,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
         
           
-          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
             
   
   
@@ -591,8 +1023,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -827,10 +1259,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
         
           
-          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
             
   
   
@@ -848,8 +1280,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1000,10 +1432,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_9" >
         
           
-          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
             
   
   
@@ -1021,8 +1453,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_5">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1173,10 +1605,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_10" >
         
           
-          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="0">
             
   
   
@@ -1194,8 +1626,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_6">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1311,10 +1743,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_4" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_10_4" >
         
           
-          <label class="md-nav__link" for="__nav_6_4" id="__nav_6_4_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_10_4" id="__nav_10_4_label" tabindex="0">
             
   
   
@@ -1332,8 +1764,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_4_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_6_4">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_10_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10_4">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1358,6 +1790,62 @@
     
   
     Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../benchmarks/baselines/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Baselines
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../benchmarks/self_play/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Self-Play & Elo
   
 
     
@@ -1479,10 +1967,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#legacy-pettingzoo-execution" class="md-nav__link">
+  <a href="#pettingzoo-execution-single-environment" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Legacy PettingZoo Execution
+        PettingZoo execution (single environment)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#difficulty-presets-and-the-held-out-split" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Difficulty presets and the held-out split
       
     </span>
   </a>
@@ -1493,7 +1992,62 @@
   <a href="#jax-vectorized-execution" class="md-nav__link">
     <span class="md-ellipsis">
       
-        JAX Vectorized Execution
+        JAX vectorized execution
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#running-baselines" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Running baselines
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#single-agent-training-gymnasium-sb3-cleanrl" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Single-agent training (Gymnasium / SB3 / CleanRL)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#training-ippo-on-the-jax-backend" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Training IPPO on the JAX backend
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#running-the-diagnostic-probes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Running the diagnostic probes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#llm-soc-agent-optional" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LLM SOC agent (optional)
       
     </span>
   </a>
@@ -1522,36 +2076,112 @@
 
 <h1 id="quick-start-guide">Quick Start Guide<a class="headerlink" href="#quick-start-guide" title="Permanent link">&para;</a></h1>
 <h2 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h2>
-<p>Requires Python 3.14.</p>
+<p>Requires Python 3.12+.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>pip<span class="w"> </span>install<span class="w"> </span><span class="s1">&#39;netforge_rl[jax,render,finetune] @ git+https://github.com/reforcemind/NetForge_RL&#39;</span>
 </code></pre></div>
-<h2 id="legacy-pettingzoo-execution">Legacy PettingZoo Execution<a class="headerlink" href="#legacy-pettingzoo-execution" title="Permanent link">&para;</a></h2>
-<p>Execution loop using the legacy unvectorized Python backend.</p>
+<p>Extras: <code>jax</code> (vectorized backend), <code>render</code> (matplotlib + moviepy), <code>finetune</code>
+(TRL/PEFT for LLM agents), <code>rllib</code> (Ray RLlib bridge).</p>
+<h2 id="pettingzoo-execution-single-environment">PettingZoo execution (single environment)<a class="headerlink" href="#pettingzoo-execution-single-environment" title="Permanent link">&para;</a></h2>
+<p>The reference Python backend implements the PettingZoo parallel API. Each agent acts with a
+<code>MultiDiscrete([32, 100])</code> action — <code>[action_type_id, target_host_index]</code>.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">netforge_rl.environment.parallel_env</span><span class="w"> </span><span class="kn">import</span> <span class="n">NetForgeRLEnv</span>
 <a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
 <a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="n">env</span> <span class="o">=</span> <span class="n">NetForgeRLEnv</span><span class="p">({</span><span class="s1">&#39;scenario_type&#39;</span><span class="p">:</span> <span class="s1">&#39;ransomware&#39;</span><span class="p">,</span> <span class="s1">&#39;max_ticks&#39;</span><span class="p">:</span> <span class="mi">50</span><span class="p">})</span>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="n">obs</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="n">obs</span><span class="p">,</span> <span class="n">infos</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 <a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>
 <a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="k">while</span> <span class="n">env</span><span class="o">.</span><span class="n">agents</span><span class="p">:</span>
-<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>    <span class="n">actions</span> <span class="o">=</span> <span class="p">{</span><span class="n">a</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">env</span><span class="o">.</span><span class="n">agents</span><span class="p">}</span>
-<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>    <span class="n">obs</span><span class="p">,</span> <span class="n">rewards</span><span class="p">,</span> <span class="n">term</span><span class="p">,</span> <span class="n">trunc</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">actions</span><span class="p">)</span>
-<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>
-<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>    <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">term</span><span class="o">.</span><span class="n">values</span><span class="p">())</span> <span class="ow">or</span> <span class="nb">all</span><span class="p">(</span><span class="n">trunc</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
-<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>        <span class="k">break</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>    <span class="n">actions</span> <span class="o">=</span> <span class="p">{</span><span class="n">a</span><span class="p">:</span> <span class="n">env</span><span class="o">.</span><span class="n">action_space</span><span class="p">(</span><span class="n">a</span><span class="p">)</span><span class="o">.</span><span class="n">sample</span><span class="p">()</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">env</span><span class="o">.</span><span class="n">agents</span><span class="p">}</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>    <span class="n">obs</span><span class="p">,</span> <span class="n">rewards</span><span class="p">,</span> <span class="n">term</span><span class="p">,</span> <span class="n">trunc</span><span class="p">,</span> <span class="n">infos</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">actions</span><span class="p">)</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>    <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">term</span><span class="o">.</span><span class="n">values</span><span class="p">())</span> <span class="ow">or</span> <span class="nb">all</span><span class="p">(</span><span class="n">trunc</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>        <span class="k">break</span>
 </code></pre></div>
-<h2 id="jax-vectorized-execution">JAX Vectorized Execution<a class="headerlink" href="#jax-vectorized-execution" title="Permanent link">&para;</a></h2>
-<p>Hardware-accelerated batched execution loop.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">jax</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">netforge_rl.backends.jax</span><span class="w"> </span><span class="kn">import</span> <span class="n">VectorEnvSpec</span>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">netforge_rl.bridges.jaxmarl</span><span class="w"> </span><span class="kn">import</span> <span class="n">JaxMARLEnv</span><span class="p">,</span> <span class="n">random_action_dict</span>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="n">env</span> <span class="o">=</span> <span class="n">JaxMARLEnv</span><span class="p">(</span><span class="n">spec</span><span class="o">=</span><span class="n">VectorEnvSpec</span><span class="p">(</span><span class="n">n_hosts</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">n_red</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_blue</span><span class="o">=</span><span class="mi">3</span><span class="p">),</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">4096</span><span class="p">)</span>
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="n">key</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>
-<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="n">obs</span><span class="p">,</span> <span class="n">state</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
-<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="n">obs</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">random_action_dict</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">key</span><span class="p">))</span>
+<p>Each <code>obs[agent]</code> is a dict with <code>obs</code> (256-d state), <code>action_mask</code> (132-d), <code>siem_embedding</code>
+(128-d), <code>adj_matrix</code>, and <code>delta_t</code>; Blue agents additionally get <code>blue_comm</code>.</p>
+<h2 id="difficulty-presets-and-the-held-out-split">Difficulty presets and the held-out split<a class="headerlink" href="#difficulty-presets-and-the-held-out-split" title="Permanent link">&para;</a></h2>
+<p>Instead of hand-writing config dicts, use named difficulty tiers and the frozen evaluation
+seed suite. See <a href="../environment/difficulty/">Difficulty &amp; Splits</a> for the full knob table.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">netforge_rl.environment</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_env</span><span class="p">,</span> <span class="n">EVAL_SEEDS</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="c1"># Train on any seeds at a chosen difficulty</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="n">train_env</span> <span class="o">=</span> <span class="n">make_env</span><span class="p">(</span><span class="s1">&#39;medium&#39;</span><span class="p">,</span> <span class="n">scenario_type</span><span class="o">=</span><span class="s1">&#39;apt_espionage&#39;</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="c1"># Report on held-out topologies never seen during training</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="n">eval_env</span> <span class="o">=</span> <span class="n">make_env</span><span class="p">(</span><span class="s1">&#39;hard&#39;</span><span class="p">,</span> <span class="n">scenario_type</span><span class="o">=</span><span class="s1">&#39;apt_espionage&#39;</span><span class="p">,</span> <span class="n">evaluation</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">EVAL_SEEDS</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
 </code></pre></div>
+<h2 id="jax-vectorized-execution">JAX vectorized execution<a class="headerlink" href="#jax-vectorized-execution" title="Permanent link">&para;</a></h2>
+<p>Hardware-accelerated batched rollouts for high-throughput training.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">jax</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">netforge_rl.backends.jax</span><span class="w"> </span><span class="kn">import</span> <span class="n">VectorEnvSpec</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">netforge_rl.bridges.jaxmarl</span><span class="w"> </span><span class="kn">import</span> <span class="n">JaxMARLEnv</span><span class="p">,</span> <span class="n">random_action_dict</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="n">env</span> <span class="o">=</span> <span class="n">JaxMARLEnv</span><span class="p">(</span><span class="n">spec</span><span class="o">=</span><span class="n">VectorEnvSpec</span><span class="p">(</span><span class="n">n_hosts</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">n_red</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_blue</span><span class="o">=</span><span class="mi">3</span><span class="p">),</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">4096</span><span class="p">)</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="n">key</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">PRNGKey</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="n">obs</span><span class="p">,</span> <span class="n">state</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="n">obs</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">random_action_dict</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">key</span><span class="p">))</span>
+</code></pre></div>
+<h2 id="running-baselines">Running baselines<a class="headerlink" href="#running-baselines" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">netforge_rl.environment.parallel_env</span><span class="w"> </span><span class="kn">import</span> <span class="n">NetForgeRLEnv</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">netforge_rl.baselines.policies</span><span class="w"> </span><span class="kn">import</span> <span class="n">KillChainRedPolicy</span><span class="p">,</span> <span class="n">HeuristicBluePolicy</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="n">env</span> <span class="o">=</span> <span class="n">NetForgeRLEnv</span><span class="p">({</span><span class="s1">&#39;scenario_type&#39;</span><span class="p">:</span> <span class="s1">&#39;ransomware&#39;</span><span class="p">,</span> <span class="s1">&#39;max_ticks&#39;</span><span class="p">:</span> <span class="mi">150</span><span class="p">})</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="n">red</span><span class="p">,</span> <span class="n">blue</span> <span class="o">=</span> <span class="n">KillChainRedPolicy</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="n">HeuristicBluePolicy</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="k">while</span> <span class="n">env</span><span class="o">.</span><span class="n">agents</span><span class="p">:</span>
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>    <span class="n">actions</span> <span class="o">=</span> <span class="p">{</span><span class="n">a</span><span class="p">:</span> <span class="p">(</span><span class="n">red</span><span class="o">.</span><span class="n">act</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">a</span><span class="p">)</span> <span class="k">if</span> <span class="s1">&#39;red&#39;</span> <span class="ow">in</span> <span class="n">a</span> <span class="k">else</span> <span class="n">blue</span><span class="o">.</span><span class="n">act</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">a</span><span class="p">))</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">env</span><span class="o">.</span><span class="n">agents</span><span class="p">}</span>
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>    <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">term</span><span class="p">,</span> <span class="n">trunc</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">actions</span><span class="p">)</span>
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>    <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">term</span><span class="o">.</span><span class="n">values</span><span class="p">())</span> <span class="ow">or</span> <span class="nb">all</span><span class="p">(</span><span class="n">trunc</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
+<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>        <span class="k">break</span>
+</code></pre></div>
+<p><code>KillChainRedPolicy</code> runs a recon → exploit → pivot kill-chain and actually compromises
+hosts; see <a href="../benchmarks/baselines/">Baselines</a>.</p>
+<h2 id="single-agent-training-gymnasium-sb3-cleanrl">Single-agent training (Gymnasium / SB3 / CleanRL)<a class="headerlink" href="#single-agent-training-gymnasium-sb3-cleanrl" title="Permanent link">&para;</a></h2>
+<p>For standard single-agent RL, <code>NetForgeSingleAgentEnv</code> is a <code>gymnasium.Env</code> that controls one
+agent against scripted opponents. It passes <code>gymnasium</code>'s <code>check_env</code> and exposes the action
+mask in <code>info</code> for maskable algorithms.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">netforge_rl.environment</span><span class="w"> </span><span class="kn">import</span> <span class="n">NetForgeSingleAgentEnv</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">netforge_rl.baselines.policies</span><span class="w"> </span><span class="kn">import</span> <span class="n">KillChainRedPolicy</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="n">env</span> <span class="o">=</span> <span class="n">NetForgeSingleAgentEnv</span><span class="p">(</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>    <span class="s1">&#39;ransomware&#39;</span><span class="p">,</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>    <span class="n">controlled_agent</span><span class="o">=</span><span class="s1">&#39;blue_dmz&#39;</span><span class="p">,</span>
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>    <span class="n">opponents</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;red_operator&#39;</span><span class="p">:</span> <span class="n">KillChainRedPolicy</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)},</span>
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="p">)</span>
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="n">obs</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>          <span class="c1"># obs: Box(384,), info[&#39;action_mask&#39;]: (132,)</span>
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="n">obs</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">terminated</span><span class="p">,</span> <span class="n">truncated</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">action_space</span><span class="o">.</span><span class="n">sample</span><span class="p">())</span>
+</code></pre></div>
+<h2 id="training-ippo-on-the-jax-backend">Training IPPO on the JAX backend<a class="headerlink" href="#training-ippo-on-the-jax-backend" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">netforge_rl.baselines.jax_ppo</span><span class="w"> </span><span class="kn">import</span> <span class="n">ippo_train</span><span class="p">,</span> <span class="n">PPOConfig</span><span class="p">,</span> <span class="n">save_params</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="n">out</span> <span class="o">=</span> <span class="n">ippo_train</span><span class="p">(</span><span class="n">PPOConfig</span><span class="p">(</span><span class="n">total_iters</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span> <span class="n">num_steps</span><span class="o">=</span><span class="mi">48</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">128</span><span class="p">))</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="n">save_params</span><span class="p">(</span><span class="n">out</span><span class="p">[</span><span class="s1">&#39;params&#39;</span><span class="p">],</span> <span class="s1">&#39;runs/ippo_blue.npz&#39;</span><span class="p">)</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;reward:&#39;</span><span class="p">,</span> <span class="n">out</span><span class="p">[</span><span class="s1">&#39;reward_curve&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="s1">&#39;-&gt;&#39;</span><span class="p">,</span> <span class="n">out</span><span class="p">[</span><span class="s1">&#39;reward_curve&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+</code></pre></div>
+<p>See <a href="../benchmarks/baselines/">Baselines</a> for the committed learning curve.</p>
+<h2 id="running-the-diagnostic-probes">Running the diagnostic probes<a class="headerlink" href="#running-the-diagnostic-probes" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">netforge_rl.diagnostics</span><span class="w"> </span><span class="kn">import</span> <span class="n">all_diagnostics</span><span class="p">,</span> <span class="n">run_diagnostic</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">netforge_rl.baselines.policies</span><span class="w"> </span><span class="kn">import</span> <span class="n">HeuristicBluePolicy</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="k">for</span> <span class="n">probe</span> <span class="ow">in</span> <span class="n">all_diagnostics</span><span class="p">():</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>    <span class="n">result</span> <span class="o">=</span> <span class="n">run_diagnostic</span><span class="p">(</span><span class="n">probe</span><span class="p">,</span> <span class="n">HeuristicBluePolicy</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">probe</span><span class="o">.</span><span class="n">capability</span><span class="si">:</span><span class="s1">14</span><span class="si">}</span><span class="s1"> </span><span class="si">{</span><span class="n">probe</span><span class="o">.</span><span class="n">name</span><span class="si">:</span><span class="s1">26</span><span class="si">}</span><span class="s1"> score=</span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">score</span><span class="si">:</span><span class="s1">.2f</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+</code></pre></div>
+<p>See <a href="../diagnostics/overview/">Diagnostics</a> for what each capability measures.</p>
+<h2 id="llm-soc-agent-optional">LLM SOC agent (optional)<a class="headerlink" href="#llm-soc-agent-optional" title="Permanent link">&para;</a></h2>
+<p><code>run_episode</code> takes a <code>clients</code> dict mapping each agent id to an LLM client; uncontrolled
+agents no-op, and unparseable replies are counted as <code>invalid_replies</code>.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">netforge_rl.environment.parallel_env</span><span class="w"> </span><span class="kn">import</span> <span class="n">NetForgeRLEnv</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">netforge_rl.semantic.clients.mock</span><span class="w"> </span><span class="kn">import</span> <span class="n">MockLLMClient</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">netforge_rl.semantic.runner</span><span class="w"> </span><span class="kn">import</span> <span class="n">run_episode</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="n">env</span> <span class="o">=</span> <span class="n">NetForgeRLEnv</span><span class="p">({</span><span class="s1">&#39;scenario_type&#39;</span><span class="p">:</span> <span class="s1">&#39;ransomware&#39;</span><span class="p">,</span> <span class="s1">&#39;max_ticks&#39;</span><span class="p">:</span> <span class="mi">50</span><span class="p">})</span>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="n">result</span> <span class="o">=</span> <span class="n">run_episode</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">clients</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;blue_dmz&#39;</span><span class="p">:</span> <span class="n">MockLLMClient</span><span class="p">()},</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">rewards</span><span class="p">,</span> <span class="n">result</span><span class="o">.</span><span class="n">invalid_replies</span><span class="p">)</span>
+</code></pre></div>
+<p>Swap <code>MockLLMClient</code> for an OpenAI/Anthropic/vLLM client to have a language model read raw
+SIEM logs and issue defensive actions.</p>
 
 
 
@@ -1606,13 +2236,13 @@
         
         
           
-          <a href="../architecture/overview/" class="md-footer__link md-footer__link--next" aria-label="Next: Overview">
+          <a href="../DATASHEET/" class="md-footer__link md-footer__link--next" aria-label="Next: Datasheet">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Overview
+                Datasheet
               </div>
             </div>
             <div class="md-footer__button md-icon">
