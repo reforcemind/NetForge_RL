@@ -120,11 +120,14 @@ difficulty presets, baselines, diagnostics, and the Gymnasium single-agent wrapp
 ## Citation
 
 ```bibtex
-@misc{netforge_rl_2026,
-  title  = {NetForge RL: A Fast Multi-Agent Cybersecurity Benchmark for Reinforcement Learning},
-  author = {ReforceMind},
-  year   = {2026},
-  url    = {https://github.com/reforcemind/NetForge_RL}
+@misc{jankowski2026eventdriventemporalgraphnetworks,
+      title={Event-Driven Temporal Graph Networks for Asynchronous Multi-Agent Cyber Defense in NetForge_RL}, 
+      author={Igor Jankowski},
+      year={2026},
+      eprint={2604.09523},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG},
+      url={https://arxiv.org/abs/2604.09523}, 
 }
 ```
 
