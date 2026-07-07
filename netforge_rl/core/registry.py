@@ -2,16 +2,16 @@ import inspect
 from typing import Callable, Dict, Optional, Type
 
 
+def team_of(agent_id: str) -> str:
+    """Every agent belongs to exactly one action team: 'red' or 'blue'."""
+    return 'red' if 'red' in agent_id.lower() else 'blue'
+
+
 class ActionRegistry:
     """Factory registry mapping ``(team, group_id) -> BaseAction subclass."""
 
     def __init__(self):
-        self._actions: Dict[str, Dict[int, Type]] = {
-            'red': {},
-            'red_commander': {},
-            'blue': {},
-            'blue_commander': {},
-        }
+        self._actions: Dict[str, Dict[int, Type]] = {'red': {}, 'blue': {}}
 
     def register(self, team: str, group_id: int) -> Callable:
         def decorator(cls):
@@ -21,15 +21,7 @@ class ActionRegistry:
         return decorator
 
     def get_action_class(self, agent_id: str, group_id: int) -> Optional[Type]:
-        """Resolve via primary team first, then fall back to the agent-specific team."""
-        lower = agent_id.lower()
-        if 'red' in lower:
-            primary = 'red_commander' if 'commander' in lower else 'red'
-        else:
-            primary = 'blue_commander' if 'commander' in lower else 'blue'
-        return self._actions.get(primary, {}).get(group_id) or self._actions.get(
-            lower, {}
-        ).get(group_id)
+        return self._actions.get(team_of(agent_id), {}).get(group_id)
 
     def instantiate_action(
         self, agent_id: str, action_data: object, target_ips: list

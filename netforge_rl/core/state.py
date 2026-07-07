@@ -70,6 +70,7 @@ class GlobalNetworkState:
         self.current_tick = 0
         self.active_sessions: Dict[str, list] = {}
         self.subnet_bandwidth: Dict[str, int] = {}
+        self.rng = random.Random()
 
     def update_knowledge(self, agent_id: str, ip: str):
         self.agent_knowledge.setdefault(agent_id, set()).add(ip)
