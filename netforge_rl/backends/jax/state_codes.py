@@ -1,0 +1,28 @@
+from netforge_rl.core.functional import (
+    CVE_CODES,
+    DECOY_CODES,
+    INTEGRITY_CODES,
+    PRIVILEGE_CODES,
+    STATUS_CODES,
+)
+
+_STATUS_ONLINE = STATUS_CODES.index('online')
+_STATUS_ISOLATED = STATUS_CODES.index('isolated')
+_STATUS_KERNEL_PANIC = STATUS_CODES.index('kernel_panic')
+
+_PRIV_NONE = PRIVILEGE_CODES.index('None')
+_PRIV_USER = PRIVILEGE_CODES.index('User')
+_PRIV_ROOT = PRIVILEGE_CODES.index('Root')
+
+_DECOY_ACTIVE = DECOY_CODES.index('active')
+_DECOY_APACHE = DECOY_CODES.index('Apache')
+_DECOY_TOMCAT = DECOY_CODES.index('Tomcat')
+_DECOY_SSHD = DECOY_CODES.index('SSHD')
+
+_INTEGRITY_CLEAN = INTEGRITY_CODES.index('clean')
+_INTEGRITY_COMPROMISED = INTEGRITY_CODES.index('compromised')
+_INTEGRITY_KINETIC = INTEGRITY_CODES.index('kinetic_destruction')
+
+_CVE_BLUEKEEP = CVE_CODES.index('CVE-2019-0708')
+_CVE_ETERNALBLUE = CVE_CODES.index('MS17-010')
+_CVE_HTTP_RFI = CVE_CODES.index('CVE-2021-44228')
