@@ -1,11 +1,10 @@
 from typing import Dict, Tuple
 import numpy as np
-import gymnasium as gym
 from netforge_rl.scenarios import get_scenario_class
 
 from netforge_rl.core.action import BaseAction, ActionEffect
 from netforge_rl.core.observation import BaseObservation
-from netforge_rl.core.registry import action_registry
+from netforge_rl.core.registry import action_registry, team_of
 import netforge_rl.actions  # noqa: F401 — registers all action decorators
 
 from netforge_rl.core.physics import ConflictResolutionEngine
@@ -24,16 +23,19 @@ from netforge_rl.siem.pcap_synthesizer import (
 )
 from netforge_rl.siem.correlator import SIEMCorrelator
 from netforge_rl.nlp.log_encoder import LogEncoder, EMBEDDING_DIM
-from netforge_rl.siem.event_templates import sysmon_1
+from netforge_rl.siem.event_templates import sysmon_1, seed_events
 from netforge_rl.core.functional import from_global_state
+from netforge_rl.environment.constants import (  # noqa: F401 — re-exported
+    MAX_ACTION_DURATION,
+    PADDING_SUBNET,
+)
+from netforge_rl.environment.metrics import EpisodeMetricsMixin
+from netforge_rl.environment.observations import ObservationMixin
+from netforge_rl.environment.spaces import build_action_spaces, build_observation_spaces
 import random
 
 
-# Normalization constant for Neural ODE integration
-MAX_ACTION_DURATION = 50.0
-
-
-class NetForgeRLEnv(BaseNetForgeRLEnv):
+class NetForgeRLEnv(BaseNetForgeRLEnv, EpisodeMetricsMixin, ObservationMixin):
     """PettingZoo-style MARL environment for the NetForge cybersecurity sim."""
 
     metadata = {'render_modes': ['ansi', 'rgb_array'], 'name': 'netforge_rl_v3'}
@@ -45,7 +47,9 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
             max_active_hosts=cfg.get('max_active_hosts'),
             evaluation_mode=cfg.get('evaluation_mode', False),
         )
-        self.log_latency = cfg.get('log_latency', 2)
+        self.log_latency = cfg.get('log_latency', 0)
+        self.dhcp_interval = cfg.get('dhcp_interval', 40)
+        self.record_siem = cfg.get('record_siem', False)
         self.green_agent = GreenAgent()
         self.possible_agents = [
             'red_operator',
@@ -81,40 +85,10 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
         else:
             self.trajectory_recorder = None
 
-        _base_obs = {
-            'obs': gym.spaces.Box(low=-1.0, high=1.0, shape=(256,), dtype=np.float32),
-            'action_mask': gym.spaces.Box(
-                low=0, high=1, shape=(32 + 100,), dtype=np.int8
-            ),
-            'siem_embedding': gym.spaces.Box(
-                low=-1.0, high=1.0, shape=(EMBEDDING_DIM,), dtype=np.float32
-            ),
-            'adj_matrix': gym.spaces.Box(
-                low=0.0, high=1.0, shape=(10000,), dtype=np.float32
-            ),
-            'delta_t': gym.spaces.Box(low=0.0, high=1.0, shape=(1,), dtype=np.float32),
-        }
-        if self.pcap_obs:
-            _base_obs['pcap'] = gym.spaces.Box(
-                low=0.0, high=1.0, shape=(N_PACKETS, PACKET_DIM), dtype=np.float32
-            )
-            _base_obs['node_features'] = gym.spaces.Box(
-                low=0.0, high=1.0, shape=(100, NODE_DIM), dtype=np.float32
-            )
-        _blue_obs = dict(_base_obs)
-        _blue_obs['blue_comm'] = gym.spaces.Box(
-            low=0.0, high=1.0, shape=(100,), dtype=np.float32
+        self.observation_spaces = build_observation_spaces(
+            self.possible_agents, self.pcap_obs
         )
-        self.observation_spaces = {
-            agent: gym.spaces.Dict(_blue_obs if 'blue' in agent else _base_obs)
-            for agent in self.possible_agents
-        }
-        self.action_spaces = {
-            agent: gym.spaces.MultiDiscrete(
-                [32, 100]
-            )  # [Action Type (max 32), Target IP Index (max 100 padded)]
-            for agent in self.possible_agents
-        }
+        self.action_spaces = build_action_spaces(self.possible_agents)
         self.max_ticks = cfg.get('max_ticks', 1000)
         self.current_tick = 0
         self.event_queue = []
@@ -125,7 +99,12 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
         """Reset the environment."""
         self.np_random = np.random.default_rng(seed)
         self._py_random = random.Random(seed)
+        seed_events(seed)
+        self.siem_logger = SIEMLogger(
+            seed=seed, latency=self.log_latency, capture=self.record_siem
+        )
         self.docker_bridge.teardown_all()
+        self.docker_bridge.reseed(seed)
         self.global_state = self.network_generator.generate(seed=seed)
         self.global_state.docker_bridge = self.docker_bridge
         self.agents = self.possible_agents[:]
@@ -148,6 +127,9 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
             'exfiltrated_data': 0.0,
             'sla_uptime_sum': 0.0,
             'steps_count': 0,
+            'deception_hits': 0,  # red actions that struck a decoy/honeytoken
+            'red_actions': 0,  # resolved red actions, for efficacy ratio
+            'attack_techniques': set(),  # MITRE ATT&CK technique ids exercised
         }
 
         observations = {}
@@ -190,17 +172,7 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
     def action_mask(self, agent: str) -> np.ndarray:
         """Generate a binary action mask of shape (132,) = (32 + 100)."""
         mask = np.zeros(132, dtype=np.int8)
-        lower = agent.lower()
-        if 'red' in lower:
-            primary = 'red_commander' if 'commander' in lower else 'red'
-            base = 'red_operator' if 'operator' in lower else 'red'
-        else:
-            primary = 'blue_commander' if 'commander' in lower else 'blue'
-            base = 'blue_operator' if 'operator' in lower else 'blue'
-        valid_type_ids = set(action_registry._actions.get(primary, {}).keys()) | set(
-            action_registry._actions.get(base, {}).keys()
-        )
-        for action_id in valid_type_ids:
+        for action_id in action_registry._actions.get(team_of(agent), {}):
             if action_id < 32:
                 mask[action_id] = 1
         ordered = sorted(self.global_state.all_hosts.keys())
@@ -347,7 +319,9 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
             subnet = host.subnet_cidr if host else 'unknown'
 
             self.siem_logger._push_to_buffer(
-                sysmon_1(res_agent, process='exploit_payload'),
+                sysmon_1(
+                    res_agent, process='exploit_payload', rng=self.siem_logger._rng
+                ),
                 subnet,
                 self.global_state,
             )
@@ -365,7 +339,7 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
 
         self.siem_logger.log_background_noise(self.global_state)
 
-        if self.current_tick % 40 == 0:
+        if self.dhcp_interval > 0 and self.current_tick % self.dhcp_interval == 0:
             self.global_state.reallocate_dhcp(rng=self._py_random)
             valid_ips = set(self.global_state.all_hosts.keys())
             self.event_queue = [
@@ -418,6 +392,8 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
         terminate = self.scenario.check_termination(self.global_state)
         is_truncated = self.current_tick >= self.max_ticks
         truncate = {agent: is_truncated for agent in self.agents}
+
+        self.siem_logger.release(self.global_state)
 
         # Encode SIEM logs.
         agent_siem_vecs = {}
@@ -518,56 +494,9 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
         """Return a frozen EnvState PyTree snapshot."""
         return from_global_state(self.global_state, tuple(self.possible_agents))
 
-    def _update_episode_metrics(self, resolved_effects):
-        """Update episode security metrics."""
-        for agent, effect in resolved_effects.items():
-            if not effect.success:
-                continue
-
-            if isinstance(effect.state_deltas, list):
-                for cmd in effect.state_deltas:
-                    cmd_type = type(cmd).__name__
-                    if (
-                        cmd_type == 'UpdateHostStatusCommand'
-                        and getattr(cmd, 'status', None) == 'isolated'
-                    ):
-                        self.episode_metrics['isolation_times'].setdefault(
-                            cmd.target_ip, self.current_tick
-                        )
-                    elif cmd_type == 'UpdateHostPrivilegeCommand' and getattr(
-                        cmd, 'privilege', None
-                    ) in ('User', 'Root'):
-                        self.episode_metrics['infection_times'].setdefault(
-                            cmd.target_ip, self.current_tick
-                        )
-
-            elif isinstance(effect.state_deltas, dict):
-                for delta_key, delta_val in effect.state_deltas.items():
-                    parts = delta_key.split('/')
-                    if len(parts) != 3 or parts[0] != 'hosts':
-                        continue
-                    ip, attribute = parts[1], parts[2]
-                    if attribute == 'privilege' and delta_val in ('User', 'Root'):
-                        self.episode_metrics['infection_times'].setdefault(
-                            ip, self.current_tick
-                        )
-                    elif attribute == 'status' and delta_val == 'isolated':
-                        self.episode_metrics['isolation_times'].setdefault(
-                            ip, self.current_tick
-                        )
-
-        total = max(len(self.global_state.all_hosts), 1)
-        healthy = sum(
-            1
-            for h in self.global_state.all_hosts.values()
-            if h.compromised_by == 'None' and h.status == 'online'
-        )
-        self.episode_metrics['sla_uptime_sum'] += healthy / total
-        self.episode_metrics['steps_count'] += 1
-
     def _apply_state_deltas(self, effects: Dict[str, ActionEffect]):
         """Apply state deltas to global_state."""
-        for agent_id, effect in effects.items():
+        for effect in effects.values():
             if not effect.success:
                 continue
             if isinstance(effect.state_deltas, dict):
@@ -576,179 +505,3 @@ class NetForgeRLEnv(BaseNetForgeRLEnv):
             elif isinstance(effect.state_deltas, list):
                 for delta_cmd in effect.state_deltas:
                     self.global_state.apply_delta(delta_cmd)
-
-    def _extract_agent_infos(
-        self, observations: dict, resolved_effects: dict, rewards: dict = None
-    ) -> dict:
-        """Extract per-agent metrics info dict."""
-        infos = {}
-        for agent in observations:
-            agent_effect = resolved_effects.get(agent)
-            info: dict = {}
-
-            false_positives = 0
-            successful_exploits = 0
-            hosts_isolated = 0
-            services_restored = 0
-
-            if (
-                agent_effect
-                and agent_effect.success
-                and isinstance(agent_effect.state_deltas, dict)
-            ):
-                for delta_key, delta_val in agent_effect.state_deltas.items():
-                    if 'status' in delta_key and delta_val == 'isolated':
-                        hosts_isolated += 1
-                        parts = delta_key.split('/')
-                        if len(parts) >= 2:
-                            host = self.global_state.all_hosts.get(parts[1])
-                            if host and host.compromised_by == 'None':
-                                false_positives += 1
-                    elif 'privilege' in delta_key and delta_val in ('User', 'Root'):
-                        successful_exploits += 1
-                    elif 'status' in delta_key and delta_val == 'online':
-                        services_restored += 1
-
-            info['false_positives'] = float(false_positives)
-            info['successful_exploits'] = float(successful_exploits)
-            info['hosts_isolated'] = float(hosts_isolated)
-            info['services_restored'] = float(services_restored)
-
-            target_ip = (
-                getattr(agent_effect.action, 'target_ip', None)
-                if agent_effect
-                else None
-            )
-            self.ordered_hosts = sorted(self.global_state.all_hosts.keys())
-            info['target_ip_index'] = (
-                self.ordered_hosts.index(target_ip)
-                if target_ip and target_ip in self.global_state.all_hosts
-                else None
-            )
-
-            info['agent_energy'] = float(self.global_state.agent_energy.get(agent, 0))
-            info['compromised_hosts'] = float(
-                sum(
-                    1
-                    for h in self.global_state.all_hosts.values()
-                    if h.compromised_by != 'None'
-                )
-            )
-            info['isolated_hosts'] = float(
-                sum(
-                    1
-                    for h in self.global_state.all_hosts.values()
-                    if h.status == 'isolated'
-                )
-            )
-
-            sla_final = (
-                self.episode_metrics['sla_uptime_sum']
-                / self.episode_metrics['steps_count']
-                if self.episode_metrics['steps_count'] > 0
-                else 1.0
-            )
-            info['SLA_Uptime_Percentage'] = float(sla_final)
-
-            # Mean Time To Containment
-            mttc_vals = []
-            for ip, t_iso in self.episode_metrics['isolation_times'].items():
-                if ip in self.episode_metrics['infection_times']:
-                    mttc_vals.append(
-                        t_iso - self.episode_metrics['infection_times'][ip]
-                    )
-            info['MTTC'] = float(sum(mttc_vals) / len(mttc_vals)) if mttc_vals else 0.0
-
-            info['Total_Exfiltrated_Data'] = float(
-                self.episode_metrics['exfiltrated_data']
-            )
-
-            # Multi-objective metrics
-            all_compromised = set(self.episode_metrics['infection_times'].keys())
-            all_isolated = set(self.episode_metrics['isolation_times'].keys())
-            detected = all_compromised & all_isolated
-            info['detection_rate'] = float(len(detected) / max(len(all_compromised), 1))
-
-            info['containment_time'] = float(
-                sum(
-                    self.episode_metrics['isolation_times'][ip]
-                    - self.episode_metrics['infection_times'][ip]
-                    for ip in detected
-                )
-                / max(len(detected), 1)
-            )
-
-            total_h = max(len(self.global_state.all_hosts), 1)
-            healthy_h = sum(
-                1
-                for h in self.global_state.all_hosts.values()
-                if h.compromised_by == 'None' and h.status == 'online'
-            )
-            compromised_h = sum(
-                1
-                for h in self.global_state.all_hosts.values()
-                if h.compromised_by != 'None'
-            )
-            info['blue_score'] = float(
-                (healthy_h / total_h) * 50.0
-                + info['detection_rate'] * 30.0
-                - info['containment_time'] * 0.1
-            )
-            info['red_score'] = float(
-                (compromised_h / total_h) * 50.0
-                + float(self.episode_metrics['exfiltrated_data']) * 5.0
-            )
-
-            raw_reward = (rewards or {}).get(agent, 0.0)
-            info['normalized_reward'] = float(
-                self.scenario.normalized_reward(raw_reward)
-            )
-
-            infos[agent] = info
-
-        return infos
-
-    def _build_blue_comm(self) -> np.ndarray:
-        """100-dim shared situational awareness from SIEM incidents and isolation state."""
-        comm = np.zeros(100, dtype=np.float32)
-        ordered = sorted(self.global_state.all_hosts.keys())
-        ip_to_idx = {ip: i for i, ip in enumerate(ordered[:100])}
-
-        for entry, _ in self.global_state.siem_log_buffer:
-            if not isinstance(entry, str) or '[INCIDENT]' not in entry:
-                continue
-            for token in entry.split():
-                if token.startswith('target='):
-                    ip = token[7:]
-                    if ip in ip_to_idx:
-                        comm[ip_to_idx[ip]] = 1.0
-                    break
-
-        recent_subnets: set = set()
-        for _, subnet in self.global_state.siem_log_buffer[-8:]:
-            recent_subnets.add(subnet)
-
-        for i, ip in enumerate(ordered[:100]):
-            host = self.global_state.all_hosts[ip]
-            if host.privilege in ('User', 'Root') and comm[i] < 0.75:
-                comm[i] = max(comm[i], 0.75)
-            if host.status == 'isolated':
-                comm[i] = max(comm[i], 0.5)
-            if host.subnet_cidr in recent_subnets and comm[i] < 0.25:
-                comm[i] = 0.25
-
-        return comm
-
-    def _get_adj_matrix_for(self, agent: str) -> np.ndarray:
-        """Return adjacency matrix masked to the agent's discovered knowledge."""
-        if 'blue' in agent.lower():
-            return self.global_state.get_adjacency_matrix()
-        full_adj = self.global_state.get_adjacency_matrix()
-        known_ips = self.global_state.agent_knowledge.get(agent, set())
-        sorted_ips = sorted(self.global_state.all_hosts.keys())[:100]
-        mask = np.zeros(100, dtype=np.float32)
-        for i, ip in enumerate(sorted_ips):
-            if ip in known_ips:
-                mask[i] = 1.0
-        masked = full_adj * mask[None, :] * mask[:, None]
-        return masked
