@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "netforge_rl"
-version = "2.2.0"
+version = "3.0.0"
 description = "Multi-Agent Cybersecurity Simulator based on CybORG"
 authors = [
     { name = "marl-Cyborg", email = "igorjankowwski@gmail.com" }
@@ -17,7 +17,9 @@ dependencies = [
     "pettingzoo>=1.26.1",
     "networkx>=3.4.0",
     "pyyaml>=6.0.2",
-    "stable-baselines3>=2.9.0"
+    "stable-baselines3>=2.9.0",
+    "scikit-learn>=1.0.0",
+    "pillow>=10.0.0"
 ]
 
 [project.optional-dependencies]
@@ -29,7 +31,6 @@ dev = [
     "pytest-cov>=5.0.0",
     "tensorboard>=2.17.0",
     "ruff>=0.3.0",
-    "scikit-learn>=1.0.0",
 ]
 docs = [
     "mkdocs>=1.6.0",
