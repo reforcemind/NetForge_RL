@@ -175,7 +175,8 @@ class LogEncoder:
 
         for i in range(50):
             corpus.append(
-                f'Synthetic noise event {i} for dimension stability - {random.random()}'
+                f'Synthetic noise event {i} for dimension stability - '
+                f'{random.Random(i).random()}'
             )
 
         return corpus
