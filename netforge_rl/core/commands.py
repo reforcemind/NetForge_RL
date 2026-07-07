@@ -4,8 +4,7 @@ from netforge_rl.core.state import Firewall
 
 
 def iter_host_deltas(state_deltas: Any) -> Iterator[Tuple[str, str, Any]]:
-    """Yield ``(attribute, ip, value)`` host mutations from either delta encoding.
-    """
+    """Yield ``(attribute, ip, value)`` host mutations from either delta encoding."""
     if isinstance(state_deltas, dict):
         for key, value in state_deltas.items():
             parts = key.split('/')

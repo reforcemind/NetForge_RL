@@ -15,8 +15,7 @@ def capability_card(
     out_dir: Optional[str] = None,
     name: str = 'policy',
 ) -> dict:
-    """Score a policy on every diagnostic capability, averaged over seeds.
-    """
+    """Score a policy on every diagnostic capability, averaged over seeds."""
     per_capability: dict[str, list[float]] = {}
     for seed in seeds:
         for probe in all_diagnostics():

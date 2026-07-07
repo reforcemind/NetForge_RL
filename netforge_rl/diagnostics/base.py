@@ -8,6 +8,7 @@ from netforge_rl.diagnostics.noisy_siem import NoisySIEM
 from netforge_rl.diagnostics.ot_kinetic import OTKineticResponse
 from netforge_rl.diagnostics.topology_shift import TopologyShift
 
+
 @dataclass
 class DiagnosticResult:
     diagnostic: str

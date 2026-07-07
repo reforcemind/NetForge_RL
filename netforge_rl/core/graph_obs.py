@@ -54,10 +54,9 @@ def build_graph_observation(
                 continue
             src.append(i)
             dst.append(j)
-            cross = (
-                global_state.get_subnet_name(host.subnet_cidr)
-                != global_state.get_subnet_name(global_state.all_hosts[jp].subnet_cidr)
-            )
+            cross = global_state.get_subnet_name(
+                host.subnet_cidr
+            ) != global_state.get_subnet_name(global_state.all_hosts[jp].subnet_cidr)
             attr.append(1.0 if cross else 0.0)
 
     edge_index = (

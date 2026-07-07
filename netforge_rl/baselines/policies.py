@@ -69,6 +69,7 @@ class HeuristicRedPolicy:
 
 _SCAN_SERVICES, _EXPLOIT, _PING_SWEEP = 2, 0, 15
 
+
 class KillChainRedPolicy:
     """Red kill-chain: port-scan a reachable, vulnerable host then exploit it, expanding
     footholds DMZ -> Corporate -> Secure. Unlike HeuristicRedPolicy it recons first, so

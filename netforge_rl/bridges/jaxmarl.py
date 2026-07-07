@@ -22,8 +22,7 @@ DEFAULT_AGENTS = ('red_operator', 'blue_dmz', 'blue_internal', 'blue_restricted'
 
 
 def _per_agent_obs(state, agents, telemetry=False):
-    """Per-role observation function.  Red agents see only recon'd hosts.
-    """
+    """Per-role observation function.  Red agents see only recon'd hosts."""
 
     blue_parts = [
         state.hosts.status.astype(jnp.float32),

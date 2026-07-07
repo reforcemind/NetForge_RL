@@ -31,9 +31,7 @@ class GreenAgent:
             source = rng.choice(hosts)
             target = rng.choice(hosts)
             if source.ip != target.ip:
-                log = rng.choice(self._benign_templates)(
-                    source.ip, target.ip, rng=rng
-                )
+                log = rng.choice(self._benign_templates)(source.ip, target.ip, rng=rng)
                 noise_logs.append(
                     {
                         'type': 'benign_xml',
