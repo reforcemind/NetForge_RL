@@ -3,7 +3,7 @@ from netforge_rl.core.registry import action_registry
 from netforge_rl.core.commands import PushSIEMEntryCommand
 
 
-@action_registry.register('blue_operator', 2)
+@action_registry.register('blue', 2)
 class Monitor(BaseAction):
     """Forensic subnet sweep: emits SIEM alerts for elevated-privilege or compromised hosts."""
 
@@ -55,7 +55,7 @@ class Monitor(BaseAction):
         )
 
 
-@action_registry.register('blue_operator', 3)
+@action_registry.register('blue', 3)
 class Analyze(BaseAction):
     """Checks host for IoCs."""
 

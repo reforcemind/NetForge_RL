@@ -2,7 +2,7 @@ from netforge_rl.core.action import BaseAction, ActionEffect
 from netforge_rl.core.registry import action_registry
 
 
-@action_registry.register('blue_operator', 4)
+@action_registry.register('blue', 8)
 class DeployEDR(BaseAction):
     """Installs endpoint detection on a host, enabling Analyze to reveal IoCs."""
 

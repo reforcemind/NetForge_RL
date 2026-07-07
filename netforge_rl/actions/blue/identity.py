@@ -42,7 +42,7 @@ class RotateKerberosCommand(IStateDeltaCommand):
             _migrate_tokens(host.cached_credentials)
 
 
-@action_registry.register('blue_commander', 0)
+@action_registry.register('blue', 15)
 class RotateKerberos(BaseAction):
     """Rotates Kerberos TGT keys."""
 
@@ -58,7 +58,7 @@ class RotateKerberos(BaseAction):
         return True
 
     def execute(self, global_state) -> ActionEffect:
-        deltas = {'identity_flush': RotateKerberosCommand(self.agent_id)}
+        deltas = [RotateKerberosCommand(self.agent_id)]
         return ActionEffect(
             success=True,
             state_deltas=deltas,

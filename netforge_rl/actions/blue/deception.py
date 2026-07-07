@@ -2,7 +2,7 @@ from netforge_rl.core.action import BaseAction, ActionEffect
 from netforge_rl.core.registry import action_registry
 
 
-@action_registry.register('blue_commander', 0)
+@action_registry.register('blue', 9)
 class DeployDecoy(BaseAction):
     """Deploys generic honeypot."""
 
@@ -20,7 +20,7 @@ class DeployDecoy(BaseAction):
         )
 
 
-@action_registry.register('blue_commander', 1)
+@action_registry.register('blue', 10)
 class DecoyApache(BaseAction):
     """Deploys an Apache Web Server honeypot."""
 
@@ -38,7 +38,7 @@ class DecoyApache(BaseAction):
         )
 
 
-@action_registry.register('blue_commander', 2)
+@action_registry.register('blue', 11)
 class DecoySSHD(BaseAction):
     """Deploys an SSH daemon honeypot to bait brute force attacks."""
 
@@ -56,7 +56,7 @@ class DecoySSHD(BaseAction):
         )
 
 
-@action_registry.register('blue_commander', 3)
+@action_registry.register('blue', 12)
 class DecoyTomcat(BaseAction):
     """Deploys a Tomcat server honeypot."""
 
@@ -74,7 +74,7 @@ class DecoyTomcat(BaseAction):
         )
 
 
-@action_registry.register('blue_commander', 4)
+@action_registry.register('blue', 13)
 class Misinform(BaseAction):
     """Injects false telemetry."""
 
@@ -94,7 +94,7 @@ class Misinform(BaseAction):
         )
 
 
-@action_registry.register('blue_commander', 5)
+@action_registry.register('blue', 14)
 class DeployHoneytoken(BaseAction):
     """Injects honeytokens into memory."""
 
