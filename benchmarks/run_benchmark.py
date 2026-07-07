@@ -11,12 +11,33 @@ import numpy as np
 from benchmarks.competition_eval import (
     Agent,
     EpisodeResult,
+    PolicyAgent,
     RandomAgent,
     load_leaderboard,
     print_leaderboard,
     run_episode,
     save_leaderboard,
 )
+from netforge_rl.baselines.policies import (
+    HeuristicBluePolicy,
+    HeuristicRedPolicy,
+    KillChainRedPolicy,
+)
+
+
+def make_agent(kind: str, team: str, seed: int = 42) -> Agent:
+    """Build an Agent from a policy name for the given team."""
+    if kind == 'random':
+        return RandomAgent(seed=seed)
+    if kind == 'heuristic':
+        policy = HeuristicRedPolicy if team == 'red' else HeuristicBluePolicy
+        return PolicyAgent(policy(seed=seed))
+    if kind == 'killchain':
+        if team != 'red':
+            raise ValueError('killchain policy is red-only')
+        return PolicyAgent(KillChainRedPolicy(seed=seed))
+    raise ValueError(f'unknown policy {kind!r}')
+
 
 ALL_SCENARIOS = [
     'ransomware',
@@ -286,81 +307,34 @@ if __name__ == '__main__':
         '--leaderboard', action='store_true', help='Print leaderboard and exit'
     )
     parser.add_argument(
-        '--random-opponent',
-        action='store_true',
-        help='Use RandomAgent as opponent (default: HeuristicPolicy)',
+        '--red', choices=['random', 'heuristic', 'killchain'], default='heuristic'
     )
+    parser.add_argument('--blue', choices=['random', 'heuristic'], default='heuristic')
     args = parser.parse_args()
-
-    _seed = 42
-    if args.random_opponent:
-        _red_opp = RandomAgent()
-        _blue_opp = RandomAgent()
-    else:
-        _red_opp = RandomAgent()
-        _blue_opp = RandomAgent()
 
     if args.leaderboard:
         print_leaderboard()
-    elif args.gap:
+        raise SystemExit(0)
+
+    red_agent = make_agent(args.red, 'red')
+    blue_agent = make_agent(args.blue, 'blue')
+
+    if args.gap:
         generalization_gap(
             name=args.name,
             team=args.team,
-            red_agent=RandomAgent(),
-            blue_agent=RandomAgent(),
+            red_agent=red_agent,
+            blue_agent=blue_agent,
             scenarios=args.scenarios,
             n_seeds=args.seeds,
             max_ticks=args.max_ticks,
         )
-
-        class _PolicyWrapper:
-            """Adapts BasePolicy to the Agent protocol for the benchmark runner."""
-
-            def __init__(self, policy):
-                self._policy = policy
-
-            def reset(self):
-                # Heuristic policies are stateless per episode.
-                pass
-
-            def act(self, obs, agent_id):
-                # HeuristicPolicy expects (obs, agent_id); act() signature matches.
-                # Actually, HeuristicPolicy in this codebase expects (env, agent_id).
-                # Since we don't have the env here without rewriting competition_eval,
-                # we'll just fall back to the RandomAgent baseline behavior if this
-                # wrapper is used, as the true fix requires passing env to act().
-                # (For the scope of this fix, we'll implement a mask-aware random fallback).
-                mask = obs.get('action_mask')
-                if mask is not None:
-                    valid_types = np.where(mask[:32])[0]
-                    valid_targets = np.where(mask[32:])[0]
-                    t = int(np.random.choice(valid_types)) if len(valid_types) else 0
-                    h = (
-                        int(np.random.choice(valid_targets))
-                        if len(valid_targets)
-                        else 0
-                    )
-                    return np.array([t, h], dtype=np.int64)
-                return np.array([0, 0], dtype=np.int64)
-
-        if not args.random_opponent:
-            # Wrap the policies so they fulfill the Agent protocol
-            _red_opp = (
-                _PolicyWrapper(_red_opp)
-                if not isinstance(_red_opp, RandomAgent)
-                else _red_opp
-            )
-            _blue_opp = (
-                _PolicyWrapper(_blue_opp)
-                if not isinstance(_blue_opp, RandomAgent)
-                else _blue_opp
-            )
-
+    else:
         result = run_benchmark(
             name=args.name,
             team=args.team,
-            red_agent=_red_opp if args.team == 'blue' else RandomAgent(),
-            blue_agent=_blue_opp if args.team == 'red' else RandomAgent(),
+            red_agent=red_agent,
+            blue_agent=blue_agent,
             scenarios=args.scenarios,
             n_seeds=args.seeds,
             max_ticks=args.max_ticks,

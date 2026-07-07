@@ -11,10 +11,9 @@ from netforge_rl.backends.jax.vector_env import (
     N_BLUE_ACTIONS,
     N_RED_ACTIONS,
     SCENARIO_IDS,
-    get_reward_weights,
 )
 from netforge_rl.environment.parallel_env import NetForgeRLEnv
-from netforge_rl.scenarios import _SCENARIOS
+from netforge_rl.scenarios import _SCENARIOS, get_reward_weights
 
 RESULTS_DIR = Path(__file__).parent / 'results'
 
@@ -28,9 +27,10 @@ OBSERVABILITY = {
 }
 
 TERMINATION = {
-    'ransomware': '>=90% of hosts compromised, or any PLC kinetic destruction.',
+    'ransomware': 'every Corporate/Secure host has system_integrity=compromised, '
+    'or any PLC reaches kinetic_destruction.',
     'apt_espionage': 'every infected host has been isolated (blue contains the breach).',
-    'cloud_hybrid': 'all critical (domain-controller) hosts compromised.',
+    'cloud_hybrid': 'every Secure-subnet host is compromised.',
     'iot_grid': 'all controllers (domain controllers) compromised.',
     'ot_stuxnet': 'any PLC reaches kinetic_destruction.',
     '*': 'truncation at max_ticks (default 200) for every scenario.',

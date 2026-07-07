@@ -7,6 +7,7 @@ from pathlib import Path
 from netforge_rl.baselines import (
     HeuristicBluePolicy,
     HeuristicRedPolicy,
+    KillChainRedPolicy,
     RandomPolicy,
     evaluate,
 )
@@ -17,6 +18,7 @@ POLICIES = {
     'random': RandomPolicy,
     'heuristic-blue': HeuristicBluePolicy,
     'heuristic-red': HeuristicRedPolicy,
+    'killchain-red': KillChainRedPolicy,
 }
 
 SCENARIOS = ('ransomware', 'apt_espionage', 'iot_grid', 'ot_stuxnet')
@@ -47,7 +49,7 @@ def main():
         for scen in SCENARIOS:
             controlled = (
                 'red_operator'
-                if policy_name == 'heuristic-red'
+                if policy_name in ('heuristic-red', 'killchain-red')
                 else args.controlled_agent
             )
             for r in evaluate(

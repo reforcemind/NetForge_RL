@@ -1,0 +1,16 @@
+[
+  {
+    "backend": "jax",
+    "batch_size": 1024,
+    "env_steps_per_sec": 158539.9,
+    "agent_steps_per_sec": 634159.6,
+    "wall_s": 0.323
+  },
+  {
+    "backend": "jax",
+    "batch_size": 4096,
+    "env_steps_per_sec": 270795.3,
+    "agent_steps_per_sec": 1083181.4,
+    "wall_s": 0.756
+  }
+]

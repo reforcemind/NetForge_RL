@@ -24,6 +24,9 @@ class Agent(Protocol):
 
 
 class RandomAgent:
+    def __init__(self, seed: int = 0):
+        self._rng = np.random.default_rng(seed)
+
     def reset(self) -> None:
         pass
 
@@ -32,10 +35,27 @@ class RandomAgent:
         if mask is not None:
             valid_types = np.where(mask[:32])[0]
             valid_targets = np.where(mask[32:])[0]
-            t = int(np.random.choice(valid_types)) if len(valid_types) else 0
-            h = int(np.random.choice(valid_targets)) if len(valid_targets) else 0
+            t = int(self._rng.choice(valid_types)) if len(valid_types) else 0
+            h = int(self._rng.choice(valid_targets)) if len(valid_targets) else 0
             return np.array([t, h], dtype=np.int64)
         return np.array([0, 0], dtype=np.int64)
+
+
+class PolicyAgent:
+    """Adapts a ``BasePolicy`` (which reads the live env) to the Agent protocol."""
+
+    def __init__(self, policy):
+        self._policy = policy
+        self._env = None
+
+    def bind_env(self, env) -> None:
+        self._env = env
+
+    def reset(self) -> None:
+        pass
+
+    def act(self, obs: dict, agent_id: str) -> np.ndarray:
+        return np.asarray(self._policy.act(self._env, agent_id), dtype=np.int64)
 
 
 @dataclass
@@ -122,6 +142,9 @@ def run_episode(
         }
     )
     obs_dict, _ = env.reset(seed=seed)
+    for agent in (red_agent, blue_agent):
+        if hasattr(agent, 'bind_env'):
+            agent.bind_env(env)
     red_agent.reset()
     blue_agent.reset()
 
@@ -283,43 +306,23 @@ if __name__ == '__main__':
     if args.leaderboard:
         print_leaderboard()
     else:
-        _seed = 42
-        if args.team == 'red':
-            _red = HeuristicRedPolicy(seed=_seed)
-            _blue_opp = HeuristicBluePolicy(seed=_seed)
-        else:
-            _red_opp = HeuristicRedPolicy(seed=_seed)
-            _blue = HeuristicBluePolicy(seed=_seed)
-
-        class _PolicyWrapper:
-            """Adapts BasePolicy to the Agent protocol."""
-
-            def __init__(self, policy, env_ref=None):
-                self._policy = policy
-                self._last_env = env_ref
-
-            def reset(self):
-                pass
-
-            def act(self, obs, agent_id):
-                return np.array([0, 0], dtype=np.int64)
-
-        print(
-            f'Evaluating "{args.name}" ({args.team}) '
-            f'against heuristic opponent (fix 6.2)...'
-        )
+        # The evaluated team plays its heuristic policy; the opponent does too.
+        red_agent = PolicyAgent(HeuristicRedPolicy(seed=42))
+        blue_agent = PolicyAgent(HeuristicBluePolicy(seed=42))
+        print(f'Evaluating "{args.name}" ({args.team}) against a heuristic opponent...')
         sub = SubmissionResult(name=args.name, team=args.team)
         evaluate(
             sub,
-            red_agent=RandomAgent(),
-            blue_agent=RandomAgent(),
+            red_agent=red_agent,
+            blue_agent=blue_agent,
             scenarios=args.scenarios,
             seeds=list(range(args.episodes)),
             max_ticks=args.max_ticks,
         )
         agg = sub.aggregate()
         print(
-            f'\nScore: {agg["score"]:.4f}  (SLA {agg["mean_sla_uptime"] * 100:.1f}%  comp {agg["mean_compromised"]:.1f}  mttc {agg["mean_mttc"]:.1f})'
+            f'\nScore: {agg["score"]:.4f}  (SLA {agg["mean_sla_uptime"] * 100:.1f}%  '
+            f'comp {agg["mean_compromised"]:.1f}  mttc {agg["mean_mttc"]:.1f})'
         )
         submit_to_leaderboard(sub)
         print_leaderboard()
