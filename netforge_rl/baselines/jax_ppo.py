@@ -1,10 +1,25 @@
 from dataclasses import dataclass
+from pathlib import Path
 
 import jax
 import jax.numpy as jnp
+import numpy as np
 
 from netforge_rl.backends.jax import BatchedActions, VectorEnvSpec
 from netforge_rl.bridges.jaxmarl import JaxMARLEnv
+
+
+def save_params(params: dict, path: str) -> None:
+    """Persist MLP params to a ``.npz`` checkpoint."""
+    p = Path(path)
+    p.parent.mkdir(parents=True, exist_ok=True)
+    np.savez(p, **{k: np.asarray(v) for k, v in params.items()})
+
+
+def load_params(path: str) -> dict:
+    """Load MLP params from a ``.npz`` checkpoint as JAX arrays."""
+    data = np.load(path)
+    return {k: jnp.asarray(data[k]) for k in data.files}
 
 
 BLUE_AGENTS = ('blue_dmz', 'blue_internal', 'blue_restricted')

@@ -65,3 +65,37 @@ class HeuristicRedPolicy:
             return np.array([0, 0], dtype=np.int64)
         ip = self._rng.choice(targets)
         return np.array([0, target_ips.index(ip)], dtype=np.int64)
+
+
+_SCAN_SERVICES, _EXPLOIT, _PING_SWEEP = 2, 0, 15
+
+class KillChainRedPolicy:
+    """Red kill-chain: port-scan a reachable, vulnerable host then exploit it, expanding
+    footholds DMZ -> Corporate -> Secure. Unlike HeuristicRedPolicy it recons first, so
+    its exploits pass the prior-state check and actually compromise hosts."""
+
+    name = 'killchain-red'
+
+    def __init__(self, seed=0):
+        self._rng = random.Random(seed)
+
+    def act(self, env, agent_id):
+        gs = env.global_state
+        target_ips = sorted(gs.all_hosts.keys())
+        history = gs.action_history.get(agent_id, set())
+        candidates = [
+            ip
+            for ip in target_ips
+            if gs.all_hosts[ip].compromised_by == 'None'
+            and gs.all_hosts[ip].status == 'online'
+            and gs.all_hosts[ip].vulnerabilities
+            and not ip.startswith('169.254.')
+            and gs.can_route_to(ip, agent_id=agent_id)
+        ]
+        if not candidates:
+            return np.array([_PING_SWEEP, 0], dtype=np.int64)
+        for ip in candidates:
+            if f'DiscoverNetworkServices:{ip}' in history:
+                return np.array([_EXPLOIT, target_ips.index(ip)], dtype=np.int64)
+        ip = candidates[0]
+        return np.array([_SCAN_SERVICES, target_ips.index(ip)], dtype=np.int64)

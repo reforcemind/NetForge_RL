@@ -7,9 +7,8 @@ from netforge_rl.baselines.policies import (
     HeuristicRedPolicy,
     RandomPolicy,
 )
-from netforge_rl.environment.parallel_env import NetForgeRLEnv
-from netforge_rl.semantic import EpisodeResult, append_result
-
+from netforge_rl.environment.parallel_env import NetForgeRLEnv, PADDING_SUBNET
+from netforge_rl.semantic import EpisodeResult
 
 POLICY_REGISTRY = {
     'random': RandomPolicy,
@@ -50,12 +49,13 @@ def evaluate(
             if all(term.values()) or all(trunc.values()):
                 break
 
-        compromised = sum(
-            1 for h in env.global_state.all_hosts.values() if h.compromised_by != 'None'
-        )
-        isolated = sum(
-            1 for h in env.global_state.all_hosts.values() if h.status == 'isolated'
-        )
+        active = [
+            h
+            for h in env.global_state.all_hosts.values()
+            if h.subnet_cidr != PADDING_SUBNET
+        ]
+        compromised = sum(1 for h in active if h.compromised_by != 'None')
+        isolated = sum(1 for h in active if h.status == 'isolated')
         results.append(
             EpisodeResult(
                 model_id=policy.name,
@@ -85,6 +85,8 @@ def main():
         default=Path('leaderboard/baselines.json'),
     )
     args = p.parse_args()
+
+    from netforge_rl.semantic import append_result
 
     policy = POLICY_REGISTRY[args.policy]()
     results = evaluate(
