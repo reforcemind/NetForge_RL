@@ -27,9 +27,11 @@ class NetworkGenerator:
         rng = random.Random(actual_seed) if actual_seed is not None else random.Random()
 
         if self.config_path and Path(self.config_path).exists():
-            return self._load_from_yaml(self.config_path, rng)
-
-        return self._generate_procedural(rng)
+            state = self._load_from_yaml(self.config_path, rng)
+        else:
+            state = self._generate_procedural(rng)
+        state.rng = rng
+        return state
 
     def _generate_procedural(self, rng: random.Random) -> GlobalNetworkState:
         """Creates a randomized network using NetworkX hierarchical patterns.
@@ -39,7 +41,6 @@ class NetworkGenerator:
         """
         state = GlobalNetworkState()
 
-        # Generate hierarchy parameters
         num_subnets = rng.randint(3, 4)
         subnet_names = ['DMZ', 'Corporate', 'Secure', 'Guest'][:num_subnets]
         base_ips = ['192.168.1', '10.0.0', '10.0.1', '172.16.0'][:num_subnets]
@@ -91,13 +92,13 @@ class NetworkGenerator:
                         nominal_temp = float(rng.randint(40, 60))
                         nominal_pressure = float(rng.randint(90, 110))
                         nominal_flow = float(rng.randint(40, 60))
-                        setattr(host, 'temperature', nominal_temp)
-                        setattr(host, 'pressure', nominal_pressure)
-                        setattr(host, 'flow_rate', nominal_flow)
-                        setattr(host, 'temperature_setpoint', nominal_temp)
-                        setattr(host, 'pressure_setpoint', nominal_pressure)
-                        setattr(host, 'flow_rate_setpoint', nominal_flow)
-                        setattr(host, 'system_integrity', 'clean')
+                        host.temperature = nominal_temp
+                        host.pressure = nominal_pressure
+                        host.flow_rate = nominal_flow
+                        host.temperature_setpoint = nominal_temp
+                        host.pressure_setpoint = nominal_pressure
+                        host.flow_rate_setpoint = nominal_flow
+                        host.system_integrity = 'clean'
                     else:
                         profiles = [
                             (
