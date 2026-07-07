@@ -11,7 +11,7 @@ def env_config():
         'docker_mode': 'sim',
         'nlp_backend': 'tfidf',
         'max_ticks': 100,
-        'log_latency': 2,
+        'log_latency': 0,  # immediate telemetry; latency is exercised explicitly
     }
 
 

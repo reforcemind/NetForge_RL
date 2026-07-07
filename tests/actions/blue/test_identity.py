@@ -22,7 +22,7 @@ def test_rotate_kerberos_execution(global_state, blue_agent):
     action = RotateKerberos(agent_id=blue_agent, target_ip='10.0.1.0/24')
     effect = action.execute(global_state)
     assert effect.success is True
-    command = effect.state_deltas['identity_flush']
+    (command,) = effect.state_deltas
     command.execute(global_state)
     assert old_token not in global_state.agent_inventory[red_agent]
     assert len(global_state.agent_inventory[red_agent]) == 0
@@ -40,7 +40,7 @@ def test_rotate_kerberos_costs(global_state, blue_agent):
     initial_downtime = global_state.business_downtime_score
     action = RotateKerberos(agent_id=blue_agent, target_ip='10.0.1.0/24')
     effect = action.execute(global_state)
-    command = effect.state_deltas['identity_flush']
+    (command,) = effect.state_deltas
     command.execute(global_state)
     assert global_state.agent_funds[blue_agent] == 5000
     assert global_state.business_downtime_score == initial_downtime + 1500

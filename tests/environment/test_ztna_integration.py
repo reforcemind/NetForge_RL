@@ -31,7 +31,7 @@ def test_ztna_end_to_end_breach(env_sim):
     dump_action = DumpLSASS(agent_id=red_agent, target_ip=corp_ip)
     effect = dump_action.execute(state)
     assert effect.success is True
-    cmd = effect.state_deltas['inventory_update']
+    (cmd,) = effect.state_deltas
     cmd.execute(state)
     assert 'Enterprise_Admin_Token' in state.agent_inventory[red_agent]
     assert state.can_route_to(secure_ip, agent_id=red_agent) is True
