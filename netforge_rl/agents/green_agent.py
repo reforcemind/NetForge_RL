@@ -31,7 +31,9 @@ class GreenAgent:
             source = rng.choice(hosts)
             target = rng.choice(hosts)
             if source.ip != target.ip:
-                log = rng.choice(self._benign_templates)(source.ip, target.ip)
+                log = rng.choice(self._benign_templates)(
+                    source.ip, target.ip, rng=rng
+                )
                 noise_logs.append(
                     {
                         'type': 'benign_xml',
@@ -43,7 +45,9 @@ class GreenAgent:
 
         if rng.random() < p_fp:
             target = rng.choice(hosts)
-            log = evid_4625('unknown_external', target.ip, username='Administrator')
+            log = evid_4625(
+                'unknown_external', target.ip, username='Administrator', rng=rng
+            )
             noise_logs.append(
                 {
                     'type': 'anomaly_xml',
