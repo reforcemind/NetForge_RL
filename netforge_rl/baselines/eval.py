@@ -8,7 +8,8 @@ from netforge_rl.baselines.policies import (
     RandomPolicy,
 )
 from netforge_rl.environment.parallel_env import NetForgeRLEnv, PADDING_SUBNET
-from netforge_rl.semantic import EpisodeResult
+from netforge_rl.semantic.leaderboard import append_result
+from netforge_rl.semantic.runner import EpisodeResult
 
 POLICY_REGISTRY = {
     'random': RandomPolicy,
@@ -85,8 +86,6 @@ def main():
         default=Path('leaderboard/baselines.json'),
     )
     args = p.parse_args()
-
-    from netforge_rl.semantic import append_result
 
     policy = POLICY_REGISTRY[args.policy]()
     results = evaluate(
