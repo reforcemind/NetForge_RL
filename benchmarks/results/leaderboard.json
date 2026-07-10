@@ -52,7 +52,7 @@
   {
     "name": "smoke",
     "team": "blue",
-    "submitted_at": "2026-07-07T17:34:54Z",
+    "submitted_at": "2026-07-09T17:36:39Z",
     "n_episodes": 1,
     "score": 50.0033,
     "mean_compromised": 0.0,

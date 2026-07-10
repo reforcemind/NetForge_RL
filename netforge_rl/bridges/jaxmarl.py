@@ -9,11 +9,12 @@ from netforge_rl.backends.jax import (
     BatchedActions,
     VectorEnvSpec,
     initial_batched_state,
+    jax_siem_features,
     make_vector_step,
     scenario_done,
     to_jax,
 )
-from netforge_rl.backends.jax.vector_env import jax_siem_features
+
 from netforge_rl.core.functional import from_global_state
 from netforge_rl.topologies.network_generator import NetworkGenerator
 

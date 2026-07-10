@@ -5,6 +5,8 @@ from dataclasses import replace
 import numpy as np
 
 from netforge_rl.backends.jax.action_codes import (
+    ACTION_DURATIONS_BLUE,
+    ACTION_DURATIONS_RED,
     BLUE_ANALYZE,
     BLUE_CONFIGURE_ACL,
     BLUE_DEPLOY_DECOY,
@@ -79,6 +81,73 @@ def _resolve_conflicts_mask(red_mask, blue_mask, red_attempt, blue_attempt):
     return red_attempt & ~red_hits_defended
 
 
+def _process_action_queue(state, rt, bt, ra, ba, rat, bat, spec):
+    """NumPy mirror of the JAX kernel's ``_process_action_queue`` (see
+    netforge_rl/backends/jax/transition.py for the full rationale). Must stay
+    in lockstep with that function: same lock rule, same isolation-cancels-
+    in-flight-red ordering, same duration table."""
+    n_red = spec.n_red
+    q = np.array(state.in_flight_actions, dtype=np.int32, copy=True)  # [N_AGENTS, 4]
+    # Must match the JAX kernel's tick ordering exactly: lock/enqueue use the
+    # pre-advance tick, maturity uses the post-advance tick (Python's step()
+    # advances current_tick before checking which events matured this call).
+    next_tick = state.current_tick + 1
+
+    all_targets = np.concatenate([rt, bt]).astype(np.int32)
+    all_attempt = np.concatenate([ra, ba])
+    all_action_type = np.concatenate([rat, bat]).astype(np.int32)
+    durations = np.concatenate(
+        [
+            np.asarray(ACTION_DURATIONS_RED)[rat.astype(np.int32)],
+            np.asarray(ACTION_DURATIONS_BLUE)[bat.astype(np.int32)],
+        ]
+    ).astype(np.int32)
+
+    active = q[:, 3] == 1
+    locked = active & (q[:, 2] > state.current_tick)
+    can_submit = all_attempt & ~locked
+
+    new_entry = np.stack(
+        [
+            all_action_type,
+            all_targets,
+            state.current_tick + durations,
+            np.ones_like(all_action_type),
+        ],
+        axis=-1,
+    )
+    q[can_submit] = new_entry[can_submit]
+
+    blue_q = q[n_red:]
+    blue_maturing = (blue_q[:, 3] == 1) & (blue_q[:, 2] <= next_tick)
+    blue_isolating = blue_maturing & (blue_q[:, 0] == BLUE_ISOLATE)
+    isolated_mask = np.zeros(spec.n_hosts, dtype=bool)
+    isolated_mask[blue_q[blue_isolating, 1]] = True
+
+    red_q = q[:n_red].copy()
+    red_active = red_q[:, 3] == 1
+    red_cancelled = red_active & isolated_mask[red_q[:, 1]]
+    red_q[red_cancelled, 3] = 0
+    red_maturing = (red_q[:, 3] == 1) & (red_q[:, 2] <= next_tick)
+
+    q = np.concatenate([red_q, blue_q], axis=0)
+    maturing = np.concatenate([red_maturing, blue_maturing])
+
+    out_target = q[:, 1]
+    out_action_type = q[:, 0].astype(np.int8)
+    q[maturing, 3] = 0
+
+    return (
+        q,
+        out_target[:n_red],
+        out_target[n_red:],
+        maturing[:n_red],
+        maturing[n_red:],
+        out_action_type[:n_red],
+        out_action_type[n_red:],
+    )
+
+
 def reference_step(state, actions, spec):
     """Single-environment (unbatched) NumPy step. ``state`` is a JaxEnvState whose
     leaves are plain numpy arrays (no batch axis). Returns (new_state, rewards)."""
@@ -91,6 +160,10 @@ def reference_step(state, actions, spec):
     ba = np.asarray(actions.blue_attempt)
     rat = np.asarray(actions.red_action_type)
     bat = np.asarray(actions.blue_action_type)
+
+    new_queue, rt, bt, ra, ba, rat, bat = _process_action_queue(
+        state, rt, bt, ra, ba, rat, bat, spec
+    )
 
     def one_hot(idx, attempt):
         m = np.zeros((idx.shape[0], n_hosts), dtype=bool)
@@ -375,6 +448,7 @@ def reference_step(state, actions, spec):
         knowledge_mask=new_knowledge,
         exfiltrated_bytes=state.exfiltrated_bytes + exfil_bytes,
         agent_credentials=new_agent_credentials,
+        in_flight_actions=new_queue,
     )
 
     red_rewards = (

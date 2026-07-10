@@ -1,16 +1,45 @@
 [
   {
     "backend": "jax",
+    "batch_size": 1,
+    "env_steps_per_sec": 206.4,
+    "agent_steps_per_sec": 825.5,
+    "wall_s": 0.969
+  },
+  {
+    "backend": "jax",
+    "batch_size": 64,
+    "env_steps_per_sec": 12455.6,
+    "agent_steps_per_sec": 49822.3,
+    "wall_s": 1.028
+  },
+  {
+    "backend": "jax",
+    "batch_size": 256,
+    "env_steps_per_sec": 41840.9,
+    "agent_steps_per_sec": 167363.8,
+    "wall_s": 1.224
+  },
+  {
+    "backend": "jax",
     "batch_size": 1024,
-    "env_steps_per_sec": 158539.9,
-    "agent_steps_per_sec": 634159.6,
-    "wall_s": 0.323
+    "env_steps_per_sec": 109080.5,
+    "agent_steps_per_sec": 436321.9,
+    "wall_s": 1.878
   },
   {
     "backend": "jax",
     "batch_size": 4096,
-    "env_steps_per_sec": 270795.3,
-    "agent_steps_per_sec": 1083181.4,
-    "wall_s": 0.756
+    "env_steps_per_sec": 146495.9,
+    "agent_steps_per_sec": 585983.6,
+    "wall_s": 5.592
+  },
+  {
+    "backend": "legacy",
+    "batch_size": 1,
+    "env_steps_per_sec": 93.2,
+    "agent_steps_per_sec": 372.9,
+    "wall_s": 2.124,
+    "steps": 198
   }
 ]

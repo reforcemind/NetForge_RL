@@ -4,6 +4,8 @@ import jax
 import jax.numpy as jnp
 
 from netforge_rl.backends.jax.action_codes import (
+    ACTION_DURATIONS_BLUE,
+    ACTION_DURATIONS_RED,
     BLUE_ANALYZE,
     BLUE_CONFIGURE_ACL,
     BLUE_DEPLOY_DECOY,
@@ -70,6 +72,84 @@ from netforge_rl.backends.jax.state_codes import (
 from netforge_rl.core.functional import OS_LINUX, OS_WINDOWS
 
 
+def _process_action_queue(
+    state,
+    red_targets,
+    blue_targets,
+    red_attempt,
+    blue_attempt,
+    red_action_type,
+    blue_action_type,
+    spec,
+):
+    """Enqueue newly-submitted actions and resolve whichever queued action
+    matures this tick, mirroring the Python engine's timing:
+    """
+    n_red = spec.n_red
+    q = state.in_flight_actions  # int32[N_AGENTS, 4]: (type, target, comp_tick, active)
+    next_tick = state.current_tick + 1
+
+    all_targets = jnp.concatenate([red_targets, blue_targets], axis=0).astype(jnp.int32)
+    all_attempt = jnp.concatenate([red_attempt, blue_attempt], axis=0)
+    all_action_type = jnp.concatenate(
+        [red_action_type, blue_action_type], axis=0
+    ).astype(jnp.int32)
+    durations = jnp.concatenate(
+        [
+            ACTION_DURATIONS_RED[red_action_type.astype(jnp.int32)],
+            ACTION_DURATIONS_BLUE[blue_action_type.astype(jnp.int32)],
+        ],
+        axis=0,
+    )
+
+    active = q[:, 3] == 1
+    locked = active & (q[:, 2] > state.current_tick)
+    can_submit = all_attempt & ~locked
+
+    new_entry = jnp.stack(
+        [
+            all_action_type,
+            all_targets,
+            state.current_tick + durations,
+            jnp.ones_like(all_action_type),
+        ],
+        axis=-1,
+    )
+    q = jnp.where(can_submit[:, None], new_entry, q)
+
+    blue_q = q[n_red:]
+    blue_maturing = (blue_q[:, 3] == 1) & (blue_q[:, 2] <= next_tick)
+    blue_isolating = blue_maturing & (blue_q[:, 0] == BLUE_ISOLATE)
+    isolated_mask = jnp.any(
+        jax.nn.one_hot(blue_q[:, 1], spec.n_hosts, dtype=jnp.bool_)
+        & blue_isolating[:, None],
+        axis=0,
+    )
+
+    red_q = q[:n_red]
+    red_active = red_q[:, 3] == 1
+    red_cancelled = red_active & isolated_mask[red_q[:, 1]]
+    red_q = red_q.at[:, 3].set(jnp.where(red_cancelled, 0, red_q[:, 3]))
+    red_maturing = (red_q[:, 3] == 1) & (red_q[:, 2] <= next_tick)
+
+    q = jnp.concatenate([red_q, blue_q], axis=0)
+    maturing = jnp.concatenate([red_maturing, blue_maturing], axis=0)
+
+    out_target = q[:, 1]
+    out_action_type = q[:, 0].astype(jnp.int8)
+    q_final = q.at[:, 3].set(jnp.where(maturing, 0, q[:, 3]))
+
+    return (
+        q_final,
+        out_target[:n_red],
+        out_target[n_red:],
+        maturing[:n_red],
+        maturing[n_red:],
+        out_action_type[:n_red],
+        out_action_type[n_red:],
+    )
+
+
 def single_env_step(
     state,
     red_targets,
@@ -81,7 +161,28 @@ def single_env_step(
     *,
     spec,
 ):
-    """One vectorized environment tick: apply actions, return (new_state, rewards)."""
+    """One vectorized environment tick: enqueue submitted actions, resolve
+    whichever actions mature this tick, apply their effects, return
+    (new_state, rewards)."""
+    (
+        new_queue,
+        red_targets,
+        blue_targets,
+        red_attempt,
+        blue_attempt,
+        red_action_type,
+        blue_action_type,
+    ) = _process_action_queue(
+        state,
+        red_targets,
+        blue_targets,
+        red_attempt,
+        blue_attempt,
+        red_action_type,
+        blue_action_type,
+        spec,
+    )
+
     n_hosts = spec.n_hosts
 
     def one_hot(idx, attempt):
@@ -387,6 +488,7 @@ def single_env_step(
         knowledge_mask=new_knowledge,
         exfiltrated_bytes=state.exfiltrated_bytes + exfil_bytes_this_tick,
         agent_credentials=new_agent_credentials,
+        in_flight_actions=new_queue,
     )
     return new_state, reward
 

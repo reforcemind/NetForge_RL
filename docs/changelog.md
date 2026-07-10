@@ -3,6 +3,32 @@
 All notable changes to the `netforge_rl` project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [3.1.0] — 2026-07-10
+
+### Fixed
+- **JAX backend action timing** (`backends/jax/transition.py`, `backends/jax/action_codes.py`):
+  the vectorized backend now enqueues and resolves actions against the same per-agent duration
+  table as the real Python action classes, instead of resolving every action within the tick
+  it's submitted. An agent cannot submit a new action while one is still pending (mirroring
+  `parallel_env.py`'s `agent_locked_until`), and a Blue `IsolateHost` that matures on a tick now
+  cancels any still-pending Red action on the same host, with same-tick ties favoring Blue.
+  Every one of the 34 action durations was re-derived from its actual Python action class
+  rather than assumed; a prior, unfinished attempt at this had 10 of 34 durations wrong, a
+  deleted `scenario_done`, a reference to a nonexistent `hosts.reachability` field, a
+  `StepEvents` construction using stale field names, and a broken `siem_buffer` reference in
+  the JaxMARL bridge.
+- **`backends/reference.py`**: the NumPy mirror used for JAX parity testing carries the same
+  queue logic, verified against the JAX kernel with zero mismatches across all five scenarios
+  under randomized rollouts, plus targeted deterministic checks of the isolation-cancellation
+  and submission-lock mechanics.
+
+### Removed
+- `backends/jax/siem_embeddings.py`: an unfinished, untested SIEM-embedding-lookup attempt
+  that referenced an unimported `LogEncoder` name and raised `NameError` on first use. The
+  existing `jax_siem_features` scalar signal remains the JAX backend's telemetry proxy; the
+  JAX and Python backends still diverge on observation richness and on tick cadence (the JAX
+  core advances a fixed one tick per `step()` call rather than jumping to the next event).
+
 ## [3.0.0] — 2026-07
 
 ### Added

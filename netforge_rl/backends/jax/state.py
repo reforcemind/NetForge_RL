@@ -38,6 +38,7 @@ class JaxEnvState:
     knowledge_mask: jax.Array  # bool[N_AGENTS, N_HOSTS]
     exfiltrated_bytes: jax.Array  # float32 scalar — cumulative Red exfil
     agent_credentials: jax.Array  # bool[N_AGENTS, N_TOKEN] — looted tokens
+    in_flight_actions: jax.Array  # int32[N_AGENTS, 4] (type, target, comp_tick, active) — one pending action per agent, mirrors agent_locked_until
 
 
 def to_jax(state: EnvState) -> JaxEnvState:
@@ -87,6 +88,7 @@ def to_jax(state: EnvState) -> JaxEnvState:
         knowledge_mask=jnp.asarray(knowledge_mask),
         exfiltrated_bytes=jnp.asarray(0.0, dtype=jnp.float32),
         agent_credentials=jnp.asarray(agent_credentials),
+        in_flight_actions=jnp.zeros((n_agents, 4), dtype=jnp.int32),
     )
 
 

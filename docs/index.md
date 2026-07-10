@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://img.shields.io/badge/version-3.0.0-blue?style=for-the-badge" alt="Version 3.0.0"/>
+  <img src="https://img.shields.io/badge/version-3.1.0-blue?style=for-the-badge" alt="Version 3.1.0"/>
   <img src="https://img.shields.io/badge/Python-3.12+-blue?style=for-the-badge&logo=python" alt="Python 3.12+"/>
   <img src="https://img.shields.io/badge/JAX-vmap%20%2B%20jit-orange?style=for-the-badge" alt="JAX"/>
   <img src="https://img.shields.io/badge/PettingZoo-MARL-purple?style=for-the-badge" alt="PettingZoo"/>
@@ -49,6 +49,11 @@ vectorized backend for high-throughput training.
 - **Fast** — JAX backend measured at **270,795 env-steps/s (1,083,181 agent-steps/s)** at
   batch 4096 on CPU, with an optional in-kernel numeric SIEM signal. See
   [Benchmarks](benchmarks/overview.md).
+- **JAX backend matches real action timing** — the vectorized backend enqueues and resolves
+  actions against the same per-agent duration table as the Python engine: an agent can't act
+  again until its pending action resolves, and isolating a host cancels an in-flight exploit
+  against it. Verified against a NumPy reference with zero mismatches across all five
+  scenarios under randomized rollouts.
 
 ## Quick Start
 
