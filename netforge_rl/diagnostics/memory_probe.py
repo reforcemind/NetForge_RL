@@ -1,4 +1,4 @@
-from netforge_rl.diagnostics.base import Diagnostic, DiagnosticResult
+from netforge_rl.diagnostics.base import Diagnostic, DiagnosticResult, flag_host
 
 
 class MemoryProbe(Diagnostic):
@@ -29,6 +29,7 @@ class MemoryProbe(Diagnostic):
         host = env.global_state.all_hosts[self._planted_ip]
         host.compromised_by = 'red_operator'
         host.privilege = 'User'
+        flag_host(env, self._planted_ip)
         self._iso_tick = None
         self._tick = 0
 

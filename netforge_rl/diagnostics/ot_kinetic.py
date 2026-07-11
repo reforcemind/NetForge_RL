@@ -1,4 +1,4 @@
-from netforge_rl.diagnostics.base import Diagnostic, DiagnosticResult
+from netforge_rl.diagnostics.base import Diagnostic, DiagnosticResult, flag_host
 
 
 class OTKineticResponse(Diagnostic):
@@ -27,6 +27,7 @@ class OTKineticResponse(Diagnostic):
         host = gs.all_hosts[self._ot_ip]
         host.compromised_by = 'red_operator'
         host.privilege = 'User'
+        flag_host(env, self._ot_ip, severity=10)
         self._isolated = False
 
     def early_stop(self, env):

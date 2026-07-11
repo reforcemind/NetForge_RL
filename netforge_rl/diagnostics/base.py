@@ -3,6 +3,19 @@ from dataclasses import dataclass, field
 from netforge_rl.environment.parallel_env import NetForgeRLEnv
 
 
+def flag_host(env, ip: str, severity: int = 8) -> None:
+    """Emit an observable SIEM IoC alert implicating ``ip``. Routed through the
+    logger so it obeys the scenario's log latency, giving blue policies a telemetry
+    signal to detect rather than a ground-truth flag to read."""
+    host = env.global_state.all_hosts.get(ip)
+    subnet = host.subnet_cidr if host else 'unknown'
+    env.siem_logger._push_to_buffer(
+        {'signature': 'IOC_ALERT', 'target': ip, 'severity': severity},
+        subnet,
+        env.global_state,
+    )
+
+
 @dataclass
 class DiagnosticResult:
     diagnostic: str

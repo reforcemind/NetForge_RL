@@ -1,4 +1,4 @@
-from netforge_rl.diagnostics.base import Diagnostic, DiagnosticResult
+from netforge_rl.diagnostics.base import Diagnostic, DiagnosticResult, flag_host
 
 
 class NoisySIEM(Diagnostic):
@@ -26,11 +26,13 @@ class NoisySIEM(Diagnostic):
         host = env.global_state.all_hosts[self._real_ip]
         host.compromised_by = 'red_operator'
         host.privilege = 'User'
+        flag_host(env, self._real_ip)
+        decoys = [ip for ip in sorted(non_pad) if ip != self._real_ip][:2]
+        for ip in decoys:
+            flag_host(env, ip)
         self._isolated_real = False
         self._false_positives = 0
         self._seen_fp = set()
-        if hasattr(env.green_agent, 'noise_rate'):
-            env.green_agent.noise_rate = 0.9
 
     def early_stop(self, env):
         for ip, host in env.global_state.all_hosts.items():

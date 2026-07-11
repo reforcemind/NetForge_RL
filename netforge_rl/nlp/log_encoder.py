@@ -26,13 +26,14 @@ from netforge_rl.siem.event_templates import (
     sysmon_22,
 )
 
-try:
-    import torch
-    from sentence_transformers import SentenceTransformer
+import importlib.util
 
-    HAS_TRANSFORMERS = True
-except ImportError:
-    HAS_TRANSFORMERS = False
+# Probe availability without importing: sentence-transformers pulls in torch and
+# transformers, a slow multi-GB import we must not trigger on the default tfidf path.
+HAS_TRANSFORMERS = (
+    importlib.util.find_spec('torch') is not None
+    and importlib.util.find_spec('sentence_transformers') is not None
+)
 
 EMBEDDING_DIM = 128
 
@@ -126,6 +127,9 @@ class LogEncoder:
                 'sentence-transformers not installed; falling back to tfidf.'
             )
             return self._build_tfidf()
+
+        import torch
+        from sentence_transformers import SentenceTransformer
 
         model = SentenceTransformer('all-MiniLM-L6-v2')
         model.eval()

@@ -24,23 +24,32 @@ class RandomPolicy:
 
 
 class HeuristicBluePolicy:
-    """Blue: isolate the first compromised host; otherwise analyse host 0."""
+    """Blue: isolate the host implicated by the highest-severity SIEM alert in the
+    visible log buffer; otherwise analyse host 0. Reads telemetry, not ground truth,
+    so noise and log latency degrade it the way they would a real SOC workflow."""
 
     name = 'heuristic-blue'
+    alert_threshold = 5
 
     def __init__(self, seed=0):
         self._rng = random.Random(seed)
 
     def act(self, env, agent_id):
-        target_ips = sorted(env.global_state.all_hosts.keys())
-        compromised = [
-            ip
-            for ip, h in env.global_state.all_hosts.items()
-            if h.compromised_by != 'None' and h.status != 'isolated'
-        ]
-        if compromised:
-            ip = self._rng.choice(compromised)
-            return np.array([0, target_ips.index(ip)], dtype=np.int64)
+        gs = env.global_state
+        target_ips = sorted(gs.all_hosts.keys())
+        flagged, best_sev = None, 0
+        for log, _subnet in reversed(gs.siem_log_buffer):
+            if not isinstance(log, dict):
+                continue
+            ip = log.get('target')
+            host = gs.all_hosts.get(ip) if ip else None
+            if host is None or host.status == 'isolated' or ip.startswith('169.254.'):
+                continue
+            sev = log.get('severity', 0)
+            if sev >= self.alert_threshold and sev > best_sev:
+                flagged, best_sev = ip, sev
+        if flagged is not None:
+            return np.array([0, target_ips.index(flagged)], dtype=np.int64)
         return np.array([3, 0], dtype=np.int64)
 
 

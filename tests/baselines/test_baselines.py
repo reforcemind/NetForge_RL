@@ -15,11 +15,14 @@ def test_random_policy_shape(env_sim) -> None:
 
 
 @pytest.mark.fast
-def test_heuristic_blue_targets_compromised_host(env_sim) -> None:
+def test_heuristic_blue_isolates_siem_flagged_host(env_sim) -> None:
     target = next(
         (ip for ip in env_sim.global_state.all_hosts if not ip.startswith('169.254.'))
     )
-    env_sim.global_state.all_hosts[target].compromised_by = 'red_operator'
+    subnet = env_sim.global_state.all_hosts[target].subnet_cidr
+    env_sim.global_state.siem_log_buffer.append(
+        ({'signature': 'IOC_ALERT', 'target': target, 'severity': 8}, subnet)
+    )
     a = HeuristicBluePolicy(seed=0).act(env_sim, 'blue_dmz')
     target_ips = sorted(env_sim.global_state.all_hosts.keys())
     assert a[0] == 0 and target_ips[int(a[1])] == target
