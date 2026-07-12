@@ -86,7 +86,14 @@ def _process_action_queue(
     matures this tick, mirroring the Python engine's timing:
     """
     n_red = spec.n_red
-    q = state.in_flight_actions  # int32[N_AGENTS, 4]: (type, target, comp_tick, active)
+    n_streams = n_red + spec.n_blue
+    # One queue slot per action stream (red + blue). In production the state has
+    # exactly n_red + n_blue agents so this is the whole array; a reduced-agent
+    # config (e.g. a single blue stream) keeps the queue aligned with the actions.
+    full_q = (
+        state.in_flight_actions
+    )  # int32[N_AGENTS, 4]: (type, target, comp_tick, active)
+    q = full_q[:n_streams]
     next_tick = state.current_tick + 1
 
     all_targets = jnp.concatenate([red_targets, blue_targets], axis=0).astype(jnp.int32)
@@ -138,6 +145,7 @@ def _process_action_queue(
     out_target = q[:, 1]
     out_action_type = q[:, 0].astype(jnp.int8)
     q_final = q.at[:, 3].set(jnp.where(maturing, 0, q[:, 3]))
+    q_final = full_q.at[:n_streams].set(q_final)
 
     return (
         q_final,

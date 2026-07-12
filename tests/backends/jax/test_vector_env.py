@@ -21,6 +21,22 @@ def _spec(n_hosts: int = 100, n_red: int = 1, n_blue: int = 3) -> VectorEnvSpec:
     return VectorEnvSpec(n_hosts=n_hosts, n_red=n_red, n_blue=n_blue)
 
 
+def _run_until_idle(step, state, actions, max_ticks: int = 24):
+    """Submit `actions`, then advance ticks (submitting nothing new) until every
+    in-flight action has matured. Durations are asynchronous, so a multi-tick action
+    resolves only after its duration elapses."""
+    state, rewards = step(state, actions)
+    idle = actions._replace(
+        red_attempt=jnp.zeros_like(actions.red_attempt),
+        blue_attempt=jnp.zeros_like(actions.blue_attempt),
+    )
+    for _ in range(max_ticks):
+        if not bool(jnp.any(state.in_flight_actions[..., 3] == 1)):
+            break
+        state, rewards = step(state, idle)
+    return state, rewards
+
+
 @pytest.mark.fast
 def test_batched_state_has_leading_batch_axis(global_state) -> None:
     snap = from_global_state(global_state, agent_ids=AGENTS)
@@ -56,7 +72,7 @@ def test_red_compromises_uncontested_host(global_state) -> None:
         red_attempt=jnp.array([[True]], dtype=jnp.bool_),
         blue_attempt=jnp.array([[True]], dtype=jnp.bool_),
     )
-    new_state, _ = step(state, actions)
+    new_state, _ = _run_until_idle(step, state, actions)
     assert int(new_state.hosts.privilege[0, 0]) == PRIVILEGE_CODES.index('User')
     assert int(new_state.hosts.compromised_by_id[0, 0]) == 0
 
@@ -92,7 +108,7 @@ def test_envs_are_independent_under_vmap(global_state) -> None:
         red_attempt=jnp.array([[True], [False], [False]], dtype=jnp.bool_),
         blue_attempt=jnp.array([[False], [False], [True]], dtype=jnp.bool_),
     )
-    new_state, _ = step(state, actions)
+    new_state, _ = _run_until_idle(step, state, actions)
     assert int(new_state.hosts.privilege[0, 1]) == PRIVILEGE_CODES.index('User')
     np.testing.assert_array_equal(
         new_state.hosts.privilege[1], state.hosts.privilege[1]

@@ -77,11 +77,33 @@ def _act(*, red_t, blue_t, red_a, blue_a, red_type, blue_type) -> BatchedActions
     )
 
 
+def _settling_step(spec):
+    """A step that submits the action, then advances ticks (submitting nothing new)
+    until every in-flight action has matured. Action durations are asynchronous, so
+    a multi-tick action only takes effect after its duration elapses; these tests
+    assert on the resolved effect, so we drain the queue before returning."""
+    raw = make_vector_step(spec)
+
+    def run(state, act):
+        state, rewards = raw(state, act)
+        idle = act._replace(
+            red_attempt=jnp.zeros_like(act.red_attempt),
+            blue_attempt=jnp.zeros_like(act.blue_attempt),
+        )
+        for _ in range(24):
+            if not bool(jnp.any(state.in_flight_actions[..., 3] == 1)):
+                break
+            state, rewards = raw(state, idle)
+        return state, rewards
+
+    return run
+
+
 @pytest.mark.fast
 def test_privesc_promotes_user_to_root(global_state) -> None:
     spec = _spec()
     state = _state(global_state, batch=1)
-    step = make_vector_step(spec)
+    step = _settling_step(spec)
     state, _ = step(
         state,
         _act(
@@ -112,7 +134,7 @@ def test_privesc_promotes_user_to_root(global_state) -> None:
 def test_privesc_noop_on_uncompromised_host(global_state) -> None:
     spec = _spec()
     state = _state(global_state, batch=1)
-    step = make_vector_step(spec)
+    step = _settling_step(spec)
     before = int(state.hosts.privilege[0, 5])
     state, _ = step(
         state,
@@ -132,7 +154,7 @@ def test_privesc_noop_on_uncompromised_host(global_state) -> None:
 def test_restore_wipes_priv_and_ownership(global_state) -> None:
     spec = _spec()
     state = _state(global_state, batch=1)
-    step = make_vector_step(spec)
+    step = _settling_step(spec)
     state, _ = step(
         state,
         _act(
@@ -164,16 +186,47 @@ def test_restore_wipes_priv_and_ownership(global_state) -> None:
 
 @pytest.mark.fast
 def test_restore_beats_simultaneous_red_compromise(global_state) -> None:
+    from netforge_rl.backends.jax.action_codes import (
+        ACTION_DURATIONS_BLUE,
+        ACTION_DURATIONS_RED,
+    )
+
     spec = _spec()
     state = _state(global_state, batch=1)
-    step = make_vector_step(spec)
+    step = make_vector_step(spec)  # raw step: we align maturation by hand
     pre_priv = int(state.hosts.privilege[0, 7])
+    red_dur = int(ACTION_DURATIONS_RED[RED_COMPROMISE])
+    blue_dur = int(ACTION_DURATIONS_BLUE[BLUE_RESTORE])
+    idle = _act(
+        red_t=[[7]],
+        blue_t=[[7]],
+        red_a=[[False]],
+        blue_a=[[False]],
+        red_type=[[RED_COMPROMISE]],
+        blue_type=[[BLUE_RESTORE]],
+    )
+    # Red submits the compromise; it matures red_dur ticks later.
     state, _ = step(
         state,
         _act(
             red_t=[[7]],
             blue_t=[[7]],
             red_a=[[True]],
+            blue_a=[[False]],
+            red_type=[[RED_COMPROMISE]],
+            blue_type=[[BLUE_RESTORE]],
+        ),
+    )
+    # Idle until Blue can submit a restore that matures on the same tick as the
+    # compromise, so the two land simultaneously and the conflict resolver decides.
+    for _ in range(red_dur - blue_dur - 1):
+        state, _ = step(state, idle)
+    state, _ = step(
+        state,
+        _act(
+            red_t=[[7]],
+            blue_t=[[7]],
+            red_a=[[False]],
             blue_a=[[True]],
             red_type=[[RED_COMPROMISE]],
             blue_type=[[BLUE_RESTORE]],
@@ -186,7 +239,7 @@ def test_restore_beats_simultaneous_red_compromise(global_state) -> None:
 def test_privesc_reward_is_higher_than_compromise(global_state) -> None:
     spec = _spec()
     state = _state(global_state, batch=1)
-    step = make_vector_step(spec)
+    step = _settling_step(spec)
     state, _ = step(
         state,
         _act(
@@ -216,7 +269,7 @@ def test_privesc_reward_is_higher_than_compromise(global_state) -> None:
 def test_deploy_decoy_flips_decoy_field(global_state) -> None:
     spec = _spec()
     state = _state(global_state, batch=1)
-    step = make_vector_step(spec)
+    step = _settling_step(spec)
     idx = int(
         next(
             (
@@ -246,7 +299,7 @@ def test_deploy_decoy_flips_decoy_field(global_state) -> None:
 def test_honeytoken_traps_red_compromise(global_state) -> None:
     spec = _spec()
     state = _state(global_state, batch=1)
-    step = make_vector_step(spec)
+    step = _settling_step(spec)
     state, _ = step(
         state,
         _act(
@@ -303,7 +356,7 @@ def _own_to_root(state, step, idx: int):
 def test_impact_requires_root(global_state) -> None:
     spec = _spec()
     state = _state(global_state, batch=1)
-    step = make_vector_step(spec)
+    step = _settling_step(spec)
     state, _ = step(
         state,
         _act(
@@ -322,7 +375,7 @@ def test_impact_requires_root(global_state) -> None:
 def test_impact_promotes_integrity_when_root(global_state) -> None:
     spec = _spec()
     state = _state(global_state, batch=1)
-    step = make_vector_step(spec)
+    step = _settling_step(spec)
     state = _own_to_root(state, step, idx=8)
     state, rewards = step(
         state,
@@ -345,7 +398,7 @@ def test_impact_promotes_integrity_when_root(global_state) -> None:
 def test_kinetic_super_reward(global_state) -> None:
     spec = _spec()
     state = _state(global_state, batch=1)
-    step = make_vector_step(spec)
+    step = _settling_step(spec)
     state = _own_to_root(state, step, idx=9)
     state, rewards = step(
         state,
@@ -370,7 +423,7 @@ def test_kinetic_super_reward(global_state) -> None:
 def test_remove_clears_priv_but_keeps_status(global_state) -> None:
     spec = _spec()
     state = _state(global_state, batch=1)
-    step = make_vector_step(spec)
+    step = _settling_step(spec)
     state, _ = step(
         state,
         _act(
@@ -415,7 +468,7 @@ def test_remove_clears_priv_but_keeps_status(global_state) -> None:
 def test_sat_decrements_human_vulnerability(global_state) -> None:
     spec = _spec()
     state = _state(global_state, batch=1)
-    step = make_vector_step(spec)
+    step = _settling_step(spec)
     idx = int(state.hosts.human_vulnerability[0].argmax())
     before = float(state.hosts.human_vulnerability[0, idx])
     state, rewards = step(
@@ -438,7 +491,7 @@ def test_sat_decrements_human_vulnerability(global_state) -> None:
 def test_bluekeep_needs_cve_bit_set(global_state) -> None:
     spec = _spec()
     state = _state(global_state, batch=1)
-    step = make_vector_step(spec)
+    step = _settling_step(spec)
     col = CVE_CODES.index('CVE-2019-0708')
     no_bluekeep = [
         int(i)
@@ -468,7 +521,7 @@ def test_bluekeep_needs_cve_bit_set(global_state) -> None:
 def test_cve_exploit_compromises_when_bit_set(global_state) -> None:
     spec = _spec()
     state = _state(global_state, batch=1)
-    step = make_vector_step(spec)
+    step = _settling_step(spec)
     col = CVE_CODES.index('MS17-010')
     new_vm = state.hosts.vuln_mask.at[0, 13, col].set(True)
     state = state.__class__(
@@ -498,7 +551,7 @@ def test_cve_exploit_compromises_when_bit_set(global_state) -> None:
 def test_recon_sets_red_knowledge_bit(global_state) -> None:
     spec = _spec()
     state = _state(global_state, batch=1)
-    step = make_vector_step(spec)
+    step = _settling_step(spec)
     assert not bool(state.knowledge_mask[0, 0, 23])
     state, rewards = step(
         state,
@@ -519,7 +572,7 @@ def test_recon_sets_red_knowledge_bit(global_state) -> None:
 def test_monitor_sets_blue_knowledge_bit(global_state) -> None:
     spec = _spec()
     state = _state(global_state, batch=1)
-    step = make_vector_step(spec)
+    step = _settling_step(spec)
     assert not bool(state.knowledge_mask[0, 1, 42])
     state, _ = step(
         state,
@@ -539,7 +592,7 @@ def test_monitor_sets_blue_knowledge_bit(global_state) -> None:
 def test_intel_reward_only_on_first_sighting(global_state) -> None:
     spec = _spec()
     state = _state(global_state, batch=1)
-    step = make_vector_step(spec)
+    step = _settling_step(spec)
     state, r_first = step(
         state,
         _act(
@@ -570,7 +623,7 @@ def test_intel_reward_only_on_first_sighting(global_state) -> None:
 def test_misinform_brands_decoy_as_apache(global_state):
     spec = _spec()
     state = _state(global_state, batch=1)
-    step = make_vector_step(spec)
+    step = _settling_step(spec)
     idx = int(
         next(
             (
@@ -598,7 +651,7 @@ def test_misinform_brands_decoy_as_apache(global_state):
 def test_exfiltrate_requires_root(global_state):
     spec = _spec()
     state = _state(global_state, batch=1)
-    step = make_vector_step(spec)
+    step = _settling_step(spec)
     before = float(state.exfiltrated_bytes[0])
     state, rewards = step(
         state,
@@ -619,7 +672,7 @@ def test_exfiltrate_requires_root(global_state):
 def test_exfiltrate_accumulates_when_root(global_state):
     spec = _spec()
     state = _state(global_state, batch=1)
-    step = make_vector_step(spec)
+    step = _settling_step(spec)
     state = _own_to_root(state, step, idx=14)
     before = float(state.exfiltrated_bytes[0])
     state, rewards = step(
@@ -643,7 +696,7 @@ def test_exfiltrate_accumulates_when_root(global_state):
 def test_configure_acl_flips_edr_active(global_state):
     spec = _spec()
     state = _state(global_state, batch=1)
-    step = make_vector_step(spec)
+    step = _settling_step(spec)
     assert not bool(state.hosts.edr_active[0, 22])
     state, rewards = step(
         state,
@@ -665,7 +718,7 @@ def test_configure_acl_flips_edr_active(global_state):
 def test_share_intel_broadcasts_red_knowledge(global_state):
     spec = _spec(n_red=2, n_blue=1)
     state = _state(global_state, batch=1)
-    step = make_vector_step(spec)
+    step = _settling_step(spec)
     state, _ = step(
         state,
         _act(
@@ -697,7 +750,7 @@ def test_share_intel_broadcasts_red_knowledge(global_state):
 def test_lsass_loots_token_when_root(global_state):
     spec = _spec()
     state = _state(global_state, batch=1)
-    step = make_vector_step(spec)
+    step = _settling_step(spec)
     candidates = [i for i in range(100) if bool(state.hosts.host_tokens[0, i].any())]
     if not candidates:
         pytest.skip('no host with tokens in this seed')
@@ -723,7 +776,7 @@ def test_lsass_loots_token_when_root(global_state):
 def test_pass_the_hash_compromises_with_token(global_state):
     spec = _spec()
     state = _state(global_state, batch=1)
-    step = make_vector_step(spec)
+    step = _settling_step(spec)
     src = next(
         (i for i in range(100) if bool(state.hosts.host_tokens[0, i].any())), None
     )
@@ -773,7 +826,7 @@ def test_pass_the_hash_compromises_with_token(global_state):
 def test_pass_the_hash_rejected_on_wrong_token(global_state):
     spec = _spec()
     state = _state(global_state, batch=1)
-    step = make_vector_step(spec)
+    step = _settling_step(spec)
     pair = None
     for src in range(100):
         if not bool(state.hosts.host_tokens[0, src].any()):
@@ -824,7 +877,7 @@ def test_pass_the_hash_rejected_on_wrong_token(global_state):
 def test_pass_the_hash_no_op_without_token(global_state):
     spec = _spec()
     state = _state(global_state, batch=1)
-    step = make_vector_step(spec)
+    step = _settling_step(spec)
     clean_idx = next(
         (
             i
@@ -850,7 +903,7 @@ def test_pass_the_hash_no_op_without_token(global_state):
 def test_rotate_kerberos_clears_red_credentials(global_state):
     spec = _spec()
     state = _state(global_state, batch=1)
-    step = make_vector_step(spec)
+    step = _settling_step(spec)
     candidates = [i for i in range(100) if bool(state.hosts.host_tokens[0, i].any())]
     if not candidates:
         pytest.skip('no host with tokens in this seed')
@@ -885,7 +938,7 @@ def test_rotate_kerberos_clears_red_credentials(global_state):
 def test_sat_clamps_at_zero(global_state) -> None:
     spec = _spec()
     state = _state(global_state, batch=1)
-    step = make_vector_step(spec)
+    step = _settling_step(spec)
     idx = int(state.hosts.human_vulnerability[0].argmax())
     for _ in range(50):
         state, _ = step(
@@ -915,7 +968,7 @@ def test_juicy_potato_needs_windows(global_state):
 
     spec = _spec()
     state = _state(global_state, batch=1)
-    step = make_vector_step(spec)
+    step = _settling_step(spec)
     win_idx = _find_host_by_os(state, OS_WINDOWS)
     linux_idx = _find_host_by_os(state, OS_LINUX)
     if win_idx is None or linux_idx is None:
@@ -964,7 +1017,7 @@ def test_v4l2_needs_linux(global_state):
 
     spec = _spec()
     state = _state(global_state, batch=1)
-    step = make_vector_step(spec)
+    step = _settling_step(spec)
     linux_idx = _find_host_by_os(state, OS_LINUX)
     win_idx = _find_host_by_os(state, OS_WINDOWS)
     if linux_idx is None or win_idx is None:
@@ -1011,7 +1064,7 @@ def test_v4l2_needs_linux(global_state):
 def test_kill_process_panics_root_host(global_state):
     spec = _spec()
     state = _state(global_state, batch=1)
-    step = make_vector_step(spec)
+    step = _settling_step(spec)
     state = _own_to_root(state, step, idx=25)
     state, rewards = step(
         state,
@@ -1032,7 +1085,7 @@ def test_kill_process_panics_root_host(global_state):
 def test_audit_no_reward_for_reisolating_already_isolated(global_state):
     spec = _spec()
     state = _state(global_state, batch=1)
-    step = make_vector_step(spec)
+    step = _settling_step(spec)
     state, _ = step(
         state,
         _act(
@@ -1064,7 +1117,7 @@ def test_audit_no_reward_for_reisolating_already_isolated(global_state):
 def test_audit_no_reward_for_reimpacting_compromised_host(global_state):
     spec = _spec()
     state = _state(global_state, batch=1)
-    step = make_vector_step(spec)
+    step = _settling_step(spec)
     state = _own_to_root(state, step, idx=33)
     state, r_first = step(
         state,
@@ -1096,7 +1149,7 @@ def test_audit_no_reward_for_reimpacting_compromised_host(global_state):
 def test_misinform_tomcat_brands_decoy_as_tomcat(global_state):
     spec = _spec()
     state = _state(global_state, batch=1)
-    step = make_vector_step(spec)
+    step = _settling_step(spec)
     idx = int(
         next(
             (
@@ -1124,7 +1177,7 @@ def test_misinform_tomcat_brands_decoy_as_tomcat(global_state):
 def test_misinform_sshd_brands_decoy_as_sshd(global_state):
     spec = _spec()
     state = _state(global_state, batch=1)
-    step = make_vector_step(spec)
+    step = _settling_step(spec)
     idx = int(
         next(
             (
@@ -1152,7 +1205,7 @@ def test_misinform_sshd_brands_decoy_as_sshd(global_state):
 def test_restore_from_backup_clears_priv_and_integrity(global_state):
     spec = _spec()
     state = _state(global_state, batch=1)
-    step = make_vector_step(spec)
+    step = _settling_step(spec)
     state = _own_to_root(state, step, idx=42)
     state, _ = step(
         state,
@@ -1187,7 +1240,7 @@ def test_restore_from_backup_clears_priv_and_integrity(global_state):
 def test_analyze_sets_blue_knowledge_bit(global_state):
     spec = _spec()
     state = _state(global_state, batch=1)
-    step = make_vector_step(spec)
+    step = _settling_step(spec)
     assert not bool(state.knowledge_mask[0, 1, 42])
     state, _ = step(
         state,
@@ -1209,7 +1262,7 @@ def test_spearphishing_needs_windows(global_state):
 
     spec = _spec()
     state = _state(global_state, batch=1)
-    step = make_vector_step(spec)
+    step = _settling_step(spec)
     win_idx = _find_host_by_os(state, OS_WINDOWS)
     linux_idx = _find_host_by_os(state, OS_LINUX)
     if win_idx is None or linux_idx is None:
@@ -1244,7 +1297,7 @@ def test_spearphishing_needs_windows(global_state):
 def test_ip_fragmentation_acts_as_generic_compromise(global_state):
     spec = _spec()
     state = _state(global_state, batch=1)
-    step = make_vector_step(spec)
+    step = _settling_step(spec)
     state, _ = step(
         state,
         _act(
@@ -1263,7 +1316,7 @@ def test_ip_fragmentation_acts_as_generic_compromise(global_state):
 def test_network_scan_sets_red_knowledge_bit(global_state):
     spec = _spec()
     state = _state(global_state, batch=1)
-    step = make_vector_step(spec)
+    step = _settling_step(spec)
     assert not bool(state.knowledge_mask[0, 0, 77])
     state, _ = step(
         state,
@@ -1283,7 +1336,7 @@ def test_network_scan_sets_red_knowledge_bit(global_state):
 def test_discover_remote_systems_sets_red_knowledge_bit(global_state):
     spec = _spec()
     state = _state(global_state, batch=1)
-    step = make_vector_step(spec)
+    step = _settling_step(spec)
     assert not bool(state.knowledge_mask[0, 0, 78])
     state, _ = step(
         state,
