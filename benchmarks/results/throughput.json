@@ -2,15 +2,23 @@
   {
     "backend": "jax",
     "batch_size": 1024,
-    "env_steps_per_sec": 204018.4,
-    "agent_steps_per_sec": 816073.8,
-    "wall_s": 0.251
+    "env_steps_per_sec": 207883.2,
+    "agent_steps_per_sec": 831533.0,
+    "wall_s": 0.246
   },
   {
     "backend": "jax",
     "batch_size": 4096,
-    "env_steps_per_sec": 238705.7,
-    "agent_steps_per_sec": 954822.8,
-    "wall_s": 0.858
+    "env_steps_per_sec": 272203.1,
+    "agent_steps_per_sec": 1088812.2,
+    "wall_s": 0.752
+  },
+  {
+    "backend": "legacy",
+    "batch_size": 1,
+    "env_steps_per_sec": 144.3,
+    "agent_steps_per_sec": 577.1,
+    "wall_s": 0.347,
+    "steps": 50
   }
 ]
