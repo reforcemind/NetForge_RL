@@ -87,9 +87,6 @@ def _process_action_queue(
     """
     n_red = spec.n_red
     n_streams = n_red + spec.n_blue
-    # One queue slot per action stream (red + blue). In production the state has
-    # exactly n_red + n_blue agents so this is the whole array; a reduced-agent
-    # config (e.g. a single blue stream) keeps the queue aligned with the actions.
     full_q = (
         state.in_flight_actions
     )  # int32[N_AGENTS, 4]: (type, target, comp_tick, active)

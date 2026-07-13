@@ -12,9 +12,11 @@ from netforge_rl.backends.jax import (
     random_actions,
     to_jax,
 )
+from netforge_rl.backends.jax.action_codes import ACTION_DURATIONS_RED, RED_COMPROMISE
 from netforge_rl.core.functional import PRIVILEGE_CODES, STATUS_CODES, from_global_state
 
 AGENTS = ('red_operator', 'blue_dmz', 'blue_internal', 'blue_restricted')
+COMPROMISE_TICKS = int(ACTION_DURATIONS_RED[RED_COMPROMISE])
 
 
 def _spec(n_hosts: int = 100, n_red: int = 1, n_blue: int = 3) -> VectorEnvSpec:
@@ -72,7 +74,9 @@ def test_red_compromises_uncontested_host(global_state) -> None:
         red_attempt=jnp.array([[True]], dtype=jnp.bool_),
         blue_attempt=jnp.array([[True]], dtype=jnp.bool_),
     )
-    new_state, _ = _run_until_idle(step, state, actions)
+    new_state = state
+    for _ in range(COMPROMISE_TICKS):
+        new_state, _ = step(new_state, actions)
     assert int(new_state.hosts.privilege[0, 0]) == PRIVILEGE_CODES.index('User')
     assert int(new_state.hosts.compromised_by_id[0, 0]) == 0
 
@@ -108,7 +112,9 @@ def test_envs_are_independent_under_vmap(global_state) -> None:
         red_attempt=jnp.array([[True], [False], [False]], dtype=jnp.bool_),
         blue_attempt=jnp.array([[False], [False], [True]], dtype=jnp.bool_),
     )
-    new_state, _ = _run_until_idle(step, state, actions)
+    new_state = state
+    for _ in range(COMPROMISE_TICKS):
+        new_state, _ = step(new_state, actions)
     assert int(new_state.hosts.privilege[0, 1]) == PRIVILEGE_CODES.index('User')
     np.testing.assert_array_equal(
         new_state.hosts.privilege[1], state.hosts.privilege[1]
