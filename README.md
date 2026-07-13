@@ -22,8 +22,9 @@
 - **Real telemetry** — actions emit real Windows/Sysmon event XML, encoded into
   observations by an NLP pipeline. Point an OpenAI, Anthropic, Google, or vLLM client at
   the raw logs and let it play SOC analyst.
-- **MITRE ATT&CK aligned** — exploits map to real CVEs (MS17-010, CVE-2019-0708,
-  Log4Shell); every episode reports which ATT&CK techniques Red actually exercised.
+- **MITRE ATT&CK aligned** — actions carry ATT&CK technique IDs, and CVE identifiers are
+  used as abstract vulnerability labels (no real exploit code); every episode reports which
+  ATT&CK techniques Red actually exercised.
 - **Reproducible to the bit** — a fixed seed replays observations, SIEM embeddings, infos,
   and rewards identically. Test-guaranteed, not just claimed.
 - **Tunable difficulty** — named `easy` / `medium` / `hard` presets plus a frozen held-out
@@ -33,13 +34,13 @@
   summarized as a per-policy radar chart.
 - **Deception as a mechanic** — decoys and honeytokens with a `deception_efficacy` metric
   quantifying how much of Red's effort was wasted on traps.
-- **Graph-native observations** — hosts as nodes, reachability as edges, fog-of-war aware,
-  one call from PyTorch Geometric / jraph.
+- **Optional graph observations** — an experimental wrapper exposes hosts as nodes and
+  reachability as edges (fog-of-war aware); the benchmarked default is the fixed-shape array.
 - **Self-play & Elo** — a population tournament rates every red and blue policy on one
-  shared ladder, AlphaStar-league style.
-- **Fast** — the JAX backend measures **270,795 env-steps/s (1,083,181 agent-steps/s)** at
-  batch 4096 on CPU, with an in-kernel SIEM signal so the vectorized path carries
-  telemetry end-to-end.
+  shared Elo ladder.
+- **Fast** — the JAX backend reaches **~2.5×10⁵ env-steps/s (~1.0M agent-steps/s)** at batch
+  4096 on CPU. It runs a reduced transition core with an in-kernel scalar alert (not the full
+  SIEM text pipeline), so it is a throughput surrogate, not a replica of the Python engine.
 - **Trained, not just scripted, baselines** — a JIT-fused IPPO trainer whose entire
   rollout runs on-device; a committed run learns mean reward 0.06 → 0.71 on `ransomware`.
 
@@ -120,14 +121,11 @@ difficulty presets, baselines, diagnostics, and the Gymnasium single-agent wrapp
 ## Citation
 
 ```bibtex
-@misc{jankowski2026eventdriventemporalgraphnetworks,
-      title={Event-Driven Temporal Graph Networks for Asynchronous Multi-Agent Cyber Defense in NetForge_RL}, 
+@misc{jankowski2026netforge,
+      title={NetForge RL: A Multi-Agent Simulation Environment for Cyber Defense with Durative Actions},
       author={Igor Jankowski},
       year={2026},
-      eprint={2604.09523},
-      archivePrefix={arXiv},
-      primaryClass={cs.LG},
-      url={https://arxiv.org/abs/2604.09523}, 
+      howpublished={\url{https://github.com/reforcemind/NetForge_RL}},
 }
 ```
 
