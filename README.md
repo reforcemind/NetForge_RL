@@ -121,11 +121,14 @@ difficulty presets, baselines, diagnostics, and the Gymnasium single-agent wrapp
 ## Citation
 
 ```bibtex
-@misc{jankowski2026netforge,
-      title={NetForge RL: A Multi-Agent Simulation Environment for Cyber Defense with Durative Actions},
+@misc{jankowski2026netforgerlmultiagentsimulation,
+      title={NetForge RL: A Multi-Agent Simulation Environment for Cyber Defense with Durative Actions}, 
       author={Igor Jankowski},
       year={2026},
-      howpublished={\url{https://github.com/reforcemind/NetForge_RL}},
+      eprint={2604.09523},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG},
+      url={https://arxiv.org/abs/2604.09523}, 
 }
 ```
 
