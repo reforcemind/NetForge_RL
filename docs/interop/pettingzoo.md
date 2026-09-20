@@ -5,8 +5,8 @@ import netforge_rl
 import gymnasium as gym
 from pettingzoo import make
 
-env = make("parallel", "netforge/ransomware-v4", max_ticks=200)
-single = gym.make("NetForge/Blue-v4", max_ticks=200)
+env = make('parallel', 'netforge/ransomware-v4', max_ticks=200)
+single = gym.make('NetForge/Blue-v4', max_ticks=200)
 ```
 
 | API | Id |

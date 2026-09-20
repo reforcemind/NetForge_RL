@@ -21,7 +21,7 @@ import netforge_rl
 from pettingzoo import make
 from netforge_rl.environment.graph_wrapper import GraphObservationWrapper
 
-env = GraphObservationWrapper(make("parallel", "netforge/ransomware-v4", max_ticks=80))
+env = GraphObservationWrapper(make('parallel', 'netforge/ransomware-v4', max_ticks=80))
 obs, infos = env.reset(seed=0)
 ```
 

@@ -8,10 +8,12 @@ netforge evaluate examples/submissions/heuristic_blue.py --seeds 0 1 --max-ticks
 ```
 
 ```python
-NAME, TEAM, TECHNIQUE = "my-blue", "lab", "ppo-belief"
+NAME, TEAM, TECHNIQUE = 'my-blue', 'lab', 'ppo-belief'
+
 
 def wrap(env):
     return env  # belief graphs already on; do not attach oracle_graph
+
 
 def make_blue(seed=0):
     return MyPolicy(seed=seed)

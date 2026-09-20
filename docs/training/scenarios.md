@@ -6,6 +6,7 @@ Subclass `BaseScenario`: `calculate_reward(agent_id, global_state, effect)` and
 ```python
 from netforge_rl.scenarios.base_scenario import BaseScenario
 
+
 class CustomRansomware(BaseScenario):
     def calculate_reward(self, agent_id, global_state, effect=None):
         reward = 0.0
@@ -29,8 +30,7 @@ class CustomRansomware(BaseScenario):
     def _blue_reward(self, global_state, effect):
         hosts = global_state.all_hosts.values()
         healthy = sum(
-            1 for h in hosts
-            if h.compromised_by == 'None' and h.status != 'isolated'
+            1 for h in hosts if h.compromised_by == 'None' and h.status != 'isolated'
         )
         return healthy / len(global_state.all_hosts)
 
