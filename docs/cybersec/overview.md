@@ -1,19 +1,11 @@
-# Environment Overview
+# Cyber
 
-NetForge RL defines a zero-sum, asymmetric, multi-agent environment with partial observability. 
+Asymmetric POMDP on a simulated network.
 
-## Red Policy Characteristics
+**Red** starts with no visibility: discover, exploit, escalate, exfil, or hit a
+PLC. Success needs the right CVE / token / routing, not a dice roll.
 
-- **Objective**: Maximize scalar reward by successfully executing impact actions (e.g., data exfiltration, service disruption) on designated target nodes.
-- **Initial State**: Zero network visibility. `GlobalNetworkState` is fully masked.
-- **Mechanics**: Agents must sequentially execute discovery, exploit, and privilege escalation actions to modify node states. Success probabilities are calculated deterministically against the target's vulnerability array and current access level.
+**Blue** sees SIEM, not the true compromise map. Isolate, ACL, restore, decoys
+(`169.254.x.x`). Quiet Red may never show up in logs.
 
-## Blue Policy Characteristics
-
-- **Objective**: Maximize scalar reward by maintaining service uptime and minimizing compromised host counts across the episode.
-- **Initial State**: Full visibility of the uncompromised network baseline.
-- **Mechanics**: Agents observe the environment through SIEM event logs. Actions consist of isolation, firewall ACL modification, host restoration, and decoy deployment (`169.254.x.x`). Detection capabilities depend on Red action signatures; stealthy actions may bypass event generation.
-
-## Kinetic Impacts
-
-The environment supports Cyber-Physical System (CPS) nodes. Specific Red actions (`OverloadPLC`) can transition CPS nodes into a `kinetic_destruction` state. This represents a terminal fail-state for Blue agents, immediately ending the episode.
+**Kinetic** — `OverloadPLC` can set `kinetic_destruction` (Blue fail-state).

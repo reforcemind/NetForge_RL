@@ -1,3 +1,7 @@
-# NLP Encoder API
+# NLP encoder API
 
-::: netforge_rl.nlp.log_encoder
+```{eval-rst}
+.. automodule:: netforge_rl.nlp.log_encoder
+   :members:
+   :no-undoc-members:
+```

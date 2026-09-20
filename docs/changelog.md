@@ -1,7 +1,39 @@
 # Changelog
 
-All notable changes to the `netforge_rl` project will be documented in this file.
+All notable changes to the `netforge-rl` project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
+
+## [4.0.0] — 2026-09-20
+
+Cybersecurity RL gym: PettingZoo / Gymnasium ids, SIEM belief graphs, eval CLI.
+Not on PyPI.
+
+### Added
+- **NetForge Arena 2026**: frozen train/dev/hidden splits, competition metrics
+  (mission, disruption, security, false positives, exfiltration, catastrophic,
+  CVaR / worst-case), OOD tasks, adversarial Red populations, leaderboard helpers.
+- **`netforge` CLI**: `run`, `test-policy`, `benchmark`, `arena`, `replay`, `collect`,
+  `questions`, `evaluate`.
+  Package name `netforge-rl`.
+- **Belief-state graphs**: Blue `info['graph']` is reconstructed from SIEM + inventory;
+  privileged `oracle_graph` is diagnostic/replay only.
+- **Capability probes**: deception resistance and adaptation (mid-episode Red shift),
+  plus agent cards (`Safety`, `OOD Generalization`, `Memory`, `False Positive Rate`, …).
+- **Scenario YAML / community packs**: hospital ransomware, cloud IAM, enterprise APT,
+  finance, IoT, OT, zero-trust. `netforge run my_scenario.yaml`.
+- **Reward-design and constrained RL wrappers**; communication-failure wrapper;
+  league / PSRO payoff helper; event vs fixed `time_mode`.
+- **Offline datasets**: trajectory collector + Minari-compatible npz / HDF5 export.
+- **Named probes** (`netforge questions`) and CAGE-style submissions
+  (`netforge evaluate`) ranked on Arena metrics, not mean reward.
+- **Gymnasium / PettingZoo registration**: `NetForge/Blue-v4`, `netforge/ransomware-v4`.
+- **Interactive HTML replay viewer** (network + SIEM + reward timeline).
+- **Sphinx + Furo** docs (MyST), GitHub Pages from Actions — same kit as FlowEdge.
+
+### Changed
+- README and docs lead with Red vs Blue and SIEM. MAPPO / QMIX / CT-GMARL are
+  evaluated *on* the gym, not vendored into it.
+- Blue shared comm no longer leaks ground-truth privilege.
 
 ## [3.1.0] — 2026-07-10
 
