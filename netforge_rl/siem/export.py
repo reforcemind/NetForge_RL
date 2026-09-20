@@ -2,10 +2,10 @@ from __future__ import annotations
 
 import json
 import re
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Iterable, Optional
 
-# Re-maps NetForge's Windows/Sysmon event XML into OCSF-style JSON records.
+# Sysmon/Windows XML → OCSF JSON.
 _EVENTID = re.compile(r'<EventID>(\d+)</EventID>')
 _COMPUTER = re.compile(r'<Computer>(.*?)</Computer>')
 _DATA = re.compile(r'<Data Name="(.*?)">(.*?)</Data>', re.DOTALL)
@@ -25,7 +25,7 @@ _OCSF_MAP = {
 }
 
 
-def siem_to_ocsf(log_line: str, subnet: str, tick: Optional[int] = None) -> dict:
+def siem_to_ocsf(log_line: str, subnet: str, tick: int | None = None) -> dict:
     """Map one NetForge SIEM log line to an OCSF-style event record."""
     tags = [t.strip('[]') for t in re.findall(r'\[[A-Z_]+\]', log_line)]
     eid_match = _EVENTID.search(log_line)

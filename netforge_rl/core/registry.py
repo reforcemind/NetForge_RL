@@ -1,17 +1,18 @@
+from __future__ import annotations
+
 import inspect
-from typing import Callable, Dict, Optional, Type
+from collections.abc import Callable
 
 
 def team_of(agent_id: str) -> str:
-    """Every agent belongs to exactly one action team: 'red' or 'blue'."""
     return 'red' if 'red' in agent_id.lower() else 'blue'
 
 
 class ActionRegistry:
-    """Factory registry mapping ``(team, group_id) -> BaseAction subclass."""
+    """``(team, group_id) -> BaseAction`` factory."""
 
     def __init__(self):
-        self._actions: Dict[str, Dict[int, Type]] = {'red': {}, 'blue': {}}
+        self._actions: dict[str, dict[int, type]] = {'red': {}, 'blue': {}}
 
     def register(self, team: str, group_id: int) -> Callable:
         def decorator(cls):
@@ -20,13 +21,12 @@ class ActionRegistry:
 
         return decorator
 
-    def get_action_class(self, agent_id: str, group_id: int) -> Optional[Type]:
+    def get_action_class(self, agent_id: str, group_id: int) -> type | None:
         return self._actions.get(team_of(agent_id), {}).get(group_id)
 
     def instantiate_action(
         self, agent_id: str, action_data: object, target_ips: list
-    ) -> Optional[object]:
-        """Resolve an action payload to a BaseAction instance."""
+    ) -> object | None:
         if not target_ips:
             target_ips = ['127.0.0.1']
         if (

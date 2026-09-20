@@ -1,36 +1,38 @@
-from .mitigation import (
-    IsolateHost,
-    RestoreHost,
-    Remove,
-    RestoreFromBackup,
-    ConfigureACL,
-    SecurityAwarenessTraining,
-)
-from .analysis import Monitor, Analyze
+from .analysis import Analyze, Monitor
 from .deception import (
-    DeployDecoy,
     DecoyApache,
     DecoySSHD,
     DecoyTomcat,
-    Misinform,
+    DeployDecoy,
     DeployHoneytoken,
+    Misinform,
+)
+from .edr import DeployEDR
+from .mitigation import (
+    ConfigureACL,
+    IsolateHost,
+    Remove,
+    RestoreFromBackup,
+    RestoreHost,
+    SecurityAwarenessTraining,
 )
 
 __all__ = [
-    'IsolateHost',
-    'RestoreHost',
-    'Remove',
-    'RestoreFromBackup',
-    'Monitor',
     'Analyze',
-    'DeployDecoy',
+    'ConfigureACL',
     'DecoyApache',
     'DecoySSHD',
     'DecoyTomcat',
-    'Misinform',
-    'ConfigureACL',
-    'SecurityAwarenessTraining',
+    'DeployDecoy',
+    'DeployEDR',
     'DeployHoneytoken',
+    'IsolateHost',
+    'Misinform',
+    'Monitor',
+    'Remove',
+    'RestoreFromBackup',
+    'RestoreHost',
     'RotateKerberos',
+    'SecurityAwarenessTraining',
 ]
 from .identity import RotateKerberos

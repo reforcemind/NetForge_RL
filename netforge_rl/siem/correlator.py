@@ -1,6 +1,4 @@
-from typing import List
 from netforge_rl.core.state import GlobalNetworkState
-
 
 _STAGE_KEYWORDS = {
     'RECON': [
@@ -43,7 +41,7 @@ class SIEMCorrelator:
     def reset(self) -> None:
         self._last_correlated_tick = -1
 
-    def correlate(self, global_state: 'GlobalNetworkState') -> List[str]:
+    def correlate(self, global_state: 'GlobalNetworkState') -> list[str]:
         """Returns incident log strings for this tick. Call once per step."""
         if global_state.current_tick == self._last_correlated_tick:
             return []
@@ -85,10 +83,12 @@ class SIEMCorrelator:
             if len(stages) >= 2 or confidence >= 0.4:
                 incidents.append(
                     (
-                        f'[INCIDENT] stage={stage_name} target={ip} '
-                        f'confidence={confidence:.2f} '
-                        f'stages_observed={",".join(sorted(stages))} '
-                        f'tick={global_state.current_tick}',
+                        (
+                            f'[INCIDENT] stage={stage_name} target={ip} '
+                            f'confidence={confidence:.2f} '
+                            f'stages_observed={",".join(sorted(stages))} '
+                            f'tick={global_state.current_tick}'
+                        ),
                         subnet,
                     )
                 )

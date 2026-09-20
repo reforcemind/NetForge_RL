@@ -1,13 +1,15 @@
+from __future__ import annotations
+
 import random
-from typing import Any, Optional
-from netforge_rl.actions.blue.mitigation import IsolateHost, RestoreHost
+
 from netforge_rl.actions.blue.analysis import Analyze, Monitor
 from netforge_rl.actions.blue.deception import DeployHoneytoken
 from netforge_rl.actions.blue.edr import DeployEDR
+from netforge_rl.actions.blue.mitigation import IsolateHost, RestoreHost
 
 
 class RuleBasedBlueAgent:
-    """Deterministic Blue defender for use as a lower-bound paper baseline."""
+    """Deterministic Blue lower bound."""
 
     def __init__(self, agent_id: str):
         self.agent_id = agent_id
@@ -20,7 +22,7 @@ class RuleBasedBlueAgent:
         self._honeytokened.clear()
         self._edr_deployed.clear()
 
-    def get_action(self, _observation: Any, global_state) -> Optional[Any]:
+    def get_action(self, _observation, global_state):
         live = {
             ip: h
             for ip, h in global_state.all_hosts.items()

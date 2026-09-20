@@ -14,6 +14,8 @@ def test_card_has_all_capabilities():
         'precision',
         'safety',
         'generalization',
+        'deception',
+        'adaptation',
     }
     assert 0.0 <= card['overall'] <= 1.0
 

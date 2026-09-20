@@ -55,10 +55,15 @@ def run_diagnostic(diag, policy, *, seed=0):
 
     ticks = 0
     while env.agents and ticks < diag.max_ticks:
-        actions = {a: policy.act(env, a) for a in env.agents}
+        if hasattr(diag, 'act_for'):
+            actions = {a: diag.act_for(env, a, policy) for a in env.agents}
+        else:
+            actions = {a: policy.act(env, a) for a in env.agents}
         env.step(actions)
         ticks += 1
         if diag.early_stop(env):
             break
 
-    return diag.score(env, ticks_used=ticks)
+    result = diag.score(env, ticks_used=ticks)
+    result.policy = getattr(policy, 'name', '')
+    return result

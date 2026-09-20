@@ -1,16 +1,17 @@
-from typing import Any, List
+from typing import Any
+
 import numpy as np
 from pettingzoo.utils.wrappers import BaseParallelWrapper
 
+from netforge_rl.core.graph_obs import build_oracle_graph
 from netforge_rl.core.observation import BaseObservation
 
 
 class OracleObservation(BaseObservation):
-    """Perfect information view of the network state (No fog-of-war)."""
+    """Privileged view. Diagnostics only."""
 
-    def update_from_state(self, global_state: Any, _action_effects: List[Any]):
+    def update_from_state(self, global_state: Any, _action_effects: list[Any]):
         if global_state:
-            # Oracle knows ALL ips
             for ip, host in global_state.all_hosts.items():
                 self.visible_hosts[ip] = {
                     'state': 'compromised'
@@ -26,13 +27,13 @@ class OracleObservation(BaseObservation):
             arrival = log.get('arrival_tick', 0) if isinstance(log, dict) else 0
             if arrival <= current_tick:
                 self.siem_alerts.append(log)
-        self.network_telemetry['global_alert_level'] = 1.0  # Perfect clarity
+        self.network_telemetry['global_alert_level'] = 1.0
         self.network_telemetry['total_isolated_subnets'] = 0
         self.network_telemetry['active_alerts'] = len(self.siem_alerts)
 
 
 class DiagnosticsWrapper(BaseParallelWrapper):
-    """PettingZoo Wrapper to compute the empirical Information Asymmetry gap."""
+    """Adds oracle obs, information_asymmetry, oracle_graph."""
 
     def reset(self, seed=None, options=None):
         obs, infos = super().reset(seed=seed, options=options)
@@ -62,5 +63,6 @@ class DiagnosticsWrapper(BaseParallelWrapper):
 
             infos[agent]['oracle_obs'] = oracle_vec
             infos[agent]['information_asymmetry'] = distance
+            infos[agent]['oracle_graph'] = build_oracle_graph(global_state)
 
         return obs, infos

@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Optional, Sequence
 
 import numpy as np
 
@@ -13,7 +13,7 @@ from netforge_rl.diagnostics.suite import all_diagnostics
 def capability_card(
     policy_factory,
     seeds: Sequence[int] = (0, 1, 2),
-    out_dir: Optional[str] = None,
+    out_dir: str | None = None,
     name: str = 'policy',
 ) -> dict:
     """Score a policy on every diagnostic capability, averaged over seeds."""
@@ -53,7 +53,7 @@ def _render_radar(card: dict, path: Path) -> None:
 
         matplotlib.use('Agg')
         import matplotlib.pyplot as plt
-    except Exception:
+    except (ImportError, OSError):
         return
 
     caps = list(card['capabilities'])

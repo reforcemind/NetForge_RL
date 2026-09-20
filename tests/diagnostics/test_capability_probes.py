@@ -6,9 +6,9 @@ from netforge_rl.diagnostics.base import DiagnosticResult
 
 
 @pytest.mark.fast
-def test_suite_has_six_distinct_capabilities():
+def test_suite_has_eight_distinct_capabilities():
     diags = all_diagnostics()
-    assert len(diags) == 6
+    assert len(diags) == 8
     caps = {d.capability for d in diags}
     assert caps == {
         'memory',
@@ -17,11 +17,13 @@ def test_suite_has_six_distinct_capabilities():
         'precision',
         'safety',
         'generalization',
+        'deception',
+        'adaptation',
     }
 
 
 @pytest.mark.integration
-@pytest.mark.parametrize('idx', range(6))
+@pytest.mark.parametrize('idx', range(8))
 def test_each_probe_runs_and_scores_in_unit_range(idx):
     diag = all_diagnostics()[idx]
     result = run_diagnostic(diag, HeuristicBluePolicy(seed=0), seed=0)
