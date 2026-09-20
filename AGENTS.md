@@ -1,7 +1,7 @@
 # Agent notes
 
-Verification is local. GitHub Actions (`ci.yml`) runs ruff + pytest + Sphinx.
-`docs.yml` deploys the HTML site to GitHub Pages on push to `main`.
+Verification is local. GitHub Actions (`ci.yml`) runs ruff + pytest + Sphinx
+and deploys GitHub Pages on push to `main`.
 
 - Full gate: `scripts/verify_all.sh` (Linux/Git Bash) or `scripts/verify_local.ps1` (Windows)
 - User CLI: `python -m netforge` / `netforge`

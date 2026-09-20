@@ -106,7 +106,7 @@ python -m netforge --help
 | Families | ransomware, APT, cloud, IoT, OT/Stuxnet |
 | Trainers | your code. Not bundled. |
 
-Gate: `scripts/verify_all.sh` or `scripts/verify_local.ps1`. GitHub Actions is ruff + pytest + Sphinx. `docs.yml` deploys the site to GitHub Pages on `main`.
+Gate: `scripts/verify_all.sh` or `scripts/verify_local.ps1`. GitHub Actions (`ci.yml`) is ruff + pytest + Sphinx, and deploys GitHub Pages on `main`.
 
 ## Citation
 

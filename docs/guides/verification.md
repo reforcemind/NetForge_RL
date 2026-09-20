@@ -12,7 +12,7 @@ pytest tests/ -m fast
 sphinx-build -b html -W --keep-going docs docs/_build/html
 ```
 
-CI: ruff + pytest + Sphinx HTML (`ci.yml`). Pages: `docs.yml` deploys to GitHub Pages on `main`.
+CI (`ci.yml`): ruff + pytest + Sphinx HTML, and GitHub Pages deploy on `main`.
 Do not vendor MAPPO/QMIX/CT-GMARL.
 
 {doc}`/getting-started` · {doc}`/python-quickstart` · {doc}`/contributing`

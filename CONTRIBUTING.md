@@ -23,4 +23,4 @@ sphinx-build -b html -W --keep-going docs docs/_build/html
 ```
 
 Gate: `scripts/verify_all.sh` or `scripts/verify_local.ps1`.
-GitHub Actions is ruff + pytest + Sphinx. `docs.yml` deploys GitHub Pages on `main`.
+GitHub Actions (`ci.yml`) is ruff + pytest + Sphinx, and deploys GitHub Pages on `main`.

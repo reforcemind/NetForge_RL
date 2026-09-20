@@ -6,7 +6,7 @@
 Packs, probes, wrappers. Trainers stay out of tree. Blue sees SIEM.
 
 Gate: `scripts/verify_all.sh` / `scripts/verify_local.ps1`.
-CI builds the Sphinx site; `docs.yml` deploys it to GitHub Pages on `main`.
+CI (`ci.yml`) builds the Sphinx site and deploys GitHub Pages on `main`.
 
 | | |
 |---|---|
