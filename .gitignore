@@ -26,16 +26,7 @@ CybORG/Emulator/Logs/
 CybORG/Emulator/logs/
 CybORG/Emulator/Config/emulatorconfig.ini
 docs/_build/
+site/
 dist
-
-CybORG/Shared/Config/config.ini
-
-CybORG/Emulator/AWS/Config/awsconfig.ini
-
-*.swp
-*.pstats
-
-.ipynb_checkpoints/
-docs/
 
 .ruff_cache/
