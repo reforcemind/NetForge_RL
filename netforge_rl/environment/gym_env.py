@@ -1,20 +1,20 @@
 from __future__ import annotations
 
 import random as _random
-from typing import Optional
+from typing import ClassVar
 
 import gymnasium as gym
 import numpy as np
 
 from netforge_rl.baselines.policies import RandomPolicy
+from netforge_rl.environment.constants import OBS_VECTOR_DIM
 from netforge_rl.environment.parallel_env import NetForgeRLEnv
 from netforge_rl.nlp.log_encoder import EMBEDDING_DIM
 
-_FLAT_DIM = 256 + EMBEDDING_DIM
+_FLAT_DIM = OBS_VECTOR_DIM + EMBEDDING_DIM
 
 
 def _reseed(policy, seed: int) -> None:
-    """Reseed a policy's RNG so opponents replay identically under a fixed seed."""
     rng = getattr(policy, '_rng', None)
     if isinstance(rng, _random.Random):
         policy._rng = _random.Random(seed)
@@ -23,17 +23,17 @@ def _reseed(policy, seed: int) -> None:
 
 
 class NetForgeSingleAgentEnv(gym.Env):
-    """Gymnasium single-agent facade: one RL-controlled agent vs scripted opponents."""
+    """One RL agent vs scripted opponents."""
 
-    metadata = {'render_modes': []}
+    metadata: ClassVar[dict] = {'render_modes': []}
 
     def __init__(
         self,
         scenario_type: str = 'ransomware',
         controlled_agent: str = 'blue_dmz',
-        opponents: Optional[dict] = None,
+        opponents: dict | None = None,
         max_ticks: int = 200,
-        config: Optional[dict] = None,
+        config: dict | None = None,
     ):
         super().__init__()
         cfg = dict(config or {})

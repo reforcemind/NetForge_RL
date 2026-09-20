@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import random
 from collections import deque
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Deque, Dict, List, Optional, Tuple
 
 import numpy as np
 
@@ -14,19 +14,17 @@ from netforge_rl.environment.parallel_env import NetForgeRLEnv
 class PhaseConfig:
     name: str
     max_active_hosts: int
-    scenario_types: List[str]
+    scenario_types: list[str]
     reward_scale: float
-    dhcp_interval: int  # ticks between DHCP reshuffles; 0 = disabled
+    dhcp_interval: int
     topology_churn_rate: float
     topology_migration_rate: float
     topology_arrival_rate: float
-    advance_threshold: Optional[
-        float
-    ]  # mean total reward to graduate; None = final phase
-    advance_window: int  # episodes in the rolling window
+    advance_threshold: float | None
+    advance_window: int
 
 
-PHASES: List[PhaseConfig] = [
+PHASES: list[PhaseConfig] = [
     PhaseConfig(
         name='novice',
         max_active_hosts=5,
@@ -66,9 +64,7 @@ PHASES: List[PhaseConfig] = [
 ]
 
 
-def _build_env(
-    phase: PhaseConfig, base_cfg: dict, seed: Optional[int]
-) -> NetForgeRLEnv:
+def _build_env(phase: PhaseConfig, base_cfg: dict, seed: int | None) -> NetForgeRLEnv:
     scenario = random.Random(seed).choice(phase.scenario_types)
     cfg = {
         **base_cfg,
@@ -88,16 +84,16 @@ class CurriculumWrapper:
 
     def __init__(
         self,
-        phases: List[PhaseConfig] = PHASES,
-        base_cfg: Optional[dict] = None,
+        phases: list[PhaseConfig] = PHASES,
+        base_cfg: dict | None = None,
         start_phase: int = 0,
-        on_phase_advance=None,
+        on_phase_advance: Callable | None = None,
     ):
         self.phases = phases
         self.base_cfg = base_cfg or {}
         self._phase_idx = start_phase
         self._on_phase_advance = on_phase_advance
-        self._window: Deque[float] = deque(maxlen=phases[start_phase].advance_window)
+        self._window: deque[float] = deque(maxlen=phases[start_phase].advance_window)
         self._episode_reward: float = 0.0
         self._env: NetForgeRLEnv = _build_env(self.phase, self.base_cfg, seed=None)
 
@@ -161,7 +157,7 @@ class CurriculumWrapper:
     def action_space(self, agent):
         return self._env.action_space(agent)
 
-    def reset(self, seed=None, options=None) -> Tuple[Dict, Dict]:
+    def reset(self, seed=None, options=None) -> tuple[dict, dict]:
         self._episode_reward = 0.0
         self._env = _build_env(self.phase, self.base_cfg, seed=seed)
         obs, info = self._env.reset(seed=seed, options=options)
@@ -169,7 +165,7 @@ class CurriculumWrapper:
             info[agent]['__curriculum__'] = self._curriculum_info()
         return obs, info
 
-    def step(self, actions: Dict[str, Any]) -> Tuple[Dict, Dict, Dict, Dict, Dict]:
+    def step(self, actions: dict[str, object]) -> tuple[dict, dict, dict, dict, dict]:
         obs, rewards, term, trunc, infos = self._env.step(actions)
 
         step_reward = sum(rewards.values()) * self.phase.reward_scale
