@@ -1,4 +1,5 @@
-from typing import Any, List
+from __future__ import annotations
+
 import numpy as np
 
 
@@ -13,7 +14,7 @@ class BaseObservation:
         self.network_telemetry = {}
         self.siem_alerts = []
 
-    def update_from_state(self, global_state: Any, _action_effects: List[Any]):
+    def update_from_state(self, global_state, _action_effects: list):
         """Filter ``global_state`` down to what this agent can observe."""
         is_blue = 'blue' in self.agent_id.lower()
         is_commander = 'commander' in self.agent_id.lower()

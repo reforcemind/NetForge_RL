@@ -14,10 +14,12 @@ class NetworkGenerator:
         config_path: Optional[str] = None,
         max_active_hosts: Optional[int] = None,
         evaluation_mode: bool = False,
+        topology_spec: Optional[dict] = None,
     ):
         self.config_path = config_path
         self.max_active_hosts = max_active_hosts
         self.evaluation_mode = evaluation_mode
+        self.topology_spec = topology_spec
 
     def generate(self, seed: Optional[int] = None) -> GlobalNetworkState:
         """Generates the architecture."""
@@ -26,7 +28,9 @@ class NetworkGenerator:
             actual_seed = _EVAL_SEED_OFFSET + (seed % _EVAL_SEED_OFFSET)
         rng = random.Random(actual_seed) if actual_seed is not None else random.Random()
 
-        if self.config_path and Path(self.config_path).exists():
+        if self.topology_spec:
+            state = self._load_from_mapping(self.topology_spec, rng)
+        elif self.config_path and Path(self.config_path).exists():
             state = self._load_from_yaml(self.config_path, rng)
         else:
             state = self._generate_procedural(rng)
@@ -216,7 +220,15 @@ class NetworkGenerator:
                 state.update_knowledge(blue_id, host.ip)
 
     def _load_from_yaml(self, path: str, rng: random.Random) -> GlobalNetworkState:
-        """Load a fixed network topology from a YAML config file.
+        """Load a fixed network topology from a YAML config file."""
+        import yaml  # noqa: PLC0415 (lazy import to keep non-yaml envs lightweight)
+
+        with open(path) as fh:
+            cfg = yaml.safe_load(fh)
+        return self._load_from_mapping(cfg, rng)
+
+    def _load_from_mapping(self, cfg: dict, _rng: random.Random) -> GlobalNetworkState:
+        """Instantiate a topology from a dict (YAML file or inline scenario pack).
 
         YAML format example::
 
@@ -233,20 +245,15 @@ class NetworkGenerator:
                 cvss_score: 7.5
                 decoy: "inactive"
         """
-        import yaml  # noqa: PLC0415 (lazy import to keep non-yaml envs lightweight)
-
-        with open(path) as fh:
-            cfg = yaml.safe_load(fh)
+        from netforge_rl.core.state import Subnet  # noqa: PLC0415
 
         state = GlobalNetworkState()
+        topo = cfg.get('topology', cfg)
 
-        for sn in cfg.get('subnets', []):
-            from netforge_rl.core.state import Subnet  # noqa: PLC0415
-
+        for sn in topo.get('subnets', []):
             state.add_subnet(Subnet(cidr=sn['cidr'], name=sn['name']))
 
-        active_hosts = []
-        for hcfg in cfg.get('hosts', []):
+        for hcfg in topo.get('hosts', []):
             host = Host(
                 ip=hcfg['ip'],
                 hostname=hcfg.get('hostname', hcfg['ip']),
@@ -260,8 +267,14 @@ class NetworkGenerator:
             host.human_vulnerability_score = float(
                 hcfg.get('human_vulnerability_score', 0.3)
             )
+            host.contains_honeytokens = bool(hcfg.get('contains_honeytokens', False))
+            if hcfg.get('is_domain_controller'):
+                host.is_domain_controller = True
+            if 'PLC' in host.os or hcfg.get('ot'):
+                host.system_integrity = hcfg.get('system_integrity', 'clean')
+                host.temperature = float(hcfg.get('temperature', 50.0))
+                host.pressure = float(hcfg.get('pressure', 100.0))
             state.register_host(host)
-            active_hosts.append(host)
 
         padding_needed = 100 - len(state.all_hosts)
         for p in range(padding_needed):

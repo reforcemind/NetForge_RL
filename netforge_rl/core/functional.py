@@ -1,50 +1,26 @@
 from dataclasses import dataclass, field, replace
 
 import numpy as np
-from netforge_rl.core.state import GlobalNetworkState, Subnet, Host
 
-N_HOSTS = 100
-STATUS_CODES = ('online', 'isolated', 'kernel_panic')
-PRIVILEGE_CODES = ('None', 'User', 'Root')
-DECOY_CODES = ('inactive', 'active', 'Apache', 'SSHD', 'Tomcat')
-INTEGRITY_CODES = ('clean', 'compromised', 'kinetic_destruction')
-CVE_CODES = (
-    'MS17-010',
-    'CVE-2019-0708',
-    'CVE-2021-44228',
-    'V4L2',
-    'CVE-2010-2772',
-    'Stuxnet_0day',
+from netforge_rl.core.codes import (  # noqa: F401 — public codebook re-exports
+    CVE_CODES,
+    DECOY_CODES,
+    INTEGRITY_CODES,
+    N_CVE,
+    N_HOSTS,
+    N_TOKEN,
+    OS_LINUX,
+    OS_OTHER,
+    OS_PLC,
+    OS_WINDOWS,
+    PRIVILEGE_CODES,
+    STATUS_CODES,
+    TOKEN_CODES,
+    _decode,
+    _encode,
+    _os_family_code,
 )
-N_CVE = len(CVE_CODES)
-TOKEN_CODES = ('Enterprise_Admin_Token', 'Local_Admin_DMZ', 'Local_Admin_Corporate')
-N_TOKEN = len(TOKEN_CODES)
-OS_OTHER, OS_WINDOWS, OS_LINUX, OS_PLC = (0, 1, 2, 3)
-
-
-def _os_family_code(os_str):
-    s = str(os_str or '')
-    if 'Windows' in s:
-        return OS_WINDOWS
-    if 'Linux' in s:
-        return OS_LINUX
-    if 'PLC' in s:
-        return OS_PLC
-    return OS_OTHER
-
-
-def _encode(value, codebook):
-    try:
-        return codebook.index(value)
-    except ValueError:
-        return 0
-
-
-def _decode(code, codebook):
-    code = int(code)
-    if 0 <= code < len(codebook):
-        return codebook[code]
-    return codebook[0]
+from netforge_rl.core.state import GlobalNetworkState, Host, Subnet
 
 
 @dataclass(frozen=True)
@@ -185,13 +161,13 @@ def from_global_state(legacy, agent_ids):
     )
     meta = HostMeta(
         ip=sorted_ips,
-        hostname=tuple((h.hostname for h in hosts_in_order)),
-        subnet_cidr=tuple((h.subnet_cidr for h in hosts_in_order)),
-        os=tuple((h.os for h in hosts_in_order)),
-        services=tuple((tuple(h.services) for h in hosts_in_order)),
-        vulnerabilities=tuple((tuple(h.vulnerabilities) for h in hosts_in_order)),
-        cached_credentials=tuple((tuple(h.cached_credentials) for h in hosts_in_order)),
-        system_tokens=tuple((tuple(h.system_tokens) for h in hosts_in_order)),
+        hostname=tuple(h.hostname for h in hosts_in_order),
+        subnet_cidr=tuple(h.subnet_cidr for h in hosts_in_order),
+        os=tuple(h.os for h in hosts_in_order),
+        services=tuple(tuple(h.services) for h in hosts_in_order),
+        vulnerabilities=tuple(tuple(h.vulnerabilities) for h in hosts_in_order),
+        cached_credentials=tuple(tuple(h.cached_credentials) for h in hosts_in_order),
+        system_tokens=tuple(tuple(h.system_tokens) for h in hosts_in_order),
     )
     return EnvState(
         hosts=hosts,
@@ -213,10 +189,10 @@ def from_global_state(legacy, agent_ids):
         current_tick=int(legacy.current_tick),
         business_downtime_score=float(legacy.business_downtime_score),
         knowledge=tuple(
-            (frozenset(legacy.agent_knowledge.get(a, set())) for a in agent_ids)
+            frozenset(legacy.agent_knowledge.get(a, set())) for a in agent_ids
         ),
         inventory=tuple(
-            (frozenset(legacy.agent_inventory.get(a, set())) for a in agent_ids)
+            frozenset(legacy.agent_inventory.get(a, set())) for a in agent_ids
         ),
     )
 
@@ -364,7 +340,7 @@ def _extract_targeted_ips(state_deltas):
     """Pull every ``hosts/<ip>/...`` IP out of a state_deltas payload."""
     ips = set()
     if isinstance(state_deltas, dict):
-        for key in state_deltas.keys():
+        for key in state_deltas:
             if isinstance(key, str) and key.startswith('hosts/'):
                 parts = key.split('/')
                 if len(parts) >= 2:
@@ -377,10 +353,9 @@ def _extract_targeted_ips(state_deltas):
     return ips
 
 
-from typing import Dict
 from netforge_rl.core.action import ActionEffect
 from netforge_rl.core.physics import ConflictResolutionEngine
 
 
-def resolve_conflicts(effects: Dict[str, ActionEffect]) -> Dict[str, ActionEffect]:
+def resolve_conflicts(effects: dict[str, ActionEffect]) -> dict[str, ActionEffect]:
     return ConflictResolutionEngine.resolve(effects)

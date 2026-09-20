@@ -6,6 +6,8 @@ from netforge_rl.baselines.policies import (
     KillChainRedPolicy,
     RandomPolicy,
 )
+from netforge_rl.baselines.protocol import format_baseline_table, run_baseline_table
+from netforge_rl.baselines.registry import make_policy
 
 __all__ = [
     'BasePolicy',
@@ -14,4 +16,7 @@ __all__ = [
     'KillChainRedPolicy',
     'RandomPolicy',
     'evaluate',
+    'format_baseline_table',
+    'make_policy',
+    'run_baseline_table',
 ]

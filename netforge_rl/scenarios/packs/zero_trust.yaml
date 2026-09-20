@@ -1,0 +1,18 @@
+name: zero_trust
+pack: identity
+base: cloud_hybrid
+difficulty: medium
+max_ticks: 200
+description: Zero-trust campus — identity tokens and micro-segmented Secure hosts.
+reward_variant: constrained_sla
+log_latency: 3
+topology:
+  subnets:
+    - {cidr: "192.168.1.0/24", name: DMZ}
+    - {cidr: "10.0.0.0/24", name: Corporate}
+    - {cidr: "10.0.1.0/24", name: Secure}
+  hosts:
+    - {ip: "192.168.1.10", hostname: ztna_broker, subnet_cidr: "192.168.1.0/24", os: Linux_Ubuntu, services: [SSH, Apache], vulnerabilities: [CVE-2021-44228], cvss_score: 8.8}
+    - {ip: "10.0.0.10", hostname: laptop_pool, subnet_cidr: "10.0.0.0/24", os: Windows_10, services: [RDP], vulnerabilities: [CVE-2019-0708], cvss_score: 9.8}
+    - {ip: "10.0.1.10", hostname: privileged_pam, subnet_cidr: "10.0.1.0/24", os: Linux_Ubuntu, services: [SSH], vulnerabilities: [], cvss_score: 3.0}
+    - {ip: "10.0.1.11", hostname: dc_zt, subnet_cidr: "10.0.1.0/24", os: Windows_Server_2016, services: [SMB], vulnerabilities: [MS17-010], cvss_score: 8.1, is_domain_controller: true}

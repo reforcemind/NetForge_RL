@@ -1,0 +1,22 @@
+name: hospital_ransomware
+pack: healthcare
+base: ransomware
+difficulty: medium
+max_ticks: 200
+description: >
+  Hospital ransomware: EHR and PACS must stay up while Blue contains a
+  DMZ foothold. Isolation of clinical hosts is a disruption failure.
+reward_variant: constrained_sla
+topology:
+  subnets:
+    - {cidr: "192.168.1.0/24", name: DMZ}
+    - {cidr: "10.0.0.0/24", name: Corporate}
+    - {cidr: "10.0.1.0/24", name: Secure}
+    - {cidr: "10.0.99.0/24", name: OT_Subnet}
+  hosts:
+    - {ip: "192.168.1.10", hostname: patient_portal, subnet_cidr: "192.168.1.0/24", os: Linux_Ubuntu, services: [SSH, Apache], vulnerabilities: [CVE-2021-44228], cvss_score: 9.8}
+    - {ip: "10.0.0.10", hostname: ehr_workstation, subnet_cidr: "10.0.0.0/24", os: Windows_10, services: [RDP, SMB], vulnerabilities: [MS17-010], cvss_score: 8.1}
+    - {ip: "10.0.0.11", hostname: nurse_station, subnet_cidr: "10.0.0.0/24", os: Windows_10, services: [RDP], vulnerabilities: [CVE-2019-0708], cvss_score: 9.8}
+    - {ip: "10.0.1.10", hostname: pacs, subnet_cidr: "10.0.1.0/24", os: Windows_Server_2016, services: [SMB, IIS], vulnerabilities: [MS17-010], cvss_score: 8.1, is_domain_controller: true}
+    - {ip: "10.0.1.11", hostname: billing, subnet_cidr: "10.0.1.0/24", os: Linux_Ubuntu, services: [SSH], vulnerabilities: [], cvss_score: 4.0}
+    - {ip: "10.0.99.10", hostname: infusion_pump, subnet_cidr: "10.0.99.0/24", os: PLC_Firmware, services: [Modbus], ot: true, cvss_score: 7.5}

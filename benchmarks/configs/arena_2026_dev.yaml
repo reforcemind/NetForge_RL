@@ -1,0 +1,9 @@
+arena: 2026
+split: dev
+difficulty: medium
+max_ticks: 200
+seeds: [9001, 9002, 9003, 9004, 9005]
+scenarios: [ransomware, apt_espionage, cloud_hybrid, iot_grid, ot_stuxnet]
+baselines: [random, heuristic-blue, killchain-red]
+metrics: [mission_success, sla_uptime, security, false_positives, catastrophic_failure, cvar05_blue_return]
+compute_budget_env_steps: 1000000

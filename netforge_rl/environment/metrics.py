@@ -1,13 +1,15 @@
+from __future__ import annotations
+
 from netforge_rl.actions.attack_map import ALL_TECHNIQUE_IDS, technique_for
 from netforge_rl.core.commands import iter_host_deltas
 from netforge_rl.environment.constants import PADDING_SUBNET
 
 
 class EpisodeMetricsMixin:
-    """Episode security metrics and per-agent info extraction for NetForgeRLEnv."""
+    """Episode metrics and per-agent info."""
 
     def _active_hosts(self):
-        """Real hosts, excluding inactive padding used only for fixed observation shape."""
+        """Hosts excluding padding."""
         return [
             h
             for h in self.global_state.all_hosts.values()
@@ -41,6 +43,11 @@ class EpisodeMetricsMixin:
                     self.episode_metrics['isolation_times'].setdefault(
                         ip, self.current_tick
                     )
+                    host = self.global_state.all_hosts.get(ip)
+                    if host is not None and host.compromised_by == 'None':
+                        self.episode_metrics['false_positives'] = (
+                            self.episode_metrics.get('false_positives', 0) + 1
+                        )
 
         active = self._active_hosts()
         total = max(len(active), 1)
@@ -51,7 +58,7 @@ class EpisodeMetricsMixin:
         self.episode_metrics['steps_count'] += 1
 
     def _extract_agent_infos(
-        self, observations: dict, resolved_effects: dict, rewards: dict = None
+        self, observations: dict, resolved_effects: dict, rewards: dict | None = None
     ) -> dict:
         infos = {}
         for agent in observations:
@@ -120,6 +127,19 @@ class EpisodeMetricsMixin:
         techniques = self.episode_metrics['attack_techniques']
         info['attack_techniques'] = sorted(techniques)
         info['attack_coverage'] = float(len(techniques) / len(ALL_TECHNIQUE_IDS))
+        info['false_positives_total'] = float(
+            self.episode_metrics.get('false_positives', 0)
+        )
+        kinetic = any(
+            getattr(h, 'system_integrity', 'clean') == 'kinetic_destruction'
+            for h in active
+        )
+        info['catastrophic_failure'] = float(kinetic)
+        total = max(len(active), 1)
+        info['security'] = float(1.0 - info['compromised_hosts'] / total)
+        info['disruption'] = float(info['isolated_hosts'] / total)
+        sla = info['SLA_Uptime_Percentage']
+        info['mission_success'] = float((not kinetic) and sla >= 0.5)
 
     def _mean_time_to_containment(self) -> float:
         infections = self.episode_metrics['infection_times']

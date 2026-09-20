@@ -1,2 +1,17 @@
+"""Gym-wide sizes and limits. Observation / action spaces read these."""
+
 MAX_ACTION_DURATION = 50.0
 PADDING_SUBNET = '169.254.0.0/16'
+
+N_ACTION_TYPES = 32
+N_HOST_SLOTS = 100
+ACTION_MASK_DIM = N_ACTION_TYPES + N_HOST_SLOTS
+OBS_VECTOR_DIM = 256
+BLUE_COMM_DIM = 100
+ADJ_FLAT_DIM = N_HOST_SLOTS * N_HOST_SLOTS
+SIEM_BUFFER_CAP = 64
+BLUE_INFLIGHT_CAP = 2
+SIEM_ENCODE_N = 8
+
+# Backward-compatible alias used by tests / PettingZoo mask shape.
+FLAT_ACTION_MASK = ACTION_MASK_DIM

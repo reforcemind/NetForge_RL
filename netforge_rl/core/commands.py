@@ -1,9 +1,12 @@
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
-from typing import Any, Iterator, Optional, Tuple
+from collections.abc import Iterator
+
 from netforge_rl.core.state import Firewall
 
 
-def iter_host_deltas(state_deltas: Any) -> Iterator[Tuple[str, str, Any]]:
+def iter_host_deltas(state_deltas) -> Iterator[tuple[str, str, object]]:
     """Yield ``(attribute, ip, value)`` host mutations from either delta encoding."""
     if isinstance(state_deltas, dict):
         for key, value in state_deltas.items():
@@ -25,15 +28,15 @@ class IStateDeltaCommand(ABC):
     """Object-oriented state mutation; the resolver reads target_ip."""
 
     @abstractmethod
-    def execute(self, global_state: Any): ...
+    def execute(self, global_state): ...
 
     @property
     @abstractmethod
-    def target_ip(self) -> Optional[str]: ...
+    def target_ip(self) -> str | None: ...
 
 
 class UpdateHostPrivilegeCommand(IStateDeltaCommand):
-    def __init__(self, ip: str, privilege: str, compromised_by: Optional[str] = None):
+    def __init__(self, ip: str, privilege: str, compromised_by: str | None = None):
         self._target_ip = ip
         self.privilege = privilege
         self.compromised_by = compromised_by

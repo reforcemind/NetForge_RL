@@ -24,9 +24,7 @@ class RandomPolicy:
 
 
 class HeuristicBluePolicy:
-    """Blue: isolate the host implicated by the highest-severity SIEM alert in the
-    visible log buffer; otherwise analyse host 0. Reads telemetry, not ground truth,
-    so noise and log latency degrade it the way they would a real SOC workflow."""
+    """Isolate the host on the highest-severity SIEM alert; else analyse host 0."""
 
     name = 'heuristic-blue'
     alert_threshold = 5
@@ -80,9 +78,7 @@ _SCAN_SERVICES, _EXPLOIT, _PING_SWEEP = 2, 0, 15
 
 
 class KillChainRedPolicy:
-    """Red kill-chain: port-scan a reachable, vulnerable host then exploit it, expanding
-    footholds DMZ -> Corporate -> Secure. Unlike HeuristicRedPolicy it recons first, so
-    its exploits pass the prior-state check and actually compromise hosts."""
+    """Scan a reachable vulnerable host, then exploit. Recon first so exploits land."""
 
     name = 'killchain-red'
 
