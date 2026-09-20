@@ -1,0 +1,22 @@
+name: Good first issue
+description: Small gym/infrastructure task for new contributors
+title: "[good first issue] "
+labels: ["good first issue"]
+body:
+  - type: markdown
+    attributes:
+      value: "Prefer scenario packs, metrics, probes, docs, or wrappers — not new exploits."
+  - type: textarea
+    id: task
+    attributes:
+      label: Task
+      description: What should land in the gym?
+    validations:
+      required: true
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Kind
+      options: [scenario pack, metric, capability probe, wrapper, docs, replay, dataset]
+    validations:
+      required: true

@@ -1,0 +1,20 @@
+name: Research
+description: A research question the gym should make easy to answer
+title: "[research] "
+labels: ["research"]
+body:
+  - type: markdown
+    attributes:
+      value: "Algorithms belong in their own repos and should be *evaluated on* NetForge."
+  - type: textarea
+    id: question
+    attributes:
+      label: Question
+      description: Generalization, safety, adaptation, POMDP, temporal, self-play, …
+    validations:
+      required: true
+  - type: textarea
+    id: protocol
+    attributes:
+      label: Arena protocol
+      description: Split, seeds, metrics, baselines. Hidden tests if it is a leaderboard claim.

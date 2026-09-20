@@ -1,0 +1,79 @@
+name: Bug report
+description: Report a crash, incorrect metric, API break, or other reproducible problem
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a NetForge issue. For usage questions, use Discussions.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched existing issues and did not find the same problem.
+          required: true
+        - label: I can reproduce this on the latest `main` branch.
+          required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What happened?
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Minimal reproduction
+      description: `netforge …` or a few lines of PettingZoo / Gymnasium code.
+      render: shell
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: NetForge version / commit
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Environment / PettingZoo
+        - Gymnasium facade
+        - Arena / questions / submissions
+        - Diagnostics / agent cards
+        - JAX backend
+        - SIEM / NLP
+        - Datasets / replay
+        - Docs
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: Operating system
+      placeholder: "Windows 11 / Ubuntu 24.04 / macOS 15"
+    validations:
+      required: true
+  - type: input
+    id: python
+    attributes:
+      label: Python version
+      placeholder: "3.12.8"
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      render: shell

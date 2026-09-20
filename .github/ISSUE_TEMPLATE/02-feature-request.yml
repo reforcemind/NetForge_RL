@@ -1,0 +1,59 @@
+name: Feature request
+description: Propose gym infrastructure — not a new exploit family
+title: "[Proposal] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Prefer wrappers, metrics, packs, probes, and docs. Algorithms belong in
+        their own repos and should be *evaluated on* NetForge. If the design is
+        not obvious, use the Research template.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched existing issues and Discussions for a similar proposal.
+          required: true
+        - label: This is gym/benchmark infrastructure, not a vendored trainer.
+          required: true
+  - type: dropdown
+    id: category
+    attributes:
+      label: Proposal type
+      options:
+        - Scenario pack
+        - Metric / agent card
+        - Capability probe
+        - Wrapper (reward, constraint, comm)
+        - Dataset / Minari
+        - Docs
+        - Interop (PettingZoo, Gymnasium, JaxMARL)
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Smallest useful implementation.
+    validations:
+      required: true
+  - type: textarea
+    id: out_of_scope
+    attributes:
+      label: Out of scope
+  - type: textarea
+    id: validation
+    attributes:
+      label: How should this be validated?
+      description: Tests, Arena seeds, a named `netforge questions` entry.
+    validations:
+      required: true
