@@ -3,7 +3,6 @@ from __future__ import annotations
 import json
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import Optional
 
 
 @dataclass
@@ -11,14 +10,14 @@ class StepRecord:
     tick: int
     agent_id: str
     action_name: str
-    target_ip: Optional[str]
+    target_ip: str | None
     success: bool
     reward: float
 
 
 @dataclass
 class TrajectoryRecorder:
-    """Records per-step (tick, agent, action, target, success, reward) for kill-chain analysis."""
+    """Per-step kill-chain records."""
 
     scenario: str = ''
     seed: int = 0
@@ -34,7 +33,7 @@ class TrajectoryRecorder:
         tick: int,
         agent_id: str,
         action_name: str,
-        target_ip: Optional[str],
+        target_ip: str | None,
         success: bool,
         reward: float,
     ) -> None:

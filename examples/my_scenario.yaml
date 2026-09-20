@@ -1,0 +1,7 @@
+name: my_experiment
+base: ransomware
+difficulty: medium
+max_ticks: 200
+description: Minimal custom experiment — no simulator code changes.
+reward_variant: constrained_sla
+log_latency: 2

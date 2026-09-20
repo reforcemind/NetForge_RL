@@ -2,9 +2,13 @@ import pytest
 
 pytest.importorskip('matplotlib')
 import numpy as np
-import pytest
-from netforge_rl.render import FrameRecorder, render_rgb, snapshot_from_envstate
-from netforge_rl.render.snapshot import COLOR_COMPROMISED, COLOR_ISOLATED, COLOR_SECURE
+from netforge_rl.render.matplotlib_renderer import render_rgb
+from netforge_rl.render.snapshot import (
+    COLOR_COMPROMISED,
+    COLOR_ISOLATED,
+    COLOR_SECURE,
+    snapshot_from_envstate,
+)
 
 AGENTS = ('red_operator', 'blue_dmz', 'blue_internal', 'blue_restricted')
 
@@ -51,6 +55,9 @@ def test_render_rgb_shape(global_state) -> None:
 
 @pytest.mark.fast
 def test_frame_recorder_append_and_len() -> None:
+    pytest.importorskip('moviepy')
+    from netforge_rl.render.recorder import FrameRecorder
+
     rec = FrameRecorder(fps=4)
     rec.append(np.zeros((10, 10, 3), dtype=np.uint8))
     rec.append(np.ones((10, 10, 3), dtype=np.uint8))
@@ -59,7 +66,8 @@ def test_frame_recorder_append_and_len() -> None:
 
 @pytest.mark.fast
 def test_frame_recorder_save_requires_frames(tmp_path) -> None:
-    rec = FrameRecorder()
+    pytest.importorskip('moviepy')
+    from netforge_rl.render.recorder import FrameRecorder
     with pytest.raises(ValueError):
         rec.save(tmp_path / 'empty.gif')
 
