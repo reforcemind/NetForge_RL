@@ -68,6 +68,8 @@ def test_frame_recorder_append_and_len() -> None:
 def test_frame_recorder_save_requires_frames(tmp_path) -> None:
     pytest.importorskip('moviepy')
     from netforge_rl.render.recorder import FrameRecorder
+
+    rec = FrameRecorder(fps=4)
     with pytest.raises(ValueError):
         rec.save(tmp_path / 'empty.gif')
 
