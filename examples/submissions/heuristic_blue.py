@@ -1,6 +1,6 @@
 """CAGE-style ``make_blue`` example.
 
-    netforge evaluate examples/submissions/heuristic_blue.py --seeds 0 --max-ticks 20
+netforge evaluate examples/submissions/heuristic_blue.py --seeds 0 --max-ticks 20
 """
 
 NAME = 'heuristic-blue'
