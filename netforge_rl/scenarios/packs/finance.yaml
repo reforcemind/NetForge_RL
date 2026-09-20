@@ -1,0 +1,17 @@
+name: finance
+pack: finance
+base: apt_espionage
+difficulty: medium
+max_ticks: 200
+description: Finance trading floor — exfiltration of settlement hosts is the Red win.
+reward_variant: fp_penalized
+topology:
+  subnets:
+    - {cidr: "192.168.1.0/24", name: DMZ}
+    - {cidr: "10.0.0.0/24", name: Corporate}
+    - {cidr: "10.0.1.0/24", name: Secure}
+  hosts:
+    - {ip: "192.168.1.10", hostname: public_web, subnet_cidr: "192.168.1.0/24", os: Linux_Ubuntu, services: [SSH, Apache], vulnerabilities: [CVE-2021-44228], cvss_score: 9.8}
+    - {ip: "10.0.0.10", hostname: trader_ws, subnet_cidr: "10.0.0.0/24", os: Windows_10, services: [RDP], vulnerabilities: [CVE-2019-0708], cvss_score: 9.8}
+    - {ip: "10.0.1.10", hostname: settlement, subnet_cidr: "10.0.1.0/24", os: Linux_Ubuntu, services: [SSH], vulnerabilities: [], cvss_score: 3.5}
+    - {ip: "10.0.1.11", hostname: swift_gw, subnet_cidr: "10.0.1.0/24", os: Linux_Ubuntu, services: [SSH], vulnerabilities: [], cvss_score: 5.0}

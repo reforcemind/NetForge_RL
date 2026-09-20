@@ -1,0 +1,18 @@
+name: cloud_iam
+pack: cloud
+base: cloud_hybrid
+difficulty: medium
+max_ticks: 200
+description: Cloud IAM attack path — protect the Secure enclave and identity plane.
+reward_variant: security_only
+topology:
+  subnets:
+    - {cidr: "192.168.1.0/24", name: DMZ}
+    - {cidr: "10.0.0.0/24", name: Corporate}
+    - {cidr: "10.0.1.0/24", name: Secure}
+  hosts:
+    - {ip: "192.168.1.10", hostname: api_gateway, subnet_cidr: "192.168.1.0/24", os: Linux_Ubuntu, services: [SSH, Apache], vulnerabilities: [CVE-2021-44228], cvss_score: 9.8}
+    - {ip: "10.0.0.10", hostname: idp, subnet_cidr: "10.0.0.0/24", os: Linux_Ubuntu, services: [SSH], vulnerabilities: [CVE-2021-44228], cvss_score: 8.8}
+    - {ip: "10.0.0.11", hostname: ci_runner, subnet_cidr: "10.0.0.0/24", os: Linux_Ubuntu, services: [SSH], vulnerabilities: [], cvss_score: 5.0}
+    - {ip: "10.0.1.10", hostname: secrets_vault, subnet_cidr: "10.0.1.0/24", os: Linux_Ubuntu, services: [SSH], vulnerabilities: [], cvss_score: 3.0}
+    - {ip: "10.0.1.11", hostname: admin_console, subnet_cidr: "10.0.1.0/24", os: Windows_Server_2016, services: [RDP], vulnerabilities: [CVE-2019-0708], cvss_score: 9.8, is_domain_controller: true}

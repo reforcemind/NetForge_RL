@@ -1,0 +1,17 @@
+name: ot_plant
+pack: ot
+base: ot_stuxnet
+difficulty: hard
+max_ticks: 200
+description: Process-control plant. Kinetic PLC destruction is a catastrophic failure.
+reward_variant: safety_critical
+topology:
+  subnets:
+    - {cidr: "192.168.1.0/24", name: DMZ}
+    - {cidr: "10.0.0.0/24", name: Corporate}
+    - {cidr: "10.0.99.0/24", name: OT_Subnet}
+  hosts:
+    - {ip: "192.168.1.10", hostname: historian_dmz, subnet_cidr: "192.168.1.0/24", os: Windows_Server_2016, services: [IIS, SMB], vulnerabilities: [MS17-010], cvss_score: 8.1}
+    - {ip: "10.0.0.10", hostname: eng_ws, subnet_cidr: "10.0.0.0/24", os: Windows_10, services: [RDP, SMB], vulnerabilities: [MS17-010], cvss_score: 8.1}
+    - {ip: "10.0.99.10", hostname: turbine_plc, subnet_cidr: "10.0.99.0/24", os: PLC_Firmware, services: [S7Comm], ot: true, cvss_score: 9.0}
+    - {ip: "10.0.99.11", hostname: safety_plc, subnet_cidr: "10.0.99.0/24", os: PLC_Firmware, services: [Modbus], ot: true, cvss_score: 9.5}
