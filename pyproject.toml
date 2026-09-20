@@ -3,14 +3,27 @@ requires = ["setuptools>=61.0.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "netforge_rl"
-version = "3.1.0"
-description = "Multi-Agent Cybersecurity Simulator based on CybORG"
+name = "netforge-rl"
+version = "4.0.0"
+description = "Cybersecurity gym for reinforcement learning"
 authors = [
-    { name = "marl-Cyborg", email = "igorjankowwski@gmail.com" }
+    { name = "Igor Jankowski", email = "igorjankowwski@gmail.com" }
 ]
 readme = "README.md"
 requires-python = ">=3.12"
+keywords = [
+    "reinforcement-learning",
+    "multi-agent",
+    "cybersecurity",
+    "pettingzoo",
+    "gymnasium",
+    "benchmark",
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
 dependencies = [
     "numpy>=2.4.0",
     "gymnasium>=1.2.2",
@@ -33,9 +46,10 @@ dev = [
     "ruff>=0.3.0",
 ]
 docs = [
-    "mkdocs>=1.6.0",
-    "mkdocs-material>=9.5.0",
-    "mkdocstrings[python]>=0.25.0",
+    "sphinx>=8.0",
+    "furo>=2024.8.6",
+    "myst-parser>=4.0",
+    "sphinxcontrib-mermaid>=1.0.0",
 ]
 jax = [
     "jax[cpu]>=0.10.0",
@@ -67,6 +81,18 @@ llm_clients = [
     "openai>=1.40.0",
     "google-generativeai>=0.7.0",
 ]
+offline = [
+    "minari>=0.5.0",
+    "h5py>=3.10.0",
+]
+
+[project.scripts]
+netforge = "netforge_rl.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/reforcemind/NetForge_RL"
+Documentation = "https://reforcemind.github.io/NetForge_RL/"
+Issues = "https://github.com/reforcemind/NetForge_RL/issues"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -94,8 +120,12 @@ docstring-code-line-length = "dynamic"
 [tool.ruff.lint.per-file-ignores]
 "tests/**/*.py" = ["E402"]
 "netforge_rl/semantic/clients/*.py" = ["F401"]
+"netforge_rl/render/replay_html.py" = ["E501"]
 [tool.ruff.lint]
 ignore = ["E701", "E402", "E702"]
 
 [tool.setuptools.packages.find]
-include = ["netforge_rl*"]
+include = ["netforge_rl*", "netforge"]
+
+[tool.setuptools.package-data]
+netforge_rl = ["scenarios/packs/*.yaml"]

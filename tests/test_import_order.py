@@ -19,7 +19,33 @@ def test_no_circular_import(snippet):
     proc = subprocess.run(
         [sys.executable, '-c', snippet + '; print("ok")'],
         capture_output=True,
+        check=False,
         text=True,
     )
     assert proc.returncode == 0, proc.stderr
     assert 'ok' in proc.stdout
+
+
+@pytest.mark.fast
+def test_python_m_netforge_version():
+    proc = subprocess.run(
+        [sys.executable, '-m', 'netforge', 'version'],
+        capture_output=True,
+        check=False,
+        text=True,
+    )
+    assert proc.returncode == 0, proc.stderr
+    assert 'netforge-rl' in proc.stdout
+    assert 'Arena' in proc.stdout
+
+
+@pytest.mark.fast
+def test_python_m_netforge_questions_catalog():
+    proc = subprocess.run(
+        [sys.executable, '-m', 'netforge', 'questions'],
+        capture_output=True,
+        check=False,
+        text=True,
+    )
+    assert proc.returncode == 0, proc.stderr
+    assert 'belief-vs-oracle' in proc.stdout

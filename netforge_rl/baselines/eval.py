@@ -7,7 +7,7 @@ from netforge_rl.baselines.policies import (
     HeuristicRedPolicy,
     RandomPolicy,
 )
-from netforge_rl.environment.parallel_env import NetForgeRLEnv, PADDING_SUBNET
+from netforge_rl.environment.parallel_env import PADDING_SUBNET, NetForgeRLEnv
 from netforge_rl.semantic.leaderboard import append_result
 from netforge_rl.semantic.runner import EpisodeResult
 
