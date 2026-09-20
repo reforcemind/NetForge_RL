@@ -6,7 +6,9 @@
 from netforge_rl.environment.parallel_env import NetForgeRLEnv
 from netforge_rl.siem.export import export_ocsf, siem_to_ocsf
 
-env = NetForgeRLEnv({'scenario_type': 'ransomware', 'max_ticks': 100, 'record_siem': True})
+env = NetForgeRLEnv(
+    {'scenario_type': 'ransomware', 'max_ticks': 100, 'record_siem': True}
+)
 env.reset(seed=0)
 export_ocsf(env, 'runs/episode.ocsf.jsonl')
 siem_to_ocsf(log_line, subnet='10.0.0.0/24', tick=42)

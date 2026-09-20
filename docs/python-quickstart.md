@@ -13,12 +13,12 @@ import netforge_rl
 import gymnasium as gym
 from pettingzoo import make
 
-env = make("parallel", "netforge/ransomware-v4", max_ticks=200)
+env = make('parallel', 'netforge/ransomware-v4', max_ticks=200)
 obs, infos = env.reset(seed=0)
 actions = {agent: env.action_space(agent).sample() for agent in env.agents}
 obs, rewards, term, trunc, infos = env.step(actions)
 
-blue = gym.make("NetForge/Blue-v4", max_ticks=200)
+blue = gym.make('NetForge/Blue-v4', max_ticks=200)
 ```
 
 | API | Id | |
