@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120" role="img">
+<title>NetForge</title>
+<rect width="120" height="120" rx="22" fill="#FFF6DC" stroke="#E8D7A8" stroke-width="4"/>
+<circle cx="38" cy="46" r="11" fill="#FFD166" stroke="#2B2118" stroke-width="2.4"/>
+<circle cx="82" cy="42" r="11" fill="#2EC4B6" stroke="#2B2118" stroke-width="2.4"/>
+<circle cx="60" cy="78" r="11" fill="#FF8FAB" stroke="#2B2118" stroke-width="2.4"/>
+<line x1="47" y1="50" x2="73" y2="46" stroke="#2B2118" stroke-width="2.4"/>
+<line x1="44" y1="55" x2="54" y2="70" stroke="#2B2118" stroke-width="2.4"/>
+<line x1="75" y1="52" x2="66" y2="70" stroke="#2B2118" stroke-width="2.4"/>
+</svg>

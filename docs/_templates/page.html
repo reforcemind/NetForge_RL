@@ -1,0 +1,17 @@
+{% extends "!page.html" %}
+
+{% block content %}
+<nav class="fe-topnav" aria-label="Site">
+  <div class="fe-topnav-inner">
+    <a class="fe-topnav-link" href="{{ pathto('index') }}">Home</a>
+    <a class="fe-topnav-link" href="{{ pathto('getting-started') }}">Start</a>
+    <a class="fe-topnav-link" href="{{ pathto('python-quickstart') }}">Python</a>
+    <a class="fe-topnav-link" href="{{ pathto('cybersec/overview') }}">Cyber</a>
+    <a class="fe-topnav-link" href="{{ pathto('arena') }}">Eval</a>
+    <a class="fe-topnav-link" href="{{ pathto('architecture/overview') }}">Architecture</a>
+    <a class="fe-topnav-link" href="{{ pathto('api/python') }}">API</a>
+    <a class="fe-topnav-link" href="https://github.com/reforcemind/NetForge_RL">GitHub</a>
+  </div>
+</nav>
+{{ super() }}
+{% endblock %}

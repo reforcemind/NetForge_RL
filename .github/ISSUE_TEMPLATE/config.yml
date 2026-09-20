@@ -1,0 +1,14 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Ask a question
+    url: https://github.com/reforcemind/NetForge_RL/discussions
+    about: Usage or architecture questions. Use Research issues for scoped design work.
+  - name: Documentation
+    url: https://reforcemind.github.io/NetForge_RL/
+    about: Getting started, Arena, questions, API.
+  - name: Research backlog
+    url: https://github.com/reforcemind/NetForge_RL/blob/main/RESEARCH.md
+    about: Public research issues and good first contributions
+  - name: Arena spec
+    url: https://github.com/reforcemind/NetForge_RL/blob/main/docs/arena.md
+    about: Frozen benchmark contract (splits, metrics, hidden tests)

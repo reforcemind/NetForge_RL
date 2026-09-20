@@ -1,3 +1,7 @@
 # Sim2Real API
 
-::: netforge_rl.docker_bridge.bridge
+```{eval-rst}
+.. automodule:: netforge_rl.docker_bridge.bridge
+   :members:
+   :no-undoc-members:
+```

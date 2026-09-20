@@ -1,137 +1,125 @@
 <div align="center">
-  <img src="https://img.shields.io/badge/version-3.1.0-blue?style=for-the-badge" alt="Version 3.1.0"/>
-  <img src="https://img.shields.io/badge/Python-3.12+-blue?style=for-the-badge&logo=python" alt="Python 3.12+"/>
-  <img src="https://img.shields.io/badge/JAX-vmap%20%2B%20jit-orange?style=for-the-badge" alt="JAX"/>
-  <img src="https://img.shields.io/badge/PettingZoo-MARL-purple?style=for-the-badge" alt="PettingZoo"/>
-  <img src="https://img.shields.io/badge/MITRE_ATT%26CK-Mapped-red?style=for-the-badge" alt="MITRE ATT&CK"/>
+<img src="docs/_static/figures/mark.svg" width="96" alt="NetForge">
+
+# NetForge
+
+**Cybersecurity gym for reinforcement learning**
+
+Red attacks a network. Blue contains it from SIEM, not from an oracle.
+PettingZoo (1 Red + 3 Blue) or Gymnasium (one Blue vs scripted Red).
+
+**Python 3.12+** · **PettingZoo** · **Gymnasium** · **Not on PyPI**
+
+[Docs](https://reforcemind.github.io/NetForge_RL/) ·
+[Start](https://reforcemind.github.io/NetForge_RL/getting-started.html) ·
+[Python](https://reforcemind.github.io/NetForge_RL/python-quickstart.html) ·
+[Cyber](https://reforcemind.github.io/NetForge_RL/cybersec/overview.html) ·
+[Contributing](CONTRIBUTING.md)
+
+<p>
+  <img src="docs/_static/figures/purpose.svg" width="920" alt="Red, Blue, and the network">
+</p>
 </div>
 
-<h1 align="center">NetForge RL</h1>
+## 📰 News
 
-<p align="center">Multi-agent cybersecurity environment for RL research. Red team vs Blue team on generated networks.</p>
+**🗓️ September 2026**
 
----
+- 🛡️ **20** — Gym ids: PettingZoo `netforge/ransomware-v4` (1 Red + 3 Blue) and Gymnasium `NetForge/Blue-v4`. Blue trains on SIEM belief graphs, not the true map.
+- 📟 **20** — `netforge` CLI: `run`, `evaluate`, `questions`, HTML replay. Packs for hospital, cloud, APT, IoT, OT.
+- 🏗️ **20** — Arena train / dev / hidden splits. Typed `EnvConfig`. Sphinx docs, same kit as [FlowEdge](https://github.com/reforcemind/FlowEdge).
 
-## Why NetForge
+🏷️ [Changelog](docs/changelog.md) · 📘 [Docs](https://reforcemind.github.io/NetForge_RL/)
 
-- **Standardized API** — PettingZoo `ParallelEnv`, Gymnasium spaces, conformance-tested.
-  A `gymnasium.Env` single-agent facade (`NetForgeSingleAgentEnv`) drops straight into
-  Stable-Baselines3 or CleanRL.
-- **Partial observability that means something** — Blue reads a filtered, optionally
-  *delayed* SIEM feed; Red must recon a host before it can exploit it.
-- **Real telemetry** — actions emit real Windows/Sysmon event XML, encoded into
-  observations by an NLP pipeline. Point an OpenAI, Anthropic, Google, or vLLM client at
-  the raw logs and let it play SOC analyst.
-- **MITRE ATT&CK aligned** — actions carry ATT&CK technique IDs, and CVE identifiers are
-  used as abstract vulnerability labels (no real exploit code); every episode reports which
-  ATT&CK techniques Red actually exercised.
-- **Reproducible to the bit** — a fixed seed replays observations, SIEM embeddings, infos,
-  and rewards identically. Test-guaranteed, not just claimed.
-- **Tunable difficulty** — named `easy` / `medium` / `hard` presets plus a frozen held-out
-  evaluation split, so results are comparable across runs.
-- **Diagnostic probes + capability cards** — 6 targeted probes (memory, attention,
-  temporal, precision, safety, generalization) score *what* a policy can and can't do,
-  summarized as a per-policy radar chart.
-- **Deception as a mechanic** — decoys and honeytokens with a `deception_efficacy` metric
-  quantifying how much of Red's effort was wasted on traps.
-- **Optional graph observations** — an experimental wrapper exposes hosts as nodes and
-  reachability as edges (fog-of-war aware); the benchmarked default is the fixed-shape array.
-- **Self-play & Elo** — a population tournament rates every red and blue policy on one
-  shared Elo ladder.
-- **Fast** — the JAX backend reaches **~2.5×10⁵ env-steps/s (~1.0M agent-steps/s)** at batch
-  4096 on CPU. It runs a reduced transition core with an in-kernel scalar alert (not the full
-  SIEM text pipeline), so it is a throughput surrogate, not a replica of the Python engine.
-- **Trained, not just scripted, baselines** — a JIT-fused IPPO trainer whose entire
-  rollout runs on-device; a committed run learns mean reward 0.06 → 0.71 on `ransomware`.
+***
 
-## Install
+## The problem
+
+A defender does not get the true compromise map. The SOC sees Sysmon-like logs
+that can be late, dropped, or noisy. Red starts blind and only sees hosts it has
+discovered. Exploits and isolates take ticks, not one step.
+
+A gym that hands Blue an oracle, pays for isolating the whole net, or scores
+mean reward against one scripted Red is training the wrong job.
+
+## What NetForge does
+
+Each tick, agents pick `[action_type, host_index]`. Actions run, conflicts
+resolve, SIEM fires, Blue obs update from the buffer.
+
+**Red** — discover, exploit CVEs, escalate, exfil, or hit a PLC.
+**Blue** — isolate, ACL, restore, decoys (`169.254.x.x`). Quiet Red may never
+show up in logs.
+**Kinetic** — `OverloadPLC` can end the episode for Blue.
+
+```python
+import netforge_rl
+import gymnasium as gym
+from pettingzoo import make
+
+env = make('parallel', 'netforge/ransomware-v4', max_ticks=80)
+obs, infos = env.reset(seed=0)
+blue = gym.make('NetForge/Blue-v4', max_ticks=80)
+```
+
+<p align="center">
+  <img src="docs/_static/figures/workflow.svg" width="920" alt="reset, observe SIEM, act, next tick">
+</p>
+
+## Why this, not the usual stack
+
+<p align="center">
+  <img src="docs/_static/figures/why-this.svg" width="920" alt="SOC view vs god-mode, delayed logs, SLA vs isolate-all">
+</p>
+
+Blue never sees the true map. Logs can lag. Isolate-everything wrecks SLA.
+Eval uses a Red population, not one campaign. Trainers (MAPPO / QMIX / …) stay
+in your repo.
+
+## First run
+
+Not on PyPI. Python 3.12+.
 
 ```bash
-pip install 'netforge_rl[jax] @ git+https://github.com/reforcemind/NetForge_RL'
+python -m pip install 'netforge-rl @ git+https://github.com/reforcemind/NetForge_RL'
+netforge run hospital_ransomware --replay replay.html
 ```
 
-Extras: `jax` (vectorized backend), `render` (visualization), `finetune` (LLM PEFT),
-`rllib` (Ray multi-agent training). See the
-[install guide](https://reforcemind.github.io/NetForge_RL/quickstart/) for the full list.
+From a clone:
 
-## Quick start
-
-```python
-from netforge_rl.environment import make_env
-
-env = make_env('medium', scenario_type='ransomware', seed=0)
-obs, infos = env.reset(seed=0)
-while env.agents:
-    actions = {a: env.action_space(a).sample() for a in env.agents}
-    obs, rewards, term, trunc, infos = env.step(actions)
-    if all(term.values()) or all(trunc.values()):
-        break
+```bash
+git clone https://github.com/reforcemind/NetForge_RL.git
+cd NetForge_RL
+pip install -e ".[dev]"
+netforge run ransomware --seed 0 --max-ticks 40
 ```
 
-### JAX vectorized (4096 environments)
-
-```python
-import jax
-from netforge_rl.backends.jax import VectorEnvSpec
-from netforge_rl.bridges.jaxmarl import JaxMARLEnv, random_action_dict
-
-env = JaxMARLEnv(spec=VectorEnvSpec(n_hosts=100, n_red=1, n_blue=3), batch_size=4096)
-key = jax.random.PRNGKey(0)
-obs, state = env.reset(key)
-obs, state, reward, done, info = env.step(key, state, random_action_dict(env, key))
+```bash
+python -m netforge --help
 ```
 
-### LLM as a Blue agent
-
-```python
-from netforge_rl.semantic import state_to_text, parse_action
-
-prompt = state_to_text(env.to_envstate(), agent_id='blue_dmz')
-# send prompt to your model, then:
-action_idx = parse_action(model_reply, 'blue_dmz', sorted(env.global_state.all_hosts))
-```
-
-See the [Quick Start Guide](https://reforcemind.github.io/NetForge_RL/quickstart/) for
-difficulty presets, baselines, diagnostics, and the Gymnasium single-agent wrapper.
-
-## The five scenarios
-
-| Scenario | Red objective | Blue objective | Terminal condition |
-|---|---|---|---|
-| `ransomware` | Compromise Corporate + Secure | Contain, restore, avoid downtime | all Corporate/Secure compromised, or PLC kinetic |
-| `apt_espionage` | Stealthy persistence + exfiltration | Detect and isolate every foothold | every infected host isolated |
-| `cloud_hybrid` | Breach the Secure enclave | Protect the Secure subnet SLA | every Secure host compromised |
-| `iot_grid` | Take the grid controllers | Keep controllers healthy | all controllers compromised |
-| `ot_stuxnet` | Drive a PLC to kinetic destruction | Prevent physical damage | any PLC kinetic destruction |
-
-## Package layout
-
-| Package | Purpose |
+| Piece | |
 |---|---|
-| `environment/` | PettingZoo `NetForgeRLEnv`, difficulty presets, curriculum, Gymnasium facade |
-| `scenarios/` | 5 reward/objective families sharing one `BaseScenario` |
-| `actions/red`, `actions/blue` | ATT&CK-aligned capabilities + technique mapping |
-| `siem/`, `nlp/` | Sysmon/Windows log synthesis, NLP encoding, OCSF-style export |
-| `backends/jax/` | Vectorized `vmap`/`jit` transition kernel + NumPy reference |
-| `baselines/` | Random, heuristic, kill-chain red, JAX IPPO |
-| `diagnostics/` | Capability probes, oracle information-asymmetry, capability cards |
-| `bridges/` | RLlib, JaxMARL, CleanRL, DLPack adapters |
-| `semantic/` | LLM SOC agents, prompt grammars, fine-tuning recipes |
+| Agents | `red_operator`, `blue_dmz`, `blue_internal`, `blue_restricted` |
+| Action | `MultiDiscrete([32, 100])`, mask `int8[132]` |
+| Blue obs | vector + SIEM embedding + belief graph |
+| Families | ransomware, APT, cloud, IoT, OT/Stuxnet |
+| Trainers | your code. Not bundled. |
+
+Gate: `scripts/verify_all.sh` or `scripts/verify_local.ps1`. GitHub Actions is ruff + pytest + Sphinx. `docs.yml` deploys the site to GitHub Pages on `main`.
 
 ## Citation
 
 ```bibtex
 @misc{jankowski2026netforgerlmultiagentsimulation,
-      title={NetForge RL: A Multi-Agent Simulation Environment for Cyber Defense with Durative Actions}, 
+      title={NetForge RL: A Multi-Agent Simulation Environment for Cyber Defense with Durative Actions},
       author={Igor Jankowski},
       year={2026},
       eprint={2604.09523},
       archivePrefix={arXiv},
       primaryClass={cs.LG},
-      url={https://arxiv.org/abs/2604.09523}, 
+      url={https://arxiv.org/abs/2604.09523},
 }
 ```
 
-## License
-
-MIT — see [LICENSE](LICENSE).
+MIT, with CybORG / DSTG notices in [LICENSE](LICENSE).
