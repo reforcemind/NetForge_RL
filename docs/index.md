@@ -69,10 +69,41 @@
 
 ## The problem
 
-A defender does not get the true compromise map. The SOC sees Sysmon-like logs
-that can be late, dropped, or noisy. Red starts blind. Exploits and isolates
-take ticks. A gym that hands Blue an oracle, or scores mean reward against one
-scripted Red, is training the wrong job.
+The job is a SOC shift, not a capture-the-flag. Blue only ever sees a log
+buffer: Sysmon-like events that can arrive late, drop, or never fire if Red
+stays quiet. Isolation is slow and takes hosts off the mission. A policy that
+reads the simulator's compromise map, or that wins by unplugging the plant, is
+not a defender.
+
+Most cyber RL gyms still train a different job. Blue gets something close to
+true host state. Actions finish in one step. The paper reports mean reward
+against one scripted Red. The agent looks strong there and fails as soon as the
+logs are incomplete or the attacker changes.
+
+NetForge is a gym for the first job: train and rank on SIEM, SLA, and a Red
+population. Trainers stay in your repo.
+
+## Compared to other gyms
+
+CybORG / CAGE is the competition stack papers already cite. CyberBattleSim and
+NASim are graph capture and pentest. Yawning Titan is abstract graph defense.
+NetForge is the SOC gym: delayed logs, durative actions, PettingZoo ids, Arena
+metrics.
+
+| | Blue observation | Time | What you rank | API |
+|---|---|---|---|---|
+| [CybORG](https://github.com/cage-challenge/CybORG) / [CAGE](https://github.com/cage-challenge) | Host table, often close to true state | Mixed; many actions resolve in-step | Historically mean return vs scripted Red (B-line, Meander) | Custom env + wrappers |
+| [CyberBattleSim](https://github.com/microsoft/CyberBattleSim) | Discovered attack graph | Instant node/credential actions | Red capture; Blue is thin | Gymnasium |
+| [NASim](https://github.com/Jjschwartz/NetworkAttackSimulator) | Scan-revealed network | Instant exploits | Attacker success | Gymnasium |
+| [Yawning Titan](https://github.com/dstl/YAWNING-TITAN) | Abstract graph nodes | Instant | Graph defense | Gymnasium |
+| **NetForge** | SIEM buffer + belief graph. Oracle is diagnostic only | Durative: exploits and isolates take ticks | Arena: mission, SLA, FPs, security, CVaR vs a Red population | PettingZoo + Gymnasium |
+
+NetForge does not try to beat CybORG on host-type count. LICENSE still carries
+CybORG / DSTG notices. The bet is the observation and the score: Blue trains on
+logs, isolate-all wrecks SLA, and one campaign is not an eval.
+
+Ranges, Caldera, and FARLAND are emulation or adversary tooling. Use them when
+you need packets on a wire. This repo is the pip-installable gym.
 
 ## What NetForge does
 
@@ -94,11 +125,6 @@ that can be late or noisy. Padding hosts (`169.254.x.x`) are decoys.
 :alt: God-mode vs SIEM, instant logs vs delay, isolate-all vs SLA
 :class: fe-fig
 ```
-
-## Why this, not the usual stack
-
-Blue never sees the true map. Logs can lag. Isolate-everything wrecks SLA.
-Eval uses a Red population. Trainers stay in your repo.
 
 ## Install
 

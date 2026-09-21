@@ -27,7 +27,7 @@ PettingZoo (1 Red + 3 Blue) or Gymnasium (one Blue vs scripted Red).
 
 - 🛡️ **20** — Gym ids: PettingZoo `netforge/ransomware-v4` (1 Red + 3 Blue) and Gymnasium `NetForge/Blue-v4`. Blue trains on SIEM belief graphs, not the true map.
 - 📟 **20** — `netforge` CLI: `run`, `evaluate`, `questions`, HTML replay. Packs for hospital, cloud, APT, IoT, OT.
-- 🏗️ **20** — Arena train / dev / hidden splits. Typed `EnvConfig`. Sphinx docs, same kit as [FlowEdge](https://github.com/reforcemind/FlowEdge).
+- 🏗️ **20** — Arena train / dev / hidden splits.
 
 🏷️ [Changelog](docs/changelog.md) · 📘 [Docs](https://reforcemind.github.io/NetForge_RL/)
 
@@ -35,12 +35,45 @@ PettingZoo (1 Red + 3 Blue) or Gymnasium (one Blue vs scripted Red).
 
 ## The problem
 
-A defender does not get the true compromise map. The SOC sees Sysmon-like logs
-that can be late, dropped, or noisy. Red starts blind and only sees hosts it has
-discovered. Exploits and isolates take ticks, not one step.
+The job is a SOC shift, not a capture-the-flag. Blue only ever sees a log
+buffer: Sysmon-like events that can arrive late, drop, or never fire if Red
+stays quiet. Isolation is slow and takes hosts off the mission. A policy that
+reads the simulator's compromise map, or that wins by unplugging the plant, is
+not a defender.
 
-A gym that hands Blue an oracle, pays for isolating the whole net, or scores
-mean reward against one scripted Red is training the wrong job.
+That is what most cyber RL gyms still train. Blue gets something close to true
+host state. Actions finish in one step. The paper reports mean reward against
+one scripted Red. The agent looks strong in that setup and fails as soon as the
+logs are incomplete or the attacker changes.
+
+NetForge is a gym for the first job: train and rank on SIEM, SLA, and a Red
+population. Trainers stay in your repo.
+
+## Compared to other gyms
+
+CybORG / CAGE is the competition stack papers already cite. CyberBattleSim and
+NASim are graph capture and pentest. Yawning Titan is abstract graph defense.
+NetForge is the SOC gym: delayed logs, durative actions, PettingZoo ids, Arena
+metrics.
+
+| | Blue observation | Time | What you rank | API |
+|---|---|---|---|---|
+| [CybORG](https://github.com/cage-challenge/CybORG) / [CAGE](https://github.com/cage-challenge) | Host table, often close to true state | Mixed; many actions resolve in-step | Historically mean return vs scripted Red (B-line, Meander) | Custom env + wrappers |
+| [CyberBattleSim](https://github.com/microsoft/CyberBattleSim) | Discovered attack graph | Instant node/credential actions | Red capture; Blue is thin | Gymnasium |
+| [NASim](https://github.com/Jjschwartz/NetworkAttackSimulator) | Scan-revealed network | Instant exploits | Attacker success | Gymnasium |
+| [Yawning Titan](https://github.com/dstl/YAWNING-TITAN) | Abstract graph nodes | Instant | Graph defense | Gymnasium |
+| **NetForge** | SIEM buffer + belief graph. Oracle is diagnostic only | Durative: exploits and isolates take ticks | Arena: mission, SLA, FPs, security, CVaR vs a Red population | PettingZoo + Gymnasium |
+
+NetForge does not try to beat CybORG on host-type count. LICENSE still carries
+CybORG / DSTG notices. The bet is the observation and the score: Blue trains on
+logs, isolate-all wrecks SLA, and one campaign is not an eval.
+
+Ranges / Caldera / FARLAND are emulation or adversary tooling. Use them when you
+need packets on a wire. This repo is the pip-installable gym.
+
+<p align="center">
+  <img src="docs/_static/figures/why-this.svg" width="920" alt="SOC view vs god-mode, delayed logs, SLA vs isolate-all">
+</p>
 
 ## What NetForge does
 
@@ -65,16 +98,6 @@ blue = gym.make('NetForge/Blue-v4', max_ticks=80)
 <p align="center">
   <img src="docs/_static/figures/workflow.svg" width="920" alt="reset, observe SIEM, act, next tick">
 </p>
-
-## Why this, not the usual stack
-
-<p align="center">
-  <img src="docs/_static/figures/why-this.svg" width="920" alt="SOC view vs god-mode, delayed logs, SLA vs isolate-all">
-</p>
-
-Blue never sees the true map. Logs can lag. Isolate-everything wrecks SLA.
-Eval uses a Red population, not one campaign. Trainers (MAPPO / QMIX / …) stay
-in your repo.
 
 ## First run
 
