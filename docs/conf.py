@@ -25,7 +25,7 @@ source_suffix = {'.md': 'markdown', '.rst': 'restructuredtext'}
 
 html_theme = 'furo'
 html_title = 'NetForge'
-html_logo = '_static/figures/mark.svg'
+html_logo = '_static/figures/logo.jpg'
 html_static_path = ['_static']
 templates_path = ['_templates']
 html_css_files = ['custom.css']

@@ -1,5 +1,5 @@
 <div align="center">
-<img src="docs/_static/figures/mark.svg" width="96" alt="NetForge">
+<img src="docs/_static/figures/logo.jpg" width="160" alt="NetForge">
 
 # NetForge
 

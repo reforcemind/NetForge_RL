@@ -431,8 +431,10 @@ img.fe-fig,
 /* —— Sidebar —— */
 .sidebar-logo-container { margin: 0.7rem 0 0.4rem; }
 .sidebar-logo {
-  max-width: 100%;
-  border-radius: 10px;
+  max-width: 7.5rem;
+  width: auto;
+  height: auto;
+  border-radius: 12px;
   border: 1px solid var(--color-background-border);
   box-shadow: 0 8px 26px rgba(43, 31, 20, 0.22);
   transition: transform 0.35s ease;
