@@ -1,193 +1,131 @@
 # NetForge
 
-<p class="fe-lede">Cybersecurity gym for reinforcement learning. Red compromises hosts. Blue contains them from SIEM, not from an oracle. Train with PettingZoo or Gymnasium.</p>
+<p class="fe-lede">A reinforcement learning environment for multi-agent network defense and realistic SOC operations. Red compromises hosts under fog of war; Blue detects and contains threats through SIEM telemetry and belief-state graphs.</p>
 
 ```{raw} html
 <ul class="fe-chips">
   <li>Red vs Blue</li>
-  <li>SIEM telemetry</li>
-  <li>PettingZoo</li>
-  <li>Gymnasium</li>
+  <li>SIEM Telemetry</li>
+  <li>Durative Actions</li>
+  <li>PettingZoo &amp; Gymnasium</li>
 </ul>
 
 <div class="fe-metrics">
   <div class="fe-metric">
     <span class="fe-metric-value">1 Red · 3 Blue</span>
-    <span class="fe-metric-label">DMZ, internal, restricted</span>
+    <span class="fe-metric-label">DMZ, internal, and restricted zones</span>
   </div>
   <div class="fe-metric">
-    <span class="fe-metric-value">SIEM only</span>
-    <span class="fe-metric-label">Blue never sees the true map</span>
+    <span class="fe-metric-value">SIEM Telemetry</span>
+    <span class="fe-metric-label">Blue observes event logs, not ground-truth state</span>
   </div>
   <div class="fe-metric">
-    <span class="fe-metric-value">durative actions</span>
-    <span class="fe-metric-label">exploits and isolates take ticks</span>
+    <span class="fe-metric-value">Durative Actions</span>
+    <span class="fe-metric-label">Multi-tick actions with realistic latency</span>
   </div>
 </div>
 
-<nav class="fe-jump" aria-label="Start here">
+<nav class="fe-jump" aria-label="Documentation navigation">
   <a class="fe-jump-card" href="getting-started.html">
     <span class="fe-jump-kicker">01</span>
     <strong>Start</strong>
-    <span>Install, run a ransomware pack.</span>
+    <span>Install NetForge and run a simulation.</span>
   </a>
   <a class="fe-jump-card" href="python-quickstart.html">
     <span class="fe-jump-kicker">02</span>
     <strong>Python</strong>
-    <span><code>gym.make</code> / <code>pettingzoo.make</code></span>
+    <span>Gymnasium and PettingZoo integration.</span>
   </a>
   <a class="fe-jump-card" href="cybersec/overview.html">
     <span class="fe-jump-kicker">03</span>
     <strong>Cyber</strong>
-    <span>Red, Blue, SIEM, OT</span>
+    <span>Threat model, Red tactics, Blue defenses.</span>
   </a>
   <a class="fe-jump-card" href="scenarios.html">
     <span class="fe-jump-kicker">04</span>
     <strong>Scenarios</strong>
-    <span>Hospital, cloud, plant, IoT</span>
+    <span>Ransomware, APT, cloud, and OT packs.</span>
   </a>
   <a class="fe-jump-card" href="architecture/overview.html">
     <span class="fe-jump-kicker">05</span>
     <strong>Architecture</strong>
-    <span>Tick loop, logs, graphs</span>
+    <span>Tick resolution, action queues, and telemetry.</span>
   </a>
-  <a class="fe-jump-card" href="api/python.html">
+  <a class="fe-jump-card" href="arena.html">
     <span class="fe-jump-kicker">06</span>
-    <strong>API</strong>
-    <span>Env, SIEM, NLP</span>
+    <strong>Evaluation</strong>
+    <span>Arena splits, SLA metrics, and leaderboard.</span>
   </a>
 </nav>
 ```
 
-## News
-
-**September 2026**
-
-- Gym ids: PettingZoo `netforge/ransomware-v4`, Gymnasium `NetForge/Blue-v4`.
-- `netforge` CLI: `run`, `evaluate`, `questions`, HTML replay.
-- Arena train / dev / hidden. Typed `EnvConfig`. {doc}`changelog`
-
-## The problem
-
-The job is a SOC shift, not a capture-the-flag. Blue only ever sees a log
-buffer: Sysmon-like events that can arrive late, drop, or never fire if Red
-stays quiet. Isolation is slow and takes hosts off the mission. A policy that
-reads the simulator's compromise map, or that wins by unplugging the plant, is
-not a defender.
-
-Most cyber RL gyms still train a different job. Blue gets something close to
-true host state. Actions finish in one step. The paper reports mean reward
-against one scripted Red. The agent looks strong there and fails as soon as the
-logs are incomplete or the attacker changes.
-
-NetForge is a gym for the first job: train and rank on SIEM, SLA, and a Red
-population. Trainers stay in your repo.
-
-## Compared to other gyms
-
-CybORG / CAGE is the competition stack papers already cite. CyberBattleSim and
-NASim are graph capture and pentest. Yawning Titan is abstract graph defense.
-NetForge is the SOC gym: delayed logs, durative actions, PettingZoo ids, Arena
-metrics.
-
-| | Blue observation | Time | What you rank | API |
-|---|---|---|---|---|
-| [CybORG](https://github.com/cage-challenge/CybORG) / [CAGE](https://github.com/cage-challenge) | Host table, often close to true state | Mixed; many actions resolve in-step | Historically mean return vs scripted Red (B-line, Meander) | Custom env + wrappers |
-| [CyberBattleSim](https://github.com/microsoft/CyberBattleSim) | Discovered attack graph | Instant node/credential actions | Red capture; Blue is thin | Gymnasium |
-| [NASim](https://github.com/Jjschwartz/NetworkAttackSimulator) | Scan-revealed network | Instant exploits | Attacker success | Gymnasium |
-| [Yawning Titan](https://github.com/dstl/YAWNING-TITAN) | Abstract graph nodes | Instant | Graph defense | Gymnasium |
-| **NetForge** | SIEM buffer + belief graph. Oracle is diagnostic only | Durative: exploits and isolates take ticks | Arena: mission, SLA, FPs, security, CVaR vs a Red population | PettingZoo + Gymnasium |
-
-NetForge does not try to beat CybORG on host-type count. LICENSE still carries
-CybORG / DSTG notices. The bet is the observation and the score: Blue trains on
-logs, isolate-all wrecks SLA, and one campaign is not an eval.
-
-Ranges, Caldera, and FARLAND are emulation or adversary tooling. Use them when
-you need packets on a wire. This repo is the pip-installable gym.
-
-## What NetForge does
-
-Red starts blind, discovers hosts, exploits CVEs, escalates, exfiltrates or
-hits a PLC. Blue isolates, restores, drops decoys, and reads Sysmon-like logs
-that can be late or noisy. Padding hosts (`169.254.x.x`) are decoys.
-
 ```{image} _static/figures/purpose.svg
-:alt: Red, Blue, and the network
+:alt: NetForge Architecture
 :class: fe-fig
 ```
 
-```{image} _static/figures/workflow.svg
-:alt: reset, observe SIEM, act, next tick
-:class: fe-fig
-```
+## Overview
 
-```{image} _static/figures/why-this.svg
-:alt: God-mode vs SIEM, instant logs vs delay, isolate-all vs SLA
-:class: fe-fig
-```
+In enterprise security operations, defenders never see an omniscient map of compromised machines. Instead, they operate inside an asymmetric information environment:
 
-## Install
+- **SIEM Telemetry**: Defenders monitor event streams (process creation, authentication, network connections) that can be delayed, dropped, or absent if an adversary maintains stealth.
+- **Durative Execution**: Network scans, exploits, and host isolations do not execute instantaneously. Actions run across ticks and can be preempted or cancelled by opposing moves.
+- **Operational SLAs**: Isolation stops an attack but takes services offline. NetForge scores defenders on operational availability alongside threat containment.
 
-```bash
-python -m pip install 'netforge-rl @ git+https://github.com/reforcemind/NetForge_RL'
-netforge run hospital_ransomware --replay replay.html
-```
+## Environment Comparison
+
+| Feature | CybORG / CAGE | CyberBattleSim | Yawning Titan | NetForge |
+|---|---|---|---|---|
+| **Blue Observation** | Host table (near-oracle) | Attack graph | Abstract graph nodes | **SIEM event buffer + belief graph** |
+| **Action Resolution** | Instant / mixed | Instantaneous | Instantaneous | **Durative (multi-tick queue)** |
+| **Defensive Penalty** | Reward penalty | N/A | Heuristic cost | **SLA uptime & false positive tracking** |
+| **API Standards** | Custom wrapper | Gymnasium | Gymnasium | **PettingZoo (MARL) + Gymnasium** |
+| **Adversary Eval** | Scripted Red (B-line/Meander) | Static graph | Scripted agents | **Adversarial populations & tournaments** |
+
+## Quickstart
 
 ```python
-import netforge_rl
 import gymnasium as gym
-from pettingzoo import make
+import netforge_rl
 
-env = make('parallel', 'netforge/ransomware-v4', max_ticks=80)
-obs, infos = env.reset(seed=0)
-blue = gym.make('NetForge/Blue-v4', max_ticks=80)
+# Single-agent Gymnasium defense against scripted adversary
+env = gym.make("NetForge/Blue-v4", max_ticks=80)
+obs, info = env.reset(seed=42)
+
+# Multi-agent PettingZoo parallel environment
+from pettingzoo import make
+env = make("parallel", "netforge/ransomware-v4", max_ticks=80)
+obs, infos = env.reset(seed=42)
 ```
 
-Not on PyPI. Python 3.12+. Trainers stay in your repo.
+Run from the command line:
 
-MIT, with CybORG / DSTG notices in the LICENSE file.
+```bash
+# Run a scenario pack and generate an HTML replay
+netforge run hospital_ransomware --replay replay.html
+
+# Evaluate a submission policy
+netforge evaluate examples/submissions/heuristic_blue.py --seeds 0 1 --max-ticks 40
+```
 
 ```{toctree}
 :hidden:
 :maxdepth: 1
-:caption: Start
-Overview <self>
+:caption: Getting Started
 getting-started
 python-quickstart
-arena
-questions
-submissions
-capabilities
-```
-
-```{toctree}
-:hidden:
-:maxdepth: 1
-:caption: Guides
 scenarios
-baselines
-datasets
-backends
-diagnostics/overview
-environment/difficulty
-environment/reproducibility
-environment/graph_observations
-training/curriculum
-training/rllib
-training/scenarios
-guides/verification
-interop/pettingzoo
-interop/soc_export
 ```
 
 ```{toctree}
 :hidden:
 :maxdepth: 1
-:caption: Benchmarks
-benchmarks/overview
-benchmarks/baselines
-benchmarks/self_play
-benchmarks/run
+:caption: Cyber Mechanics
+cybersec/overview
+cybersec/threat_model
+cybersec/red_actions
+cybersec/blue_actions
+environment/graph_observations
 ```
 
 ```{toctree}
@@ -206,38 +144,44 @@ architecture/nlp_siem
 ```{toctree}
 :hidden:
 :maxdepth: 1
-:caption: Cyber
-cybersec/overview
-cybersec/threat_model
-cybersec/red_actions
-cybersec/blue_actions
+:caption: Evaluation & Benchmarks
+arena
+benchmarks/overview
+benchmarks/baselines
+benchmarks/run
+benchmarks/self_play
+questions
+submissions
+capabilities
 ```
 
 ```{toctree}
 :hidden:
 :maxdepth: 1
-:caption: API
+:caption: Guides & Training
+interop/pettingzoo
+interop/soc_export
+training/curriculum
+training/rllib
+training/scenarios
+datasets
+backends
+environment/difficulty
+environment/reproducibility
+diagnostics/overview
+```
+
+```{toctree}
+:hidden:
+:maxdepth: 1
+:caption: Reference & Project
 api/python
 api/environment
 api/siem
 api/nlp
 api/sim2real
-```
-
-```{toctree}
-:hidden:
-:maxdepth: 1
-:caption: Contribute
+guides/verification
 contributing
-research
-```
-
-```{toctree}
-:hidden:
-:maxdepth: 1
-:caption: Project
-roadmap
-product-direction
 DATASHEET
 changelog
 ```

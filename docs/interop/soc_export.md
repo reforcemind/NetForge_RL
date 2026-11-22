@@ -1,24 +1,43 @@
-# SOC export (OCSF)
+# SOC Export & OCSF Schema
 
-`record_siem=True` keeps the full stream. `export_ocsf` writes JSONL.
+NetForge can stream and export telemetry using the [Open Cybersecurity Schema Framework (OCSF)](https://ocsf.io/), allowing simulation logs to be ingested into enterprise SIEM platforms like Splunk, Elastic, and Microsoft Sentinel.
+
+## Enabling SIEM Recording
+
+Set `record_siem=True` in environment configuration to capture the uncompressed event stream:
 
 ```python
 from netforge_rl.environment.parallel_env import NetForgeRLEnv
-from netforge_rl.siem.export import export_ocsf, siem_to_ocsf
+from netforge_rl.siem.export import export_ocsf
 
-env = NetForgeRLEnv(
-    {'scenario_type': 'ransomware', 'max_ticks': 100, 'record_siem': True}
-)
-env.reset(seed=0)
-export_ocsf(env, 'runs/episode.ocsf.jsonl')
-siem_to_ocsf(log_line, subnet='10.0.0.0/24', tick=42)
+config = {
+    "scenario_type": "enterprise_apt",
+    "max_ticks": 100,
+    "record_siem": True,
+}
+
+env = NetForgeRLEnv(config)
+env.reset(seed=42)
+
+# Run simulation steps...
+for _ in range(50):
+    actions = {agent: [0, 0] for agent in env.agents}
+    env.step(actions)
+
+# Export captured telemetry to OCSF JSONL format
+export_ocsf(env, "runs/incident_trace.ocsf.jsonl")
 ```
 
-| EventID | OCSF |
-|---|---|
-| 4624 / 4625 / 4648 / 4768 / 4776 | Authentication (3002) |
-| 4688 / Sysmon 1 / 10 | Process (1007) |
-| Sysmon 3 | Network (4001) |
-| Sysmon 22 | DNS (4003) |
+## OCSF Schema Mapping
 
-Raw XML stays in `raw_event`. Honeytoken / incident → higher `severity_id`.
+Simulation events map to standard OCSF event classes:
+
+| Event Source | Internal Event ID | OCSF Class ID | OCSF Category |
+|---|---|---|---|
+| **Windows Security** | 4624 / 4625 / 4768 | `3002` | Authentication |
+| **Windows Security** | 4688 / Sysmon 1 | `1007` | Process Activity |
+| **Sysmon** | Event ID 3 | `4001` | Network Activity |
+| **Sysmon** | Event ID 22 | `4003` | DNS Query |
+| **SCADA Physics** | Physical Alarm | `2001` | System Activity (Security Finding) |
+
+Raw event details are preserved in the `raw_event` field, allowing SOC engineers to test correlation rules against realistic synthetic data.

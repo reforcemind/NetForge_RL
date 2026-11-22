@@ -1,16 +1,11 @@
-# Directions
+# Research Directions
 
-This tree is the gym: network, logs, actions, eval. Trainers and new exploit
-families stay out unless they are a wrapper, pack, or probe.
+NetForge provides an empirical testbed for investigating fundamental open problems in adversarial machine learning and automated cyber defense.
 
-- Belief vs oracle (SOC view vs true compromise)
-- Defense under SLA / false-positive cost
-- Reward that does not isolate the whole net
-- Offline logs → online fine-tune
-- Adaptive Red, leagues
-- Event time vs fixed ticks
-- LLM vs RL on the same env
+## Open Research Questions
 
-Catalog: `netforge questions`. Issues: [RESEARCH.md](https://github.com/reforcemind/NetForge_RL/blob/main/RESEARCH.md).
-
-{doc}`product-direction` · {doc}`roadmap`
+- **Belief State Estimation**: Developing representation learning methods (e.g., recurrent models, graph neural networks) that infer hidden compromise maps from sparse, delayed SIEM event logs.
+- **Constrained & Safe Reinforcement Learning**: Formulating defensive objectives as constrained Markov Decision Processes (CMDPs) to guarantee service availability while containing intrusions.
+- **Population-Based & League Play**: Applying Policy-Space Response Oracles (PSRO) and fictitious play to discover robust defensive strategies resistant to diverse adversary tactics.
+- **Offline-to-Online Transfer**: Pretraining defensive policies on massive static log corpora (SIEM archives) followed by fast online adaptation.
+- **Multimodal Cyber Defense**: Jointly learning from graph topology, textual event logs, and packet-level network traffic.

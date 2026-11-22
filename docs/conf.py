@@ -93,6 +93,8 @@ exclude_patterns = [
 ]
 
 autodoc_mock_imports = [
+    'pettingzoo',
+    'gymnasium',
     'jax',
     'jaxlib',
     'ray',

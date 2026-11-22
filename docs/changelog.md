@@ -5,8 +5,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [4.0.0] — 2026-09-20
 
-Cybersecurity RL gym: PettingZoo / Gymnasium ids, SIEM belief graphs, eval CLI.
-Not on PyPI.
+Cybersecurity reinforcement learning environment with PettingZoo and Gymnasium interfaces, SIEM belief graphs, and standardized evaluation CLI.
 
 ### Added
 - **NetForge Arena 2026**: frozen train/dev/hidden splits, competition metrics

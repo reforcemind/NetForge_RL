@@ -1,19 +1,10 @@
-# Scope
+# Scope & Philosophy
 
-A gym for training cyber-defense agents. Grow packs, metrics, and wrappers —
-not host-type count and not a bundled MAPPO.
+NetForge is focused on solving a specific, critical bottleneck in cybersecurity reinforcement learning: providing defenders with realistic information constraints and operational metrics.
 
-```{image} _static/figures/status.svg
-:alt: What ships in the gym
-:class: fe-fig
-```
+## Core Principles
 
-| In this repo | Bring your own |
-|---|---|
-| Network, SIEM, Red/Blue actions | MAPPO / QMIX / GNN trainers |
-| Belief graphs from logs | Privileged Blue graphs at train time |
-| YAML packs | Weekly ATT&CK dumps |
-| Heuristic / kill-chain baselines | Production SOC connectors |
-
-Sister docs kit: [FlowEdge](https://github.com/reforcemind/FlowEdge).
-{doc}`questions` · {doc}`arena`
+1. **Defenders Observe Telemetry, Not Oracles**: In real-world security operations, defenders do not possess global knowledge of attacker positions. Training defenders on raw compromise maps teaches unrealistic policies that fail when deployed against real telemetry.
+2. **Defenders Must Respect Availability**: A defender that "wins" by immediately disconnecting every server on the network destroys business operations. Availability (SLA) and false-positive rates must constrain containment actions.
+3. **Actions Take Time**: Network scans, remote exploits, and defensive patching operate across time. Durative actions with preemption windows reflect real operational timing.
+4. **Clean Boundaries**: NetForge provides the environment, benchmarks, and evaluation contracts. Algorithms (PPO, QMIX, GNNs) and proprietary threat data remain external.

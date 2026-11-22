@@ -1,12 +1,11 @@
 # Baselines
 
-In-tree: `random`, `heuristic-blue`, `heuristic-red`, `killchain-red`,
-JAX IPPO (`netforge_rl.baselines.jax_ppo`).
+NetForge includes ready-to-run reference baselines for both defensive (Blue) and offensive (Red) roles:
 
-Your MAPPO / GNN / QMIX / LLM: train outside, evaluate here.
+- **`RandomPolicy`**: Samples uniformly from valid masked actions.
+- **`HeuristicBluePolicy`**: Rule-based SOC defender prioritizing alerts by severity.
+- **`HeuristicRedPolicy`**: Opportunistic uncoordinated attacker.
+- **`KillChainRedPolicy`**: Multi-stage adversary executing reconnaissance, exploitation, and lateral movement.
+- **`jax_ppo`**: Vectorized on-device IPPO policy trained on simulated telemetry.
 
-```bash
-netforge benchmark --table --split dev --seeds 0 1 --max-ticks 40
-```
-
-Configs: `benchmarks/configs/`. Same split, seeds, and `max_ticks` when you compare runs.
+For detailed benchmarks, training scripts, and evaluation tables, see [Benchmarks: Baselines](benchmarks/baselines.md).
